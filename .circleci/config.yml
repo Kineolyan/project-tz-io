@@ -1,0 +1,69 @@
+# Java Gradle CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-java/ for more details
+#
+version: 2
+jobs:
+  build-core:
+    docker:
+      # specify the version you desire here
+      - image: circleci/openjdk:9-jdk-browsers
+
+    working_directory: ~/repo
+
+    environment:
+      # Customize the JVM maximum heap limit
+      JVM_OPTS: -Xmx3200m
+      TERM: bash
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "tzio-core/build.gradle" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      - run:
+          command: gradle dependencies
+          working_directory: ~/repo/tzio-core
+          environment:
+            TERM: dumb
+
+      - save_cache:
+          key: v1-dependencies-{{ checksum "tzio-core/build.gradle" }}
+          paths:
+            - ~/repo/tzio-core/.gradle
+
+      # run tests!
+      - run:
+          command: gradle test
+          working_directory: ~/repo/tzio-core
+          environment:
+            TERM: dumb
+
+  build-rs-parser:
+    machine:
+      services:
+        - docker
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - run:
+          # Internet command
+          # command: docker run -it --rm -v ~/repo/rs-parser:/source -w /source scorpil/rust:1.18 cargo test
+          # Official command
+          command: docker run --rm --user "$(id -u)":"$(id -g)" -v ~/repo:/source -w /source/rs-parser rust:1.26.1 cargo test
+
+workflows:
+  version: 2
+
+  build_all:
+    jobs:
+      - build-core
+      - build-rs-parser

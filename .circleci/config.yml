@@ -7,7 +7,7 @@ jobs:
   build-core:
     docker:
       # specify the version you desire here
-      - image: circleci/openjdk:9-jdk-browsers
+      - image: circleci/openjdk:9-jdk
 
     working_directory: ~/repo
 
@@ -45,9 +45,9 @@ jobs:
             TERM: dumb
 
   build-rs-parser:
-    machine:
-      services:
-        - docker
+    docker:
+      # specify the version you desire here
+      - image: circleci/rust:1.26.1-stretch
 
     working_directory: ~/repo
 
@@ -55,10 +55,8 @@ jobs:
       - checkout
 
       - run:
-          # Internet command
-          # command: docker run -it --rm -v ~/repo/rs-parser:/source -w /source scorpil/rust:1.18 cargo test
-          # Official command
-          command: docker run --rm --user "$(id -u)":"$(id -g)" -v ~/repo:/source -w /source/rs-parser rust:1.26.1 cargo test
+          command: cargo test
+          working_directory: ~/repo/rs-parser
 
 workflows:
   version: 2

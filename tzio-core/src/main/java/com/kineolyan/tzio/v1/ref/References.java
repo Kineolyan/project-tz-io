@@ -23,4 +23,12 @@ public class References {
 		return ValueReference.of(value);
 	}
 
+	public static InputReference inNil() {
+		return NilReference.INSTANCE;
+	}
+
+	public static OutputReference outNil() {
+		return NilReference.INSTANCE;
+	}
+
 }

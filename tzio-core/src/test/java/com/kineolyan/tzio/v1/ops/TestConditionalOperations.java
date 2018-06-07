@@ -109,6 +109,12 @@ class TestConditionalOperations {
 	}
 
 	@Test
+	void testJroOperationFromNil() {
+		final Operation.Shift shift = Operations.JRO(References.inNil()).execute(this.node);
+		assertThat(shift).isEqualTo(Operation.Shift.STAY);
+	}
+
+	@Test
 	void testJroOperationFromInput() {
 		final DataSlot inputSlot = OperationTestUtil.getInput(this.node, 2);
 		inputSlot.write(42);

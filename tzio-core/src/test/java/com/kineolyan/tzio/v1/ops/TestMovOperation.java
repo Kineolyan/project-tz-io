@@ -92,4 +92,33 @@ class TestMovOperation {
 		assertThat(outputSlot.getValue()).isEqualTo(53);
 	}
 
+	@Test
+	void testMovFromNil() {
+		this.node.setAccValue(753);
+
+		final Operation.Shift shift = Operations.MOV(
+				References.inNil(),
+				References.acc())
+			.execute(this.node);
+		assertThat(shift).isEqualTo(Operation.Shift.NEXT);
+
+		assertThat(this.node.getAccValue()).isEqualTo(0);
+	}
+
+	@Test
+	void testMovToNil() {
+		final DataSlot inputSlot = OperationTestUtil.getInput(this.node, 1);
+		inputSlot.write(14);
+		inputSlot.onStepEnd();
+
+		final Operation.Shift shift = Operations.MOV(
+				References.inSlot(1),
+				References.outNil())
+			.execute(this.node);
+		assertThat(shift).isEqualTo(Operation.Shift.NEXT);
+		inputSlot.onStepEnd();
+
+		assertThat(inputSlot.canRead()).isFalse();
+	}
+
 }

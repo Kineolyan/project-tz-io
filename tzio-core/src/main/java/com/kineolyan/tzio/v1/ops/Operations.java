@@ -58,8 +58,8 @@ public class Operations {
 		return ConditionalOperation.jgz(label);
 	}
 
-	public static Operation JRO() {
-		return JroOperation.INSTANCE;
+	public static Operation JRO(final InputReference input) {
+		return new JroOperation(input);
 	}
 
 }

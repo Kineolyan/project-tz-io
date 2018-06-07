@@ -31,6 +31,14 @@ public class OperationTestUtil {
 		return new ShiftAssert(shift);
 	}
 
+	static <T extends InputSlot> T getInput(final Node node, final int index) {
+		return (T) node.getInput(index - 1);
+	}
+
+	static <T extends OutputSlot> T getOutput(final Node node, final int index) {
+		return (T) node.getOutput(index - 1);
+	}
+
 	static class ShiftAssert extends AbstractAssert<ShiftAssert, Operation.Shift> {
 
 		public ShiftAssert(final Operation.Shift actual) {

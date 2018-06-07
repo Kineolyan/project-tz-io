@@ -5,6 +5,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.kineolyan.tzio.v1.Node;
+import com.kineolyan.tzio.v1.ref.References;
+import com.kineolyan.tzio.v1.slot.DataSlot;
 import org.assertj.core.error.ShouldBeInSameDay;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
@@ -72,7 +74,7 @@ class TestConditionalOperations {
 	}
 
 	@TestFactory
-	Stream<DynamicTest> testJroOperation() {
+	Stream<DynamicTest> testJroOperationShifts() {
 		final int maxIndex = 10;
 		return Stream.of(
 				new int[] {0, 0, 0},
@@ -84,12 +86,38 @@ class TestConditionalOperations {
 		).map(config -> DynamicTest.dynamicTest(
 				String.format("test JRO on %d (%d -> %d)", config[0], config[1], config[2]),
 				() -> {
-					this.node.setAccValue(config[0]);
-					final Operation.Shift shift = Operations.JRO().execute(this.node);
+					final Operation.Shift shift = Operations.JRO(References.value(config[0])).execute(this.node);
 					final int nextOpIdx = shift.update(_l -> -1, config[1], maxIndex);
 					assertThat(nextOpIdx).isEqualTo(config[2]);
 				}
 		));
+	}
+
+	@Test
+	void testJroOperationFromAcc() {
+		this.node.setAccValue(13);
+		final Operation.Shift shift = Operations.JRO(References.acc()).execute(this.node);
+		final int nextOpIdx = shift.update(_l -> -1, 2, 100);
+		assertThat(nextOpIdx).isEqualTo(15);
+	}
+
+	@Test
+	void testJroOperationFromValue() {
+		final Operation.Shift shift = Operations.JRO(References.value(5)).execute(this.node);
+		final int nextOpIdx = shift.update(_l -> -1, 4, 10);
+		assertThat(nextOpIdx).isEqualTo(9);
+	}
+
+	@Test
+	void testJroOperationFromInput() {
+		final DataSlot inputSlot = OperationTestUtil.getInput(this.node, 2);
+		inputSlot.write(42);
+		inputSlot.onStepEnd();
+		assertThat(inputSlot.canRead()).isTrue();
+
+		final Operation.Shift shift = Operations.JRO(References.inSlot(2)).execute(this.node);
+		final int nextOpIdx = shift.update(_l -> -1, 4, 10);
+		assertThat(nextOpIdx).isEqualTo(6);
 	}
 
 	private static class Config {

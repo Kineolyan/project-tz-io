@@ -2,23 +2,34 @@ package com.kineolyan.tzio.v1.ops;
 
 import com.kineolyan.tzio.v1.Node;
 import com.kineolyan.tzio.v1.NodeExecution;
+import com.kineolyan.tzio.v1.ref.InputReference;
 
 import java.util.function.ToIntFunction;
 
 /**
- * Conditional operation offsetting to the "next" operation according to the value of the node.
+ * Conditional operation offsetting to the "next" operation according to the input value.
  */
 class JroOperation implements Operation {
 
-	/** Singleton instance of this operation */
-	public static JroOperation INSTANCE = new JroOperation();
+	/** Input to read for the shift increment */
+	private final InputReference input;
 
-	/** Hidden constructor */
-	private JroOperation() {}
+	/**
+	 * Constructor.
+	 * @param input input to read for the shift value.
+	 */
+	public JroOperation(final InputReference input) {
+		this.input = input;
+	}
 
 	@Override
 	public Shift execute(final Node node) {
-		return JroShift.create(node.getAccValue());
+		if (this.input.canRead(node)) {
+			final int value = this.input.readValue(node);
+			return JroShift.create(value);
+		} else {
+			return Shift.STAY;
+		}
 	}
 
 	/**

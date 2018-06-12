@@ -1,5 +1,25 @@
 #!/bin/bash
-readonly THIS_FILE=$(readlink -f ${BASH_SOURCE[0]})
+function resolve_file() {
+	local target_file=$1
+
+	cd `dirname $target_file`
+	target_file=`basename $target_file`
+
+	# Iterate down a (possible) chain of symlinks
+	while [ -L "$target_file" ]
+	do
+			target_file=`readlink $target_file`
+			cd `dirname $target_file`
+			target_file=`basename $target_file`
+	done
+
+	# Compute the canonicalized name by finding the physical path 
+	# for the directory we're in and appending the target file.
+	local readonly phys_dir=`pwd -P`
+	echo "$phys_dir/$target_file"
+}
+
+readonly THIS_FILE=$(resolve_file ${BASH_SOURCE[0]})
 readonly DIR=$(dirname "$THIS_FILE")
 
 readonly RUST_COMPILER=$DIR/rs-parser/target/debug/rs-parser
@@ -23,7 +43,9 @@ case $1 in
 	--rust)
 		compiler=$RUST_COMPILER
 		shift 1 ;;
-	'') compiler=$RUST_COMPILER ;;
+	*) compiler=$RUST_COMPILER ;;
 esac
 
-$compiler $1
+input_file=$1
+output_dir=$2
+$compiler $input_file $output_dir

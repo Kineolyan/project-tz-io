@@ -13,9 +13,11 @@ fn to<T: str::FromStr>(v: &RawData) -> Result<T, i8> {
 		.and_then(|i| i.parse::<T>().or(Err(-2)))
 
 }
+
 fn to_u8(v: &RawData) -> Result<u8, i8> {
 	to(v)
 }
+
 fn to_u32(v: &RawData) -> Result<u32, i8> {
 	to(v)
 }

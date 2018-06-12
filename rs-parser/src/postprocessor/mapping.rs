@@ -109,9 +109,7 @@ fn complete_output(node: &NodeBlock, dst_id: &String, from: u32, to: u32) -> Opt
 }
 
 pub fn complete_mappings(tree: ParsingTree) -> ParsingTree {
-  println!("{:?}", tree);
   let nodes = map_node_to_idx(&tree);
-  println!("nodes {:?}", nodes);
 
   let tree = complete_inputs(tree, &nodes);
   let tree = complete_outputs(tree, &nodes);

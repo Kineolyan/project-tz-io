@@ -1,0 +1,126 @@
+Classfile /Users/oliv/projects/project-tz-io/bytecode-samples/File.class
+  Last modified 29 mai 2018; size 670 bytes
+  MD5 checksum 1af669a9c06648292bc9771c81c2db46
+  Compiled from "File.java"
+public class File
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #14.#25        // java/lang/Object."<init>":()V
+   #2 = Class              #26            // File$Data
+   #3 = Methodref          #2.#27         // File$Data."<init>":(I)V
+   #4 = Integer            67890
+   #5 = Fieldref           #28.#29        // java/lang/System.out:Ljava/io/PrintStream;
+   #6 = Methodref          #30.#31        // java/util/Arrays.toString:([I)Ljava/lang/String;
+   #7 = Methodref          #32.#33        // java/io/PrintStream.println:(Ljava/lang/String;)V
+   #8 = Long               234l
+  #10 = Long               567890l
+  #12 = Methodref          #30.#34        // java/util/Arrays.toString:([J)Ljava/lang/String;
+  #13 = Class              #35            // File
+  #14 = Class              #36            // java/lang/Object
+  #15 = Utf8               Data
+  #16 = Utf8               InnerClasses
+  #17 = Utf8               <init>
+  #18 = Utf8               ()V
+  #19 = Utf8               Code
+  #20 = Utf8               LineNumberTable
+  #21 = Utf8               main
+  #22 = Utf8               ([Ljava/lang/String;)V
+  #23 = Utf8               SourceFile
+  #24 = Utf8               File.java
+  #25 = NameAndType        #17:#18        // "<init>":()V
+  #26 = Utf8               File$Data
+  #27 = NameAndType        #17:#37        // "<init>":(I)V
+  #28 = Class              #38            // java/lang/System
+  #29 = NameAndType        #39:#40        // out:Ljava/io/PrintStream;
+  #30 = Class              #41            // java/util/Arrays
+  #31 = NameAndType        #42:#43        // toString:([I)Ljava/lang/String;
+  #32 = Class              #44            // java/io/PrintStream
+  #33 = NameAndType        #45:#46        // println:(Ljava/lang/String;)V
+  #34 = NameAndType        #42:#47        // toString:([J)Ljava/lang/String;
+  #35 = Utf8               File
+  #36 = Utf8               java/lang/Object
+  #37 = Utf8               (I)V
+  #38 = Utf8               java/lang/System
+  #39 = Utf8               out
+  #40 = Utf8               Ljava/io/PrintStream;
+  #41 = Utf8               java/util/Arrays
+  #42 = Utf8               toString
+  #43 = Utf8               ([I)Ljava/lang/String;
+  #44 = Utf8               java/io/PrintStream
+  #45 = Utf8               println
+  #46 = Utf8               (Ljava/lang/String;)V
+  #47 = Utf8               ([J)Ljava/lang/String;
+{
+  public File();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+      LineNumberTable:
+        line 3: 0
+
+  public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=5, locals=4, args_size=1
+         0: new           #2                  // class File$Data
+         3: dup
+         4: bipush        12
+         6: invokespecial #3                  // Method File$Data."<init>":(I)V
+         9: astore_1
+        10: iconst_3
+        11: newarray       int
+        13: dup
+        14: iconst_0
+        15: bipush        123
+        17: iastore
+        18: dup
+        19: iconst_1
+        20: sipush        456
+        23: iastore
+        24: dup
+        25: iconst_2
+        26: ldc           #4                  // int 67890
+        28: iastore
+        29: astore_2
+        30: getstatic     #5                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        33: aload_2
+        34: invokestatic  #6                  // Method java/util/Arrays.toString:([I)Ljava/lang/String;
+        37: invokevirtual #7                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        40: iconst_3
+        41: newarray       long
+        43: dup
+        44: iconst_0
+        45: lconst_1
+        46: lastore
+        47: dup
+        48: iconst_1
+        49: ldc2_w        #8                  // long 234l
+        52: lastore
+        53: dup
+        54: iconst_2
+        55: ldc2_w        #10                 // long 567890l
+        58: lastore
+        59: astore_3
+        60: getstatic     #5                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        63: aload_3
+        64: invokestatic  #12                 // Method java/util/Arrays.toString:([J)Ljava/lang/String;
+        67: invokevirtual #7                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        70: return
+      LineNumberTable:
+        line 16: 0
+        line 18: 10
+        line 23: 30
+        line 25: 40
+        line 30: 60
+        line 31: 70
+}
+SourceFile: "File.java"
+InnerClasses:
+     public static #15= #2 of #13; //Data=class File$Data of class File

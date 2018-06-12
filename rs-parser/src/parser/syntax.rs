@@ -389,7 +389,6 @@ SWP
 ";
 
 		let res =  node_block(input);
-		println!("{:?}", res);
 		let (_, (_, res_inputs, res_outputs, _)) = res.unwrap();
 		assert_eq!(res_inputs, vec![]);
 		assert_eq!(res_outputs, vec![]);

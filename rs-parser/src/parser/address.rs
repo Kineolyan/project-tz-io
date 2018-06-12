@@ -1,4 +1,3 @@
-use std::str;
 use std::fmt;
 
 use nom::{space, is_alphanumeric};

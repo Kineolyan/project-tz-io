@@ -3,9 +3,7 @@ mod instruction;
 mod interface;
 mod io;
 
-use std::result::Result;
-
-use parser::ParsingResult;
+use parser::ParsingTree;
 
 pub struct CheckResult {
 	warnings: Vec<String>,
@@ -62,28 +60,21 @@ impl CheckResult {
 	}
 }
 
-pub fn check(parsing_tree: &ParsingResult) -> CheckResult {
+pub fn check(tree: &ParsingTree) -> CheckResult {
 	let mut checks = CheckResult::new();
-	match parsing_tree {
-		&Result::Ok(ref res) => {
-			// println!("{:?}", res);
-			if !mapping::check(res, &mut checks) {
-				checks.add_error(String::from(" -> Mapping errors ..."));
-			}
-			if !interface::check(res, &mut checks) {
-				checks.add_error(String::from(" -> Node interface errors ..."));
-			}
-			if !instruction::check(res, &mut checks) {
-				checks.add_error(String::from(" -> Instruction errors ..."));
-			}
-			if !io::check(res, &mut checks) {
-				checks.add_error(String::from(" -> IOs errors ..."));
-			}
-		},
-		&Result::Err(ref e) => checks.add_error(
-			format!("Parsing failure: {:?}", e))
-	};
-
+	// println!("{:?}", res);
+	if !mapping::check(tree, &mut checks) {
+		checks.add_error(String::from(" -> Mapping errors ..."));
+	}
+	if !interface::check(tree, &mut checks) {
+		checks.add_error(String::from(" -> Node interface errors ..."));
+	}
+	if !instruction::check(tree, &mut checks) {
+		checks.add_error(String::from(" -> Instruction errors ..."));
+	}
+	if !io::check(tree, &mut checks) {
+		checks.add_error(String::from(" -> IOs errors ..."));
+	}
 	checks
 }
 
@@ -144,16 +135,9 @@ mod tests {
 				Operation::MOV(ValuePointer::PORT(2), ValuePointer::PORT(2))
 			]
     );
-    let tree = Result::Ok(vec![src, dst]);
+    let tree = vec![src, dst];
     let result = check(&tree);
     assert_eq!(result.has_errors(), false);
-	}
-
-	#[test]
-	fn test_complete_stack_with_error() {
-		let tree = Result::Err(());
-		let result = check(&tree);
-		assert_eq!(result.has_errors(), true);
 	}
 
 	#[test]

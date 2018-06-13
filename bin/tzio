@@ -27,12 +27,14 @@ readonly RUST_COMPILER=$DIR/rs-parser/target/debug/rs-parser
 function print_help() {
 	cat <<HELP
 Usage:
-	tzio [--rust|--clj] <filename>
+	$(basename $0) <command>
+
+Commands:
+  build: Builds a TZ IO program
+  run: Runs a compiled TZ IO program
 
 Options:
 	-h, --help: Prints this help message
-	--rust: Use the rust compiler
-	--clj: Use the Clojure compiler
 HELP
 	exit 0
 }
@@ -40,12 +42,10 @@ HELP
 compiler=
 case $1 in
 	-h|--help) print_help ;;
-	--rust)
-		compiler=$RUST_COMPILER
-		shift 1 ;;
-	*) compiler=$RUST_COMPILER ;;
+  build) shift
+    $DIR/tzio-build $@ ;;
+  run) shift
+    $DIR/tzio-run $@ ;;
+  *) echo -e "\e[31mUnknown command $1\e[0m"
+    exit 1 ;;
 esac
-
-input_file=$1
-output_dir=$2
-$compiler $input_file $output_dir

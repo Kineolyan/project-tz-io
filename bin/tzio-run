@@ -1,0 +1,114 @@
+#!/bin/bash
+function resolve_file() {
+	local target_file=$1
+
+	cd `dirname $target_file`
+	target_file=`basename $target_file`
+
+	# Iterate down a (possible) chain of symlinks
+	while [ -L "$target_file" ]
+	do
+			target_file=`readlink $target_file`
+			cd `dirname $target_file`
+			target_file=`basename $target_file`
+	done
+
+	# Compute the canonicalized name by finding the physical path 
+	# for the directory we're in and appending the target file.
+	local readonly phys_dir=`pwd -P`
+	echo "$phys_dir/$target_file"
+}
+
+readonly THIS_FILE=$(resolve_file ${BASH_SOURCE[0]})
+readonly DIR=$(dirname $(dirname "$THIS_FILE"))
+
+readonly RUST_COMPILER=$DIR/rs-parser/target/debug/rs-parser
+
+function print_help() {
+	cat <<HELP
+Usage:
+	$(basename $0) [--java] <filename>
+
+Options:
+  -h, --help: Prints this help message
+  -l <lang>, --lang <lang>: Choose the platform running the program
+  --java: Shortcut for --lang=java
+HELP
+	exit 0
+}
+
+function run_java() {
+  readonly local main_file=$1
+  readonly local jar_lib=$DIR/tzio-core/build/libs/tzio-core-1.0-SNAPSHOT.jar
+
+  # Check that the jar exist
+  if [ ! -f "$jar_lib" ]
+  then
+    echo -e "\e[31mJava library does not exit.\e[0m You may need to compile it"
+    exit 2
+  fi
+  if [ ! -f "$main_file" ]
+  then
+    echo -e "\e[31mThe file '$main_file' does not exist\e[0m"
+    exit 3
+  fi
+
+  local file_dir=$(dirname $main_file)
+  readonly local class_name="com.kineolyan.tzio.$(basename $file_dir).Main"
+  while [[ "$(basename $file_dir)" != "tzio" ]]
+  do
+    local previous=$file_dir
+    file_dir=$(dirname $file_dir)
+    if [[ "$previous" == "$file_dir" ]]
+    then
+      echo -e "\e[31mCannot understand the directory structure of $main_file\e[0m"
+      echo "Expecting a path containing '<...>/com/kineolyan/tzio/<...>'"
+      exit 5
+    fi
+  done
+  # Just check that the previous value are com.kineolyan
+  file_dir=$(dirname $file_dir)
+  if [[ "$(basename $file_dir)" != "kineolyan" ]]
+  then
+    echo -e "\e[31mIncorrect path to the file.\e[0m"
+    echo "Expecting '<...>/com/kineolyan/<...>' but got $file_dir from $main_file"
+    exit 4
+  fi
+  file_dir=$(dirname $file_dir)
+  if [[ "$(basename $file_dir)" != "com" ]]
+  then
+    echo -e "\e[31mIncorrect path to the file.\e[0m"
+    echo "Expecting '<...>/com/<...>' but got $file_dir from $main_file"
+    exit 4
+  fi
+  file_dir=$(dirname $file_dir)
+
+  java -cp "$jar_lib:$file_dir" "$class_name"
+}
+
+language=
+args=
+while true
+do
+  arg="$1"
+  shift 1
+  case $arg in
+    # environment
+    -h|--help) print_help ;;
+    -l|--lang)
+      language="$1"
+      shift 1 ;;
+    --java)
+      language='java' ;;
+    # end of loop and errors
+    --|'') break ;;
+    *) args="$args $arg" ;;
+  esac
+done
+
+case $language in
+  java) run_java $args ;;
+  *) 
+    echo -e "\e[31mUnknown language $language\e[0m" 
+    exit 1 ;;
+esac

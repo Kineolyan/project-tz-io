@@ -7,6 +7,9 @@ use std::fs;
 fn prepare_output<'a>(filename: &'a str, target_dir: &'a str) -> Result<PathBuf, String> {
 	let base_name = Path::new(filename).file_stem().unwrap();
 	let mut output_dir_buffer = PathBuf::from(target_dir);
+  output_dir_buffer.push("com");
+  output_dir_buffer.push("kineolyan");
+  output_dir_buffer.push("tzio");
   output_dir_buffer.push(base_name);
   let mut result: Result<(), String> = Ok(());
   { 

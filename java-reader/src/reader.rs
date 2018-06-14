@@ -1,6 +1,7 @@
 use std::io;
 use std::io::{BufReader, Read, Error, ErrorKind};
 use std::fs::File;
+use std::mem::transmute;
 
 pub type ReadResult = io::Result<()>;
 
@@ -11,6 +12,8 @@ pub trait Reader {
   fn read_2u(&mut self) -> io::Result<&[u8]>;
 
 	fn read_4u(&mut self) -> io::Result<&[u8]>;
+
+	fn read_8u(&mut self) -> io::Result<&[u8]>;
 
 	fn read(&mut self, buffer: &mut [u8]) -> ReadResult;
 
@@ -66,6 +69,11 @@ impl Reader for FileReader {
 	fn read_4u(&mut self) -> io::Result<&[u8]> {
 		self.buffer.read_exact(&mut self.data_buffer[0..4])?;
 		Ok(&self.data_buffer[0..4])
+	}
+
+	fn read_8u(&mut self) -> io::Result<&[u8]> {
+		self.buffer.read_exact(&mut self.data_buffer[0..8])?;
+		Ok(&self.data_buffer[0..8])
 	}
 
 	fn read(&mut self, buffer: &mut [u8]) -> ReadResult {
@@ -124,6 +132,10 @@ impl <'a> Reader for ByteReader<'a> {
 		self.get_slice(4)
 	}
 
+	fn read_8u(&mut self) -> io::Result<&[u8]> {
+		self.get_slice(8)
+	}
+
 	fn read(&mut self, buffer: &mut [u8]) -> ReadResult {
     let content = self.get_slice(buffer.len())?;
 		buffer.clone_from_slice(content);
@@ -145,6 +157,47 @@ pub fn to_u32(bytes: &[u8]) -> u32 {
 	  | ((bytes[1] as u32) << 16) 
 	  | ((bytes[2] as u32) << 8) 
     | (bytes[3] as u32)
+}
+
+pub fn to_u64(bytes: &[u8]) -> u64 {
+	((bytes[0] as u64) << 56) 
+	  | ((bytes[1] as u64) << 48) 
+	  | ((bytes[2] as u64) << 40) 
+    | ((bytes[3] as u64) << 32)
+	  | ((bytes[4] as u64) << 24) 
+	  | ((bytes[5] as u64) << 16) 
+	  | ((bytes[6] as u64) << 8) 
+    | (bytes[7] as u64)
+}
+
+pub fn to_i32(bytes: &[u8]) -> i32 {
+  // let b: [u8; 4] = [
+  //   bytes[0],
+  //   bytes[1],
+  //   bytes[2],
+  //   bytes[3]
+  // ];
+  // unsafe { 
+  //   transmute::<[u8; 4], i32>(b) 
+  // }
+  to_u32(bytes) as i32
+}
+
+pub fn to_i64(bytes: &[u8]) -> i64 {
+  // let b: [u8; 8] = [
+  //   bytes[0],
+  //   bytes[1],
+  //   bytes[2],
+  //   bytes[3],
+  //   bytes[4],
+  //   bytes[5],
+  //   bytes[6],
+  //   bytes[7]
+  // ];
+  // unsafe { 
+  //   transmute::<[u8; 8], i64>(b) 
+  // }
+  to_u64(bytes) as i64
 }
 
 macro_rules! read_u8 {
@@ -179,6 +232,30 @@ macro_rules! read_u32 {
       print_bytes($indent, bytes);
 
       $result = to_u32(bytes);
+    }
+	};
+}
+
+macro_rules! read_i32 {
+	($result: ident, $reader: tt, $indent:expr) => {
+		let $result: i32;
+    {
+      let bytes = $reader.read_4u()?;
+      print_bytes($indent, bytes);
+
+      $result = to_i32(bytes);
+    }
+	};
+}
+
+macro_rules! read_i64 {
+	($result: ident, $reader: tt, $indent:expr) => {
+		let $result: i64;
+    {
+      let bytes = $reader.read_8u()?;
+      print_bytes($indent, bytes);
+
+      $result = to_i64(bytes);
     }
 	};
 }

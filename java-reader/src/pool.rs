@@ -126,7 +126,7 @@ pub fn read_class_pool(reader: &mut Reader) -> io::Result<PoolList> {
 
 	let mut entries = vec![None];
   let mut i = 1;
-	while i <= count {
+	while i < count {
     let entry = read_entry(reader, &mut i)?;
     entries.push(Some(entry));
 	}

@@ -23,7 +23,7 @@ fn read_field_name(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResu
 			"Field name not in the constant pool at {}",
 			name_idx));
 
-	println!("Method '{}'", method_name);
+	println!("Field '{}'", method_name);
 
 	Ok(())
 }
@@ -32,7 +32,7 @@ fn read_descriptor(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResu
 	read_u16!(descriptor_idx, reader, indent);
 	let method_name = resolve_utf8_value(pool, descriptor_idx as usize)
 		.expect(&format!(
-			"Method descriptor not in the constant pool at {}",
+			"Field descriptor not in the constant pool at {}",
 			descriptor_idx));
 
 	println!("Descriptor '{}'", method_name);

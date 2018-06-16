@@ -3,7 +3,7 @@ use reader::{Reader, to_u16, to_i32, to_i64};
 use printer::print_bytes;
 use std::str::from_utf8;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PoolElement {
   Utf8Value(String),
   ClassInfo(usize),
@@ -124,11 +124,12 @@ pub fn read_class_pool(reader: &mut Reader) -> io::Result<PoolList> {
   read_u16!(count, reader, 0);
   println!("constant pool size = {}", count);
 
-	let mut entries = vec![None];
+	let mut entries = vec![None; count as usize];
   let mut i = 1;
 	while i < count {
+    let idx = i as usize;
     let entry = read_entry(reader, &mut i)?;
-    entries.push(Some(entry));
+    entries[idx] = Some(entry);
 	}
 
 	Ok(entries)

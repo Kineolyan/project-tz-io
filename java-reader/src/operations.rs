@@ -101,7 +101,7 @@ fn read_put_field(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResul
   read_u16!(field_idx, reader, indent + 1);
   let (ref class_name, ref field_name, ref descriptor) = resolve_field_name(pool, field_idx as usize)
     .expect(&format!("No field reference in pool at {}", field_idx));
-  println!("Put field #{} = {}.{}:{}", field_idx, class_name, field_name, descriptor);
+  println!("Put field #{} -> {}.{}:{}", field_idx, class_name, field_name, descriptor);
   Ok(())
 }
 
@@ -112,7 +112,7 @@ macro_rules! read_invoke {
       read_u16!(method_idx, reader, indent + 1);
       let (ref class_name, ref method_name, ref descriptor) = resolve_method_name(pool, method_idx as usize)
         .expect(&format!("No method reference in pool at {}", method_idx));
-      println!("Invoke #{} = {}.{}:{}", method_idx, class_name, method_name, descriptor);
+      println!("Invoke #{} -> {}.{}:{}", method_idx, class_name, method_name, descriptor);
       Ok(())
     }
   };

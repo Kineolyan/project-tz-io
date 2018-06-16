@@ -9,7 +9,7 @@ pub fn print_bytes(indent: u8, bytes: &[u8]) {
 	for b in bytes {
 		match *b {
 			// Small fix as it is not possible to put trailing 0s in front of hexa
-			b @ 0 ... 16 => print!("0{:X} ", b),
+			b @ 0 ... 15 => print!("0{:X} ", b),
 			_ => print!("{:X} ", b)
 		}
 	}

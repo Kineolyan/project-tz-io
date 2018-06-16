@@ -6,11 +6,9 @@ use printer::print_bytes;
 use reader::{Reader, ReadResult, to_u16};
 
 pub fn read_class_access(reader: &mut Reader, indent: u8) -> ReadResult {
-	let bytes = reader.read_2u()?;
-	let flag_value = to_u16(bytes);
+	read_u16!(flag_value, reader, indent);
 	let flags = to_class_access(flag_value);
 
-	print_bytes(indent, bytes);
 	print!("Flags:");
 	for flag in &flags {
 		print!(" {}", flag);
@@ -20,17 +18,13 @@ pub fn read_class_access(reader: &mut Reader, indent: u8) -> ReadResult {
 	Ok(())
 }
 
-fn read_class_name<'a>(reader: &'a mut Reader, pool: &'a PoolList) -> io::Result<(&'a [u8], Option<&'a str>)> {
-	let bytes = reader.read_2u()?;
-	let index = to_u16(bytes);
-	let class_name = resolve_utf8_value(pool, index as usize);
-
-	Ok((bytes, class_name))
+fn read_class_name<'a>(reader: &'a mut Reader, pool: &'a PoolList, indent: u8) -> io::Result<Option<&'a str>> {
+	read_u16!(index, reader, indent);
+	Ok(resolve_utf8_value(pool, index as usize))
 }
 
 fn read_class(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResult {
-	let (bytes, class_name) = read_class_name(reader, pool)?;
-	print_bytes(indent, bytes);
+	let class_name = read_class_name(reader, pool, indent)?;
 	println!(
 		"Class '{}'",
 		class_name.expect("Class name is not present in the constant pool"));
@@ -39,8 +33,7 @@ fn read_class(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResult {
 }
 
 fn read_super_class(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResult {
-	let (bytes, class_name) = read_class_name(reader, pool)?;
-	print_bytes(indent, bytes);
+	let class_name = read_class_name(reader, pool, indent)?;
 	println!(
 		"Super class '{}'",
 		class_name.expect("Super name is not present in the constant pool"));
@@ -58,8 +51,7 @@ fn read_interfaces(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResu
 	}
 
 	for _i in 0..interface_count {
-		let (bytes, class_name) = read_class_name(reader, pool)?;
-		print_bytes(indent + 1, bytes);
+		let class_name = read_class_name(reader, pool, indent + 1)?;
 		println!(
 			"Interface '{}'",
 			class_name.expect("Interface name is not present in the constant pool"));

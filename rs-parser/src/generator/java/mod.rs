@@ -434,7 +434,8 @@ fn create_node_definition_method(
     constructs::Operation::aload(1), // input array
     constructs::Operation::aload(2), // output array
     constructs::Operation::aload(3), // operation array
-    constructs::Operation::invokevirtual(add_node_idx)
+    constructs::Operation::invokevirtual(add_node_idx),
+    constructs::Operation::return_void
   ];
 
   let access: u16 = 
@@ -444,16 +445,18 @@ fn create_node_definition_method(
   let mut method_name = String::from("createNode");
   method_name.push_str(&(i as u32).to_string());
 
-  class.create_method(
-    access,
-    &method_name,
-    signature,
-    vec![
+  let method_code = constructs::merge_codes(vec![
       create_input_array,
       create_output_array,
       create_op_array,
       constructs::Attribute::Code(6, call_to_add_node)
-    ])
+    ]);
+
+  class.create_method(
+    access,
+    &method_name,
+    signature,
+    vec![method_code])
 }
 
 fn create_constructor(
@@ -485,20 +488,24 @@ fn create_constructor(
     create_nodes_op.push(constructs::Operation::invokespecial(*idx));
   }
 
+  create_nodes_op.push(constructs::Operation::return_void);
+
   let access: u16 = 
     (constants::MethodAccess::FINAL as u16) |
     (constants::MethodAccess::PUBLIC as u16);
+
+  let method_code = constructs::merge_codes(vec![
+    create_input_array_op,
+    create_output_array_op,
+    constructs::Attribute::Code(5, with_slots_op),
+    constructs::Attribute::Code(1, create_nodes_op)
+  ]);
 
   class.create_method(
     access,
     &"<init>",
     signature,
-    vec![
-      create_input_array_op,
-      create_output_array_op,
-      constructs::Attribute::Code(5, with_slots_op),
-      constructs::Attribute::Code(1, create_nodes_op)
-    ])
+    vec![method_code])
 }
 
 fn create_main(class: &mut class::JavaClass) -> class::PoolIdx {
@@ -516,7 +523,8 @@ fn create_main(class: &mut class::JavaClass) -> class::PoolIdx {
     constructs::Operation::new(this_class_idx),
     // Call 'runFromSystem' with main parameter array
     constructs::Operation::aload(0),
-    constructs::Operation::invokevirtual(run_from_idx)
+    constructs::Operation::invokevirtual(run_from_idx),
+    constructs::Operation::return_void
   ];
 
   let access: u16 = 

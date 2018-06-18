@@ -67,7 +67,8 @@ pub enum Operation {
   invokestatic(u16),
   ldc(u16),
   new(u16),
-  newarray(ArrayType)
+  newarray(ArrayType),
+  return_void
 }
 
 #[derive(Debug)]
@@ -87,4 +88,23 @@ pub struct Method {
   pub name_index: u16,
   pub descriptor_index: u16,
   pub attributes: Vec<(u16, Attribute)>
+}
+
+pub fn merge_codes(codes: Vec<Attribute>) -> Attribute {
+  let codes = mut codes;
+  codes.drain(0..)
+    .fold(
+      Attribute::Code(0, vec![]),
+      |r, e| { 
+      let Attribute::Code(max, ref mut ops) = e;
+      let Attribute::Code(ref mut result_max, ref mut result_ops) = r;
+      
+      *result_max += max;
+
+      while let Some(o) = ops.pop() {
+        result_ops.push(o);
+      }
+
+      r
+    })
 }

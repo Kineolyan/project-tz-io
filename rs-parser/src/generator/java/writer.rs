@@ -262,6 +262,9 @@ fn write_operation(writer: &mut Writer, operation: &Operation) -> StdResult {
     &Operation::newarray(ref array_type) => {
       write_u8(writer, 188)?;
       write_u8(writer, array_type.clone() as u8)
+    },
+    &Operation::return_void => {
+      write_u8(writer, 177)
     }
   }
 }

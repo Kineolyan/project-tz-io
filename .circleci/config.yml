@@ -47,7 +47,7 @@ jobs:
   build-rs-parser:
     docker:
       # specify the version you desire here
-      - image: circleci/rust:1.26.1-stretch
+      - image: circleci/rust:1.26.2-stretch
 
     working_directory: ~/repo
 
@@ -61,7 +61,7 @@ jobs:
   build-java-reader:
     docker:
       # specify the version you desire here
-      - image: circleci/rust:1.26.1-stretch
+      - image: circleci/rust:1.26.2-stretch
 
     working_directory: ~/repo
 

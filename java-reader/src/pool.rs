@@ -9,6 +9,7 @@ pub enum PoolElement {
   ClassInfo(usize),
   Integer(i32),
   Long(i64),
+  String(usize),
   NameAndType(usize, usize),
   FieldRef {class_idx: usize, name_and_type_idx: usize },
   MethodRef {class_idx: usize, name_and_type_idx: usize }
@@ -44,6 +45,11 @@ fn read_integer(reader: &mut Reader, indent: u8) -> io::Result<PoolElement> {
 fn read_long(reader: &mut Reader, indent: u8) -> io::Result<PoolElement> {
   read_i64!(value, reader, indent);
   Ok(PoolElement::Long(value))
+}
+
+fn read_string(reader: &mut Reader, indent: u8) -> io::Result<PoolElement> {
+  read_u16!(idx, reader, indent);
+  Ok(PoolElement::String(idx as usize))
 }
 
 fn read_name_and_type(reader: &mut Reader, indent: u8) -> io::Result<PoolElement> {
@@ -100,6 +106,10 @@ fn read_entry(reader: &mut Reader, index: &mut u16) -> io::Result<PoolElement> {
     7 => {
       println!("Class info");
       read_class_info(reader, indent)?
+    },
+    8 => {
+      println!("String constant");
+      read_string(reader, indent)?
     },
     9 => {
       println!("Field ref");

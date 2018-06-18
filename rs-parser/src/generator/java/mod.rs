@@ -463,11 +463,19 @@ fn create_constructor(
     class: &mut class::JavaClass, 
     definition_methods: &Vec<class::PoolIdx>,
     slots: &SlotStructure) -> class::PoolIdx {
-  let signature = constructs::Signature {
-    return_type: constants::Type::Void,
-    parameter_types: vec![]
-  };
-
+  let super_init_idx = class.map_method(
+    TZ_ENV_CLASS_NAME,
+    &"<init>",
+    &constructs::Signature {
+      return_type: constants::Type::Void,
+      parameter_types: vec![]
+    });
+  let obj_init_op = constructs::Attribute::Code(
+    1,
+    vec![
+      constructs::Operation::aload(0),
+      constructs::Operation::invokespecial(super_init_idx)
+    ]);
   let create_input_array_op = create_int_array(class, &slots.input_indexes, 1);
   let create_output_array_op = create_int_array(class, &slots.output_indexes, 2);
 
@@ -488,13 +496,18 @@ fn create_constructor(
     create_nodes_op.push(constructs::Operation::invokespecial(*idx));
   }
 
+  // Complete the function with a return
   create_nodes_op.push(constructs::Operation::return_void);
 
-  let access: u16 = 
-    (constants::MethodAccess::FINAL as u16) |
-    (constants::MethodAccess::PUBLIC as u16);
+  let this_signature = constructs::Signature {
+    return_type: constants::Type::Void,
+    parameter_types: vec![]
+  };
+
+  let access: u16 = constants::MethodAccess::PUBLIC as u16;
 
   let method_code = constructs::merge_codes(vec![
+    obj_init_op,
     create_input_array_op,
     create_output_array_op,
     constructs::Attribute::Code(5, with_slots_op),
@@ -504,7 +517,7 @@ fn create_constructor(
   class.create_method(
     access,
     &"<init>",
-    signature,
+    this_signature,
     vec![method_code])
 }
 

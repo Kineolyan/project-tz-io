@@ -90,19 +90,19 @@ pub struct Method {
   pub attributes: Vec<(u16, Attribute)>
 }
 
-pub fn merge_codes(codes: Vec<Attribute>) -> Attribute {
-  let codes = mut codes;
+pub fn merge_codes(mut codes: Vec<Attribute>) -> Attribute {
   codes.drain(0..)
     .fold(
       Attribute::Code(0, vec![]),
-      |r, e| { 
-      let Attribute::Code(max, ref mut ops) = e;
-      let Attribute::Code(ref mut result_max, ref mut result_ops) = r;
-      
-      *result_max += max;
+      |mut r, mut e| { 
+      {
+        let Attribute::Code(max, ref mut ops) = e;
+        let &mut Attribute::Code(ref mut result_max, ref mut result_ops) = &mut r;
+        *result_max += max;
 
-      while let Some(o) = ops.pop() {
-        result_ops.push(o);
+        while let Some(o) = ops.pop() {
+          result_ops.push(o);
+        }
       }
 
       r

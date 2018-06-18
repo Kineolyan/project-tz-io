@@ -6,7 +6,7 @@ pub struct Signature {
   pub parameter_types: Vec<Type>
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum Operation {
   /// Load a value from an array
@@ -71,7 +71,7 @@ pub enum Operation {
   return_void
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Attribute {
   /// Code attribute
   /// Structure
@@ -100,11 +100,63 @@ pub fn merge_codes(mut codes: Vec<Attribute>) -> Attribute {
         let &mut Attribute::Code(ref mut result_max, ref mut result_ops) = &mut r;
         *result_max += max;
 
-        while let Some(o) = ops.pop() {
-          result_ops.push(o);
-        }
+        ops.drain(0..).fold(
+          result_ops,
+          |o, e| {
+            o.push(e);
+            o
+          });
       }
 
       r
     })
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use generator::java::constants::ArrayType;
+
+  #[test]
+  fn test_merge_codes() {
+    let code1 = Attribute::Code(
+      2,
+      vec![
+        Operation::bipush(12),
+        Operation::dup
+      ]
+    );
+    let code2 = Attribute::Code(
+      3,
+      vec![
+        Operation::ldc(8),
+        Operation::newarray(ArrayType::BOOLEAN)
+      ]
+    );
+    let code3 = Attribute::Code(
+      4,
+      vec![
+        Operation::invokespecial(4),
+        Operation::invokestatic(5),
+        Operation::return_void
+      ]
+    );
+    let merged_code = merge_codes(vec![code1, code2, code3]);
+
+    assert_eq!(
+      merged_code,
+      Attribute::Code(
+        9,
+        vec![
+          Operation::bipush(12),
+          Operation::dup,
+          Operation::ldc(8),
+          Operation::newarray(ArrayType::BOOLEAN),
+          Operation::invokespecial(4),
+          Operation::invokestatic(5),
+          Operation::return_void
+        ]
+      ));
+  }
+
 }

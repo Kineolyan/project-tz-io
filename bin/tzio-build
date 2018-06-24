@@ -13,7 +13,7 @@ function resolve_file() {
 			target_file=`basename $target_file`
 	done
 
-	# Compute the canonicalized name by finding the physical path 
+	# Compute the canonicalized name by finding the physical path
 	# for the directory we're in and appending the target file.
 	local readonly phys_dir=`pwd -P`
 	echo "$phys_dir/$target_file"
@@ -27,7 +27,7 @@ readonly RUST_COMPILER=$DIR/rs-parser/target/debug/rs-parser
 function print_help() {
 	cat <<HELP
 Usage:
-	$(basename $0) [--rust|--clj] <filename>
+	$(basename $0) [--rust|--clj] <filename> <output_dir>
 
 Options:
 	-h, --help: Prints this help message

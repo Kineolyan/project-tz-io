@@ -10,7 +10,8 @@ use generator::java::class::{
 use generator::java::constants;
 use generator::java::constructs::{
   Attribute,
-  Operation
+  Operation,
+  count_local_vars
 };
 
 static MAGIC: [u8; 4] = [0xca_u8, 0xfe_u8, 0xba_u8, 0xbe_u8];
@@ -188,13 +189,8 @@ fn write_attribute(writer: &mut Writer, &(ref idx, ref attribute): &(u16, Attrib
 
       let mut attr_writer = VecWriter { data: Vec::new() };
       write_u16(&mut attr_writer, *max_stack)?;
-      let local_vars_count: u8 = operations.iter()
-        .map(|op| match op {
-          &Operation::aload(ref idx) => *idx,
-          &Operation::astore(ref idx) => *idx,
-          _ => 0u8
-        })
-        .max().unwrap_or(0u8);
+      // TODO the var count must consider the number of params in the function
+      let local_vars_count = count_local_vars(operations);
       write_u16(&mut attr_writer, local_vars_count as u16)?;
       write_u32(&mut attr_writer, op_writer.data.len() as u32)?;
       attr_writer.write(&op_writer.data[..])?;

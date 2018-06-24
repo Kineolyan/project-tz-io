@@ -15,21 +15,21 @@ pub enum Operation {
   // aastore,
 
   /// Loads a reference of a local variable into the stack
-  /// 
+  ///
   /// Structure
   /// ```
   ///  1. Index of the local variable
   /// ```
   aload(u8),
   /// Stores a reference into a local variable
-  /// 
+  ///
   /// Structure
   /// ```
   ///  1. Index of the local variable
   /// ```
   astore(u8),
   /// Pushes a byte into the operand stack
-  /// 
+  ///
   /// Structure
   /// ```
   ///  1. Value to push
@@ -42,24 +42,24 @@ pub enum Operation {
   /// Push the constant 1 to the operand stack
   iconst_1,
   /// Invoke an instance method.
-  /// 
+  ///
   /// Special handling is provided for superclass, private, and instance
   /// initialization method invocations
-  /// 
+  ///
   /// Structure
   /// ```
   ///  1. Index of the method info for the method to call
   /// ```
   invokespecial(u16),
   /// Invoke an instance method, dispatching the call to the appropriate class.
-  /// 
+  ///
   /// Structure
   /// ```
   ///  1. Index of the method info for the method to call
   /// ```
   invokevirtual(u16),
   /// Invoke a static method from a class
-  /// 
+  ///
   /// Structure
   /// ```
   ///  1. Index of the method info for the method to call
@@ -90,11 +90,21 @@ pub struct Method {
   pub attributes: Vec<(u16, Attribute)>
 }
 
+pub fn count_local_vars(operations: &Vec<Operation>) -> u8 {
+  operations.iter()
+    .map(|op| match op {
+      &Operation::aload(ref idx) => *idx + 1,
+      &Operation::astore(ref idx) => *idx + 1,
+      _ => 0u8
+    })
+    .max().unwrap_or(0u8)
+}
+
 pub fn merge_codes(mut codes: Vec<Attribute>) -> Attribute {
   codes.drain(0..)
     .fold(
       Attribute::Code(0, vec![]),
-      |mut r, mut e| { 
+      |mut r, mut e| {
       {
         let Attribute::Code(max, ref mut ops) = e;
         let &mut Attribute::Code(ref mut result_max, ref mut result_ops) = &mut r;
@@ -116,6 +126,46 @@ pub fn merge_codes(mut codes: Vec<Attribute>) -> Attribute {
 mod tests {
   use super::*;
   use generator::java::constants::ArrayType;
+
+  #[test]
+  fn test_count_local_vars_from_loads() {
+    let count = count_local_vars(&vec![
+      Operation::bipush(5),
+      Operation::aload(1),
+      Operation::aload(4),
+      Operation::dup,
+      Operation::aload(2),
+      Operation::ldc(52)
+    ]);
+    assert_eq!(count, 5);
+  }
+
+  #[test]
+  fn test_count_local_vars_from_stores() {
+    let count = count_local_vars(&vec![
+      Operation::iastore,
+      Operation::astore(10),
+      Operation::astore(3),
+      Operation::new(52),
+      Operation::astore(2)
+    ]);
+    assert_eq!(count, 11);
+  }
+
+  #[test]
+  fn test_count_local_vars() {
+    let count = count_local_vars(&vec![
+      Operation::aload(3),
+      Operation::astore(7)
+    ]);
+    assert_eq!(count, 8);
+  }
+
+  #[test]
+  fn test_empty_count_local_vars() {
+    let count = count_local_vars(&vec![]);
+    assert_eq!(count, 0);
+  }
 
   #[test]
   fn test_merge_codes() {

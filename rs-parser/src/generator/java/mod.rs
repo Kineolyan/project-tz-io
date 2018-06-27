@@ -390,8 +390,8 @@ pub fn create_main_file(
     definition_methods.push(pool_idx);
   }
 
-  create_constructor(&mut class, &definition_methods, &slots);
-  create_main(&mut class);
+  let init_idx = create_constructor(&mut class, &definition_methods, &slots);
+  create_main(&mut class, init_idx);
 
   let mut output_file = output_dir.clone();
   output_file.push("Main");
@@ -423,7 +423,7 @@ fn create_node_definition_method(
     parameter_types: vec![]
   };
   
-  let node_name = class.map_utf8_value(&node.0.get_id());
+  let node_name = class.map_string(&node.0.get_id());
   let create_input_array = create_int_array(class, &vec![0, 1], 1);
   let create_output_array = create_int_array(class, &vec![1, 2], 2);
   let create_op_array = create_operation_array(class, &node.3, 3);
@@ -521,7 +521,7 @@ fn create_constructor(
     vec![method_code])
 }
 
-fn create_main(class: &mut class::JavaClass) -> class::PoolIdx {
+fn create_main(class: &mut class::JavaClass, init_idx: class::PoolIdx) -> class::PoolIdx {
   let signature = constructs::Signature {
     return_type: constants::Type::Void,
     parameter_types: vec![
@@ -534,6 +534,9 @@ fn create_main(class: &mut class::JavaClass) -> class::PoolIdx {
   let operations = vec![
     // Create a new instance of this class
     constructs::Operation::new(this_class_idx),
+    // Init the new instance
+    constructs::Operation::dup,
+    constructs::Operation::invokespecial(init_idx),
     // Call 'runFromSystem' with main parameter array
     constructs::Operation::aload(0),
     constructs::Operation::invokevirtual(run_from_idx),

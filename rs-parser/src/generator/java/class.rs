@@ -125,12 +125,7 @@ impl JavaClass {
         .collect()
     });
 
-    let class_name = String::from(
-      self.get_class_name().expect("Class name not defined yet"));
-    self.map_method(
-      &class_name, 
-      method_name, 
-      &signature)
+    self.map_self_method(method_name, &signature)
   }
 
   fn map_name_and_type(
@@ -156,6 +151,18 @@ impl JavaClass {
     let nnt_idx = self.map_name_and_type(method_name, signature);
     let method_ref = PoolElement::MethodRef(class_idx, nnt_idx);
     self.class_pool.map(method_ref)
+  }
+
+  pub fn map_self_method(
+      &mut self,
+      method_name: &str,
+      signature: &Signature) -> PoolIdx {
+    let class_name = String::from(
+      self.get_class_name().expect("Class name not defined yet"));
+    self.map_method(
+      &class_name, 
+      method_name, 
+      &signature)
   }
 
   pub fn map_class(&mut self, classname: &str) -> PoolIdx {

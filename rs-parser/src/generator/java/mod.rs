@@ -557,16 +557,10 @@ fn create_main(class: &mut class::JavaClass, init_idx: class::PoolIdx) -> class:
 } 
 
 fn get_with_slots_idx(class: &mut class::JavaClass) -> class::PoolIdx {
-  let class_name: String;
-  {
-    class_name = class.get_class_name().expect("No class name set yet");
-  }
-
-  class.map_method(
-    TZ_ENV_CLASS_NAME,
+  class.map_self_method(
     &"withSlots", 
     &constructs::Signature {
-      return_type: constants::Type::Object(class_name),
+      return_type: constants::Type::Object(String::from(TZ_ENV_CLASS_NAME)),
       parameter_types: vec![
         constants::Type::Integer,
         constants::Type::PrimitiveArray(

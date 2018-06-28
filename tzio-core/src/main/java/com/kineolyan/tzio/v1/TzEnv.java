@@ -10,6 +10,7 @@ import com.kineolyan.tzio.v1.slot.OutputSlot;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -161,9 +162,22 @@ public class TzEnv {
 	 */
 	@SuppressWarnings("unchecked")
 	private static <T> T[] getSlots(final Object[] slots, final int[] indexes, final IntFunction<T[]> generator) {
-		return IntStream.of(indexes)
-			.mapToObj(i -> (T) slots[i])
-			.toArray(generator);
+		try {
+			return IntStream.of(indexes)
+				.mapToObj(i -> (T) slots[i])
+				.toArray(generator);
+		} catch (ArrayStoreException e) {
+			// The collected slots do not match the expected type. Add a nice message for debug
+			final StringBuilder message = new StringBuilder("Failed to collect the slots. Selected:");
+			final Set<Integer> idx = IntStream.of(indexes).boxed().collect(Collectors.toSet());
+			for (int i = 0; i < slots.length; i += 1) {
+				message.append("\n -")
+					.append(idx.contains(i) ? '>' : ' ')
+					.append(' ')
+					.append(slots[i]);
+			}
+			throw new RuntimeException(message.toString(), e);
+		}
 	}
 
 	/**

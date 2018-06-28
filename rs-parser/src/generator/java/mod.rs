@@ -26,9 +26,12 @@ const OUTPUT_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ref/OutputReference";
 const ACC_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ref/AccReference";
 
 type SlotIndex = HashMap<usize, Vec<u32>>;
+
 #[derive(Debug, PartialEq, Hash)]
 struct NodeSlot<'a>(&'a str, u32, &'a str, u32);
 impl <'a> Eq for NodeSlot<'a> {}
+
+#[derive(Debug)]
 struct SlotStructure {
   count: u32,
   node_inputs: SlotIndex,
@@ -158,6 +161,7 @@ fn create_slot_indexes(tree: &ParsingTree) -> SlotStructure {
   }
 
   s.count = slots.size() as u32;
+  println!("indexes {:?}", s);
   s
 }
 
@@ -388,7 +392,7 @@ pub fn create_main_file(
 
   let mut definition_methods: Vec<class::PoolIdx> = vec![];
   for (i, node) in tree.iter().enumerate() {
-    let pool_idx = create_node_definition_method(i, node, &mut class);
+    let pool_idx = create_node_definition_method(i, node, &mut class, &slots);
     definition_methods.push(pool_idx);
   }
 
@@ -405,7 +409,8 @@ pub fn create_main_file(
 fn create_node_definition_method(
     i: usize,
     node: &NodeBlock,
-    class: &mut class::JavaClass) -> class::PoolIdx {
+    class: &mut class::JavaClass,
+    slots: &SlotStructure) -> class::PoolIdx {
   let add_node_idx = class.map_method(
     &TZ_ENV_CLASS_NAME,
     "addNode",
@@ -426,8 +431,16 @@ fn create_node_definition_method(
   };
 
   let node_name = class.map_string(&node.0.get_id());
-  let create_input_array = create_int_array(class, &vec![0, 1], 1);
-  let create_output_array = create_int_array(class, &vec![1, 2], 2);
+  let create_input_array = create_int_array(
+    class, 
+    &slots.node_inputs.get(&i)
+      .expect(&format!("No inputs for node {}", i)), 
+    1);
+  let create_output_array = create_int_array(
+    class, 
+    &slots.node_outputs.get(&i)
+      .expect(&format!("No outputs for node {}", i)), 
+    2);
   let create_op_array = create_operation_array(class, &node.3, 3);
   let call_to_add_node = vec![
     constructs::Operation::aload(0),

@@ -14,6 +14,7 @@ use parser::address::Node;
 use parser::instruction::{Operation, MemoryPointer, ValuePointer};
 use generator::java::dictionary::Dictionary;
 
+const OBJECT_CLASS_NAME: &str = "java/lang/Object";
 const STRING_CLASS_NAME: &str = "java/lang/String";
 const TZ_ENV_CLASS_NAME: &str = "com/kineolyan/tzio/v1/TzEnv";
 const ARRAY_LIST_CLASS_NAME: &str = "java/util/ArrayList";
@@ -22,6 +23,7 @@ const OPERATION_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ops/Operation";
 const REFERENCES_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ref/References";
 const INPUT_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ref/InputReference";
 const OUTPUT_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ref/OutputReference";
+const ACC_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ref/AccReference";
 
 type SlotIndex = HashMap<usize, Vec<u32>>;
 #[derive(Debug, PartialEq, Hash)]
@@ -51,18 +53,18 @@ fn create_reference_instructions(
   match value_pointer {
     &ValuePointer::ACC => {
       let acc_method_idx = class.map_method(
-        REFERENCES_CLASS_NAME, 
-        "acc", 
+        REFERENCES_CLASS_NAME,
+        "acc",
         &constructs::Signature {
-          return_type: constants::Type::Object(String::from(INPUT_CLASS_NAME)),
+          return_type: constants::Type::Object(String::from(ACC_CLASS_NAME)),
           parameter_types: vec![]
         });
       instructions.push(constructs::Operation::invokestatic(acc_method_idx));
     },
     &ValuePointer::NIL => {
       let nil_method_idx = class.map_method(
-        REFERENCES_CLASS_NAME, 
-        "NIL", 
+        REFERENCES_CLASS_NAME,
+        "NIL",
         &constructs::Signature {
           return_type: constants::Type::Object(String::from(INPUT_CLASS_NAME)),
           parameter_types: vec![]
@@ -72,8 +74,8 @@ fn create_reference_instructions(
     &ValuePointer::VALUE(ref value) => {
       let cst_idx = class.map_integer(*value);
       let value_method_idx = class.map_method(
-        REFERENCES_CLASS_NAME, 
-        "value", 
+        REFERENCES_CLASS_NAME,
+        "value",
         &constructs::Signature {
           return_type: constants::Type::Object(String::from(INPUT_CLASS_NAME)),
           parameter_types: vec![
@@ -86,8 +88,8 @@ fn create_reference_instructions(
     &ValuePointer::PORT(ref id) => {
       let cst_idx = class.map_integer(*id);
       let value_method_idx = class.map_method(
-        REFERENCES_CLASS_NAME, 
-        if input { "inSlot" } else { "outSlot" }, 
+        REFERENCES_CLASS_NAME,
+        if input { "inSlot" } else { "outSlot" },
         &constructs::Signature {
           return_type: constants::Type::Object(
             String::from(
@@ -105,7 +107,7 @@ fn create_reference_instructions(
 fn create_slot_indexes(tree: &ParsingTree) -> SlotStructure {
   let mut s = SlotStructure {
     count: 0,
-    node_inputs: HashMap::new(), 
+    node_inputs: HashMap::new(),
     node_outputs: HashMap::new(),
     input_indexes: vec![],
     output_indexes: vec![]
@@ -161,7 +163,7 @@ fn create_slot_indexes(tree: &ParsingTree) -> SlotStructure {
 
 fn create_int_array(
     class: &mut class::JavaClass,
-    values: &Vec<u32>, 
+    values: &Vec<u32>,
     var_idx: u8) -> constructs::Attribute {
   let array_size = class.map_integer(values.len() as u32);
   let mut operations = vec![
@@ -185,13 +187,13 @@ fn create_int_array(
 
 fn create_operation_array(
     class: &mut class::JavaClass,
-    operations: &Vec<Operation>, 
+    operations: &Vec<Operation>,
     var_idx: u8) -> constructs::Attribute {
   // Create the array for the operations and store it as the var
   let arraylist_class_idx = class.map_class(ARRAY_LIST_CLASS_NAME);
   let list_cstr_idx = class.map_method(
-    ARRAY_LIST_CLASS_NAME, 
-    "<init>", 
+    ARRAY_LIST_CLASS_NAME,
+    "<init>",
     &constructs::Signature {
       return_type: constants::Type::Void,
       parameter_types: vec![]
@@ -204,12 +206,12 @@ fn create_operation_array(
     constructs::Operation::astore(var_idx)
   ];
   let add_to_list_idx = class.map_method(
-    ARRAY_LIST_CLASS_NAME, 
-    "add", 
+    ARRAY_LIST_CLASS_NAME,
+    "add",
     &constructs::Signature {
-      return_type: constants::Type::Void,
+      return_type: constants::Type::Boolean,
       parameter_types: vec![
-        constants::Type::Object(String::from("java/lang/Object"))
+        constants::Type::Object(String::from(OBJECT_CLASS_NAME))
       ]
     });
 
@@ -236,8 +238,8 @@ fn create_operation_array(
       },
       &Operation::NEG => {
         let method_idx = class.map_method(
-          OPERATION_FACADE_CLASS_NAME, 
-          "NEG", 
+          OPERATION_FACADE_CLASS_NAME,
+          "NEG",
           &constructs::Signature {
             return_type: constants::Type::Object(String::from(OPERATION_CLASS_NAME)),
             parameter_types: vec![]
@@ -278,8 +280,8 @@ fn create_mov_operation(
     to_pointer: &ValuePointer,
     instructions: &mut Vec<constructs::Operation>) {
   let method_idx = class.map_method(
-    OPERATION_FACADE_CLASS_NAME, 
-    "MOV", 
+    OPERATION_FACADE_CLASS_NAME,
+    "MOV",
     &constructs::Signature {
       return_type: constants::Type::Object(String::from(OPERATION_CLASS_NAME)),
       parameter_types: vec![
@@ -298,8 +300,8 @@ fn create_memory_operation(
     mem_pointer: &MemoryPointer,
     instructions: &mut Vec<constructs::Operation>) {
   let method_idx = class.map_method(
-    OPERATION_FACADE_CLASS_NAME, 
-    constructor_method, 
+    OPERATION_FACADE_CLASS_NAME,
+    constructor_method,
     &constructs::Signature {
       return_type: constants::Type::Object(String::from(OPERATION_CLASS_NAME)),
       parameter_types: vec![
@@ -318,8 +320,8 @@ fn create_math_operation(
     value_pointer: &ValuePointer,
     instructions: &mut Vec<constructs::Operation>) {
   let method_idx = class.map_method(
-    OPERATION_FACADE_CLASS_NAME, 
-    constructor_method, 
+    OPERATION_FACADE_CLASS_NAME,
+    constructor_method,
     &constructs::Signature {
       return_type: constants::Type::Object(String::from(OPERATION_CLASS_NAME)),
       parameter_types: vec![
@@ -340,8 +342,8 @@ fn create_labeled_operation(
     label: &str,
     instructions: &mut Vec<constructs::Operation>) {
   let method_idx = class.map_method(
-    OPERATION_FACADE_CLASS_NAME, 
-    constructor_method, 
+    OPERATION_FACADE_CLASS_NAME,
+    constructor_method,
     &constructs::Signature {
       return_type: constants::Type::Object(String::from(OPERATION_CLASS_NAME)),
       parameter_types: vec![
@@ -358,8 +360,8 @@ fn create_jro_operation(
     value_pointer: &ValuePointer,
     instructions: &mut Vec<constructs::Operation>) {
   let method_idx = class.map_method(
-    OPERATION_FACADE_CLASS_NAME, 
-    "JRO", 
+    OPERATION_FACADE_CLASS_NAME,
+    "JRO",
     &constructs::Signature {
       return_type: constants::Type::Object(String::from(OPERATION_CLASS_NAME)),
       parameter_types: vec![
@@ -371,7 +373,7 @@ fn create_jro_operation(
 }
 
 pub fn create_main_file(
-    tree: &ParsingTree, 
+    tree: &ParsingTree,
     package: &str,
     output_dir: &PathBuf) -> Result<(), String> {
   let slots = create_slot_indexes(tree);
@@ -405,8 +407,8 @@ fn create_node_definition_method(
     node: &NodeBlock,
     class: &mut class::JavaClass) -> class::PoolIdx {
   let add_node_idx = class.map_method(
-    &TZ_ENV_CLASS_NAME, 
-    "addNode", 
+    &TZ_ENV_CLASS_NAME,
+    "addNode",
     &constructs::Signature {
       return_type: constants::Type::Object(String::from(TZ_ENV_CLASS_NAME)),
       parameter_types: vec![
@@ -417,12 +419,12 @@ fn create_node_definition_method(
         constants::Type::Object(String::from("java/util/List"))
       ]
     });
-  
+
   let signature = constructs::Signature {
     return_type: constants::Type::Void,
     parameter_types: vec![]
   };
-  
+
   let node_name = class.map_string(&node.0.get_id());
   let create_input_array = create_int_array(class, &vec![0, 1], 1);
   let create_output_array = create_int_array(class, &vec![1, 2], 2);
@@ -438,7 +440,7 @@ fn create_node_definition_method(
     constructs::Operation::return_void
   ];
 
-  let access: u16 = 
+  let access: u16 =
     (constants::MethodAccess::FINAL as u16) |
     (constants::MethodAccess::PRIVATE as u16);
 
@@ -460,7 +462,7 @@ fn create_node_definition_method(
 }
 
 fn create_constructor(
-    class: &mut class::JavaClass, 
+    class: &mut class::JavaClass,
     definition_methods: &Vec<class::PoolIdx>,
     slots: &SlotStructure) -> class::PoolIdx {
   let super_init_idx = class.map_method(
@@ -489,7 +491,7 @@ fn create_constructor(
     constructs::Operation::invokevirtual(with_slots_idx)
   ];
 
-  let mut create_nodes_op = Vec::new(); 
+  let mut create_nodes_op = Vec::new();
   for idx in definition_methods {
     // Call each definition private method
     create_nodes_op.push(constructs::Operation::aload(0));
@@ -543,7 +545,7 @@ fn create_main(class: &mut class::JavaClass, init_idx: class::PoolIdx) -> class:
     constructs::Operation::return_void
   ];
 
-  let access: u16 = 
+  let access: u16 =
     (constants::MethodAccess::STATIC as u16) |
     (constants::MethodAccess::PUBLIC as u16);
 
@@ -554,11 +556,11 @@ fn create_main(class: &mut class::JavaClass, init_idx: class::PoolIdx) -> class:
     vec![
       constructs::Attribute::Code(3, operations)
     ])
-} 
+}
 
 fn get_with_slots_idx(class: &mut class::JavaClass) -> class::PoolIdx {
   class.map_self_method(
-    &"withSlots", 
+    &"withSlots",
     &constructs::Signature {
       return_type: constants::Type::Object(String::from(TZ_ENV_CLASS_NAME)),
       parameter_types: vec![
@@ -575,7 +577,7 @@ fn get_with_slots_idx(class: &mut class::JavaClass) -> class::PoolIdx {
 
 fn get_run_from_idx(class: &mut class::JavaClass) -> class::PoolIdx {
   class.map_method(
-    &TZ_ENV_CLASS_NAME, 
+    &TZ_ENV_CLASS_NAME,
     &"runFromSystem",
     &constructs::Signature {
       return_type: constants::Type::Void,

@@ -37,6 +37,9 @@ pub enum MethodAccess {
 pub enum Type {
   /// Void type
   Void,
+  /// Boolean type
+  Boolean,
+  /// Signed 32-bit numeric type
   Integer,
   /// Array of primitives
   /// Signature:

@@ -1,7 +1,7 @@
 use std::cmp::Eq;
 use generator::java::constructs::{
   Attribute,
-  Signature, 
+  Signature,
   Method
 };
 use generator::java::constants::{
@@ -100,13 +100,13 @@ impl JavaClass {
   }
 
   /// Creates a new method in the class
-  /// 
+  ///
   /// Unlike #map_method that creates a reference to an existing
   /// method, this method creates a new method for the class.
   /// The declaration includes the operations executed by the method
   /// as well as its metadata
   pub fn create_method(
-      &mut self, 
+      &mut self,
       access: u16,
       method_name: &str,
       signature: Signature,
@@ -129,7 +129,7 @@ impl JavaClass {
   }
 
   fn map_name_and_type(
-      &mut self, 
+      &mut self,
       method_name: &str,
       signature: &Signature) -> PoolIdx {
     let method_idx = self.map_utf8_value(method_name);
@@ -139,12 +139,12 @@ impl JavaClass {
   }
 
   /// Maps a method existing in this or another object.
-  /// 
+  ///
   /// It refers to the method by the class name, the method name
   /// and its signature
   pub fn map_method(
-      &mut self, 
-      class_name: &str, 
+      &mut self,
+      class_name: &str,
       method_name: &str,
       signature: &Signature) -> PoolIdx {
     let class_idx = self.map_class(class_name);
@@ -160,8 +160,8 @@ impl JavaClass {
     let class_name = String::from(
       self.get_class_name().expect("Class name not defined yet"));
     self.map_method(
-      &class_name, 
-      method_name, 
+      &class_name,
+      method_name,
       &signature)
   }
 
@@ -182,7 +182,7 @@ impl JavaClass {
   }
 
   /// Gets an iterator on all elements of the class pool
-  /// 
+  ///
   /// Elements are enumrated by increasing pool idx.
   pub fn pool_iter<'a>(&'a self) -> DictionaryIter<'a, PoolElement> {
     self.class_pool.iter()
@@ -198,7 +198,7 @@ fn create_descriptor(signature: &Signature) -> String {
   let mut descriptor = String::from("(");
   for param in &signature.parameter_types {
     type_to_str(&mut descriptor, param);
-  } 
+  }
   descriptor.push(')');
   { type_to_str(&mut descriptor, &signature.return_type); }
 
@@ -208,6 +208,7 @@ fn create_descriptor(signature: &Signature) -> String {
 fn type_to_str(out: &mut String, t: &Type) {
   match t {
     &Type::Void => out.push('V'),
+    &Type::Boolean => out.push('Z'),
     &Type::Integer => out.push('I'),
     &Type::Object(ref c) => {
       out.push('L');
@@ -363,7 +364,7 @@ mod tests {
     fn test_map_method() {
       let mut c = JavaClass::new();
       let return_idx = c.map_method(
-        &"a/C1", 
+        &"a/C1",
         &"m1",
         &Signature {
           return_type: Type::ObjectArray(2, String::from("a/C2")),
@@ -375,13 +376,13 @@ mod tests {
 
       assert_eq!(return_idx < c.pool_size(), true);
       assert_eq!(
-        c.pool_size(), 
+        c.pool_size(),
         2 + // Class name and info
         2 + // method name and descriptor
         1 + // name_and_type
         1 + // method ref
         1); // as always for the count
-      
+
       // Test the indexes
       let indexes: Vec<&u16> = c.pool_iter()
         .map(|elt| elt.0)
@@ -449,11 +450,11 @@ mod tests {
     fn test_create_method() {
       let mut c = JavaClass::new();
       c.set_class("the/Class");
-      let access: u16 = 
+      let access: u16 =
         (MethodAccess::FINAL as u16) |
         (MethodAccess::PROTECTED as u16);
       let return_idx = c.create_method(
-        access, 
+        access,
         "aMethod",
         Signature {
           return_type: Type::Integer,
@@ -465,7 +466,7 @@ mod tests {
       {
         assert_eq!(return_idx < pool_size, true);
         assert_eq!(
-          pool_size, 
+          pool_size,
           2 + // Class name and info
           2 + // method name and descriptor
           1 + // name_and_type

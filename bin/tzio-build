@@ -48,4 +48,5 @@ esac
 
 input_file=$1
 output_dir=$2
+[ -z "$output_dir" ] && output_dir="$DIR/out"
 $compiler $input_file $output_dir

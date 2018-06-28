@@ -67,9 +67,11 @@ fn create_reference_instructions(
     &ValuePointer::NIL => {
       let nil_method_idx = class.map_method(
         REFERENCES_CLASS_NAME,
-        "NIL",
+        if input { "inNil" } else { "outNil" },
         &constructs::Signature {
-          return_type: constants::Type::Object(String::from(INPUT_CLASS_NAME)),
+          return_type: constants::Type::Object(
+            String::from(
+              if input { INPUT_CLASS_NAME } else { OUTPUT_CLASS_NAME })),
           parameter_types: vec![]
         });
       instructions.push(constructs::Operation::invokestatic(nil_method_idx));
@@ -161,7 +163,6 @@ fn create_slot_indexes(tree: &ParsingTree) -> SlotStructure {
   }
 
   s.count = slots.size() as u32;
-  println!("indexes {:?}", s);
   s
 }
 

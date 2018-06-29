@@ -1,23 +1,5 @@
 #!/bin/bash
-function resolve_file() {
-	local target_file=$1
-
-	cd `dirname $target_file`
-	target_file=`basename $target_file`
-
-	# Iterate down a (possible) chain of symlinks
-	while [ -L "$target_file" ]
-	do
-			target_file=`readlink $target_file`
-			cd `dirname $target_file`
-			target_file=`basename $target_file`
-	done
-
-	# Compute the canonicalized name by finding the physical path 
-	# for the directory we're in and appending the target file.
-	local readonly phys_dir=`pwd -P`
-	echo "$phys_dir/$target_file"
-}
+source "$(dirname "${BASH_SOURCE[0]}")/_resolve.sh"
 
 readonly THIS_FILE=$(resolve_file ${BASH_SOURCE[0]})
 readonly DIR=$(dirname "$THIS_FILE")
@@ -32,6 +14,7 @@ Usage:
 Commands:
   build: Builds a TZ IO program
   run: Runs a compiled TZ IO program
+	exec: Runs and copiles a TZ IO program
 
 Options:
 	-h, --help: Prints this help message
@@ -40,12 +23,13 @@ HELP
 }
 
 compiler=
-case $1 in
+readonly command=$1
+shift
+case $command in
 	-h|--help) print_help ;;
-  build) shift
-    $DIR/tzio-build $@ ;;
-  run) shift
-    $DIR/tzio-run $@ ;;
-  *) echo -e "\e[31mUnknown command $1\e[0m"
+  build) $DIR/tzio-build $@ ;;
+  run) $DIR/tzio-run $@ ;;
+  exec) $DIR/tzio-exec $@ ;;
+  *) echo -e "\e[31mUnknown command $command\e[0m"
     exit 1 ;;
 esac

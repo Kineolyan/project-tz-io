@@ -1,0 +1,54 @@
+#!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/_resolve.sh"
+
+readonly THIS_FILE=$(resolve_file ${BASH_SOURCE[0]})
+readonly BIN_DIR=$(dirname "$THIS_FILE")
+readonly DIR=$(dirname "$BIN_DIR")
+
+function print_help() {
+	cat <<HELP
+Usage:
+	$(basename $0) [--rust] <filename>
+
+Options:
+	-h, --help: Prints this help message
+	--rust: Use the rust compiler, creating a java executable class
+HELP
+	exit 0
+}
+
+compiler_option='--rust'
+execution_option='--java'
+file_path=
+while true
+do
+  arg="$1"
+  shift 1
+  case $arg in
+    # environment
+    -h|--help) print_help ;;
+    --rust)
+      compiler_option='--rust'
+      execution_option='--java' ;;
+    --|'') break ;;
+    *) [ -z "$file_path" ] && file_path="$arg" ;;
+  esac
+done
+
+if [[ "$file_path" =~ .+io ]]
+then
+  :
+else
+  echo -e "\e[31mInvalid file extension. Supporting only <file>.io. Got $file_path"
+  exit 1
+fi
+
+# Compile the file
+readonly output_dir="$DIR/out"
+"$BIN_DIR/tzio-build" $compiler_option $file_path $output_dir
+
+# Run the generated file
+readonly filename=$(basename "$file_path")
+readonly file_base="${filename%*.io}"
+readonly program_file="$output_dir/com/kineolyan/tzio/$file_base/Main.class"
+"$BIN_DIR/tzio-run" $execution_option $program_file

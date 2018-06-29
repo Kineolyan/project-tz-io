@@ -78,4 +78,10 @@ mod tests {
 		assert_eq!(res.is_ok(), true);
 	}
 
+	#[test]
+	fn test_max_increment() {
+		let res = process_input("../language-samples/max.io");
+		assert_eq!(res.is_ok(), true);
+	}
+
 }

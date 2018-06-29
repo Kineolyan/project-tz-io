@@ -1,1 +1,3 @@
 tzio-core/.gradle/
+# default output dir for script
+out/

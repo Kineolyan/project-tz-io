@@ -1,0 +1,17 @@
+apply plugin: 'scala'
+
+dependencies {
+    compile project(':tzio-spec')
+    testCompile project(':tzio-tck')
+
+    compile 'org.scala-lang:scala-library:2.12.6'
+}
+
+test {
+    useJUnitPlatform {
+        excludeTags 'slow'
+        includeEngines 'junit-jupiter', 'junit-vintage'
+    }
+
+    failFast = false
+}

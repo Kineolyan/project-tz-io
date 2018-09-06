@@ -1,0 +1,12 @@
+apply plugin: 'clojure'
+
+repositories { 
+    clojarsRepo() 
+}
+
+dependencies {
+    compile project(':tzio-spec')
+    testCompile project(':tzio-tck')
+}
+
+

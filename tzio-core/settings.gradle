@@ -4,8 +4,11 @@ include 'spec'
 include 'tck'
 include 'java'
 include 'scala'
+include 'clojure'
 
 project(":spec").name = "tzio-spec"
 project(":tck").name = "tzio-tck"
 project(":java").name = "tzio-java"
 project(":scala").name = "tzio-scala"
+project(":clojure").name = "tzio-clojure"
+

@@ -7,6 +7,8 @@ repositories {
 dependencies {
     compile project(':tzio-spec')
     testCompile project(':tzio-tck')
+
+    compile 'org.clojure:clojure:1.2.0'
 }
 
 

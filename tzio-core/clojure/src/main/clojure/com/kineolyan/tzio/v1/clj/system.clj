@@ -17,8 +17,7 @@
    :constructors {[] []}))
 
 (defn -init []
-  [[] (ref {:s s :index 0})])
+  [[]])
 
 (defn -createEnv [this]
-  (let [{:keys [s index]} @(.state this)])
-  (< index (count s)))
+  []pl)

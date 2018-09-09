@@ -7,54 +7,32 @@ buildscript {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
 ext.junitVintageVersion  = '5.1.0'
 ext.junitPlatformVersion = '1.1.0'
 ext.junitJupiterVersion  = '5.1.0'
 ext.assertjVersion = '3.6.2'
 
-group 'com.kineolyan'
-version '1.0-SNAPSHOT'
-
-apply plugin: 'java'
-apply plugin: 'maven'
-//apply plugin: 'org.junit.platform.gradle.plugin'
-
-sourceCompatibility = 1.9
-
-dependencies {
-    testCompile("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
-    // Only needed to run tests in an (IntelliJ) IDE(A) that bundles an older version
-    testRuntime("org.junit.platform:junit-platform-launcher:${junitPlatformVersion}")
-    testCompile("org.assertj:assertj-core:${assertjVersion}")
-
-    // If you also want to support JUnit 3 and JUnit 4 tests
-//    testCompile("junit:junit:${junit4Version}")
-//    testRuntime("org.junit.vintage:junit-vintage-engine:${junitVintageVersion}")
-
-    // To use Log4J's LogManager
-//    testRuntime("org.apache.logging.log4j:log4j-core:${log4jVersion}")
-//    testRuntime("org.apache.logging.log4j:log4j-jul:${log4jVersion}")
-
-
-//    testCompile group: 'junit', name: 'junit', version: '4.12'
-}
-
-compileTestJava {
-    sourceCompatibility = 1.9
-    targetCompatibility = 1.9
-    options.compilerArgs += '-parameters'
-}
-
-test {
-    useJUnitPlatform {
-        excludeTags 'slow'
-        includeEngines 'junit-jupiter', 'junit-vintage'
+allprojects {
+    repositories {
+        mavenCentral()
     }
 
-    failFast = false
+    group 'com.kineolyan'
+    version '1.0-SNAPSHOT'
+}
+
+// Config for java projects
+def javaVersion = 1.9
+def javaProjects = ['tzio-spec', 'tzio-tck', 'tzio-java']
+configure(subprojects.findAll {javaProjects.contains(it.name)}) {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+
+    sourceCompatibility = javaVersion
+
+    compileTestJava {
+        sourceCompatibility = javaVersion
+        targetCompatibility = javaVersion
+        options.compilerArgs += '-parameters'
+    }
 }

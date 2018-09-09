@@ -1,2 +1,9 @@
 rootProject.name = 'tzio-core'
 
+include 'spec'
+include 'tck'
+include 'java'
+
+project(":spec").name = "tzio-spec"
+project(":tck").name = "tzio-tck"
+project(":java").name = "tzio-java"

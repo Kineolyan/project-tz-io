@@ -1,0 +1,13 @@
+dependencies {
+  compile project(':tzio-spec')
+  testCompile project(':tzio-tck')
+}
+
+test {
+    useJUnitPlatform {
+        excludeTags 'slow'
+        includeEngines 'junit-jupiter', 'junit-vintage'
+    }
+
+    failFast = false
+}

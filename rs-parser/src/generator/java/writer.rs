@@ -10,12 +10,11 @@ use generator::java::class::{
 use generator::java::constants;
 use generator::java::constructs::{
   Attribute,
-  Operation,
-  count_local_vars
+  Operation
 };
 
 static MAGIC: [u8; 4] = [0xca_u8, 0xfe_u8, 0xba_u8, 0xbe_u8];
-static VERSIONS: [u8; 4] = [/* minor */0, 0, /* major */0, 52];
+static VERSIONS: [u8; 4] = [/* minor */0, 0, /* major */0, 53]; // Java 9
 
 // static DEBUG: bool = true;
 // macro_rules! debug {
@@ -131,6 +130,11 @@ fn write_constant_pool(writer: &mut Writer, class: &JavaClass) -> StdResult {
         write_u16(writer, class_idx)?;
         write_u16(writer, name_idx)?;
       },
+      &PoolElement::InterfaceMethodRef(class_idx, name_idx) => {
+        write_u8(writer, constants::PoolCode::InterfaceMethodRef as u8)?;
+        write_u16(writer, class_idx)?;
+        write_u16(writer, name_idx)?;
+      },
       &PoolElement::NameAndType(name_idx, descriptor_idx) => {
         write_u8(writer, constants::PoolCode::NameAndType as u8)?;
         write_u16(writer, name_idx)?;
@@ -169,7 +173,7 @@ fn write_class_definition(writer: &mut Writer, class: &JavaClass) -> StdResult {
     write_u16(writer, method.descriptor_index)?;
     write_u16(writer, method.attributes.len() as u16)?;
     for entry in &method.attributes {
-      write_attribute(writer, entry)?;
+      write_attribute(writer, entry, class)?;
     }
   }
 
@@ -177,21 +181,22 @@ fn write_class_definition(writer: &mut Writer, class: &JavaClass) -> StdResult {
   write_u16(writer, 0)
 }
 
-fn write_attribute(writer: &mut Writer, &(ref idx, ref attribute): &(u16, Attribute)) -> StdResult {
+fn write_attribute(
+    writer: &mut Writer,
+    &(ref idx, ref attribute): &(u16, Attribute),
+    class: &JavaClass) -> StdResult {
   match attribute {
-    &Attribute::Code(ref max_stack, ref operations) => {
+    &Attribute::Code {ref max_stack, ref operations, ref locals} => {
       write_u16(writer, *idx)?;
 
       let mut op_writer = VecWriter { data: Vec::new() };
       for operation in operations {
-        write_operation(&mut op_writer, operation)?;
+        write_operation(&mut op_writer, operation, class)?;
       }
 
       let mut attr_writer = VecWriter { data: Vec::new() };
       write_u16(&mut attr_writer, *max_stack)?;
-      // TODO the var count must consider the number of params in the function
-      let local_vars_count = count_local_vars(operations);
-      write_u16(&mut attr_writer, local_vars_count as u16)?;
+      write_u16(&mut attr_writer, *locals)?;
       write_u32(&mut attr_writer, op_writer.data.len() as u32)?;
       attr_writer.write(&op_writer.data[..])?;
 
@@ -205,12 +210,21 @@ fn write_attribute(writer: &mut Writer, &(ref idx, ref attribute): &(u16, Attrib
   }
 }
 
-fn write_operation(writer: &mut Writer, operation: &Operation) -> StdResult {
+fn write_operation(
+    writer: &mut Writer,
+    operation: &Operation,
+    class: &JavaClass) -> StdResult {
   match operation {
     &Operation::aload(ref idx) => {
       // if idx > 3 { // TODO write the optimization
       write_u8(writer, 25)?;
       write_u8(writer, *idx)
+    },
+    &Operation::aconst_null => {
+      write_u8(writer, 1)
+    },
+    &Operation::areturn => {
+      write_u8(writer, 176)
     },
     &Operation::astore(ref idx) => {
       write_u8(writer, 58)?;
@@ -229,6 +243,9 @@ fn write_operation(writer: &mut Writer, operation: &Operation) -> StdResult {
     &Operation::iconst_1 => {
       write_u8(writer, 4)
     },
+    &Operation::iconst_m1 => {
+      write_u8(writer, 2)
+    },
     &Operation::invokespecial(ref idx) => {
       write_u8(writer, 183)?;
       write_u16(writer, *idx)
@@ -240,6 +257,21 @@ fn write_operation(writer: &mut Writer, operation: &Operation) -> StdResult {
     &Operation::invokestatic(ref idx) => {
       write_u8(writer, 184)?;
       write_u16(writer, *idx)
+    },
+    &Operation::invokedynamic(ref idx) => {
+      write_u8(writer, 185)?;
+      write_u16(writer, *idx)?;
+      write_u8(writer, 0)?; // 3rd value must be 0
+      write_u8(writer, 0) // 4th value must be 0
+    },
+    &Operation::invokeinterface(ref idx, ref count) => {
+      write_u8(writer, 185)?;
+      write_u16(writer, *idx)?;
+
+      // Get the number of args for the count
+      write_u8(writer, *count)?; // FIXME retrieve this from the class
+
+      write_u8(writer, 0) // 4th value must be 0
     },
     &Operation::ldc(ref idx) => {
       // Optimize using ldc or ldc_w
@@ -258,6 +290,9 @@ fn write_operation(writer: &mut Writer, operation: &Operation) -> StdResult {
     &Operation::newarray(ref array_type) => {
       write_u8(writer, 188)?;
       write_u8(writer, array_type.clone() as u8)
+    },
+    &Operation::nop => {
+      write_u8(writer, 0)
     },
     &Operation::return_void => {
       write_u8(writer, 177)

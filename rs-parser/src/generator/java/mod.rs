@@ -16,14 +16,14 @@ use generator::java::dictionary::Dictionary;
 
 const OBJECT_CLASS_NAME: &str = "java/lang/Object";
 const STRING_CLASS_NAME: &str = "java/lang/String";
-const TZ_ENV_CLASS_NAME: &str = "com/kineolyan/tzio/v1/TzEnv";
 const ARRAY_LIST_CLASS_NAME: &str = "java/util/ArrayList";
-const OPERATION_FACADE_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ops/Operations";
-const OPERATION_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ops/Operation";
-const REFERENCES_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ref/References";
-const INPUT_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ref/InputReference";
-const OUTPUT_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ref/OutputReference";
-const ACC_CLASS_NAME: &str = "com/kineolyan/tzio/v1/ref/AccReference";
+const TZ_ENV_CLASS_NAME: &str = "com/kineolyan/tzio/v1/api/TzEnv";
+const TZ_SYSTEM_CLASS_NAME: &str = "com/kineolyan/tzio/v1/api/arch/TzSystem";
+const OPERATION_CLASS_NAME: &str = "com/kineolyan/tzio/v1/api/ops/OperationType";
+const INPUT_CLASS_NAME: &str = "com/kineolyan/tzio/v1/api/ref/InputReferenceType";
+const OUTPUT_CLASS_NAME: &str = "com/kineolyan/tzio/v1/api/ref/OutputReferenceType";
+const REFERENCES_CLASS_NAME: &str = "com/kineolyan/tzio/v1/api/ref/References";
+const OPERATION_FACADE_CLASS_NAME: &str = "com/kineolyan/tzio/v1/api/ops/Operations";
 
 type SlotIndex = HashMap<usize, Vec<u32>>;
 
@@ -57,9 +57,11 @@ fn create_reference_instructions(
     &ValuePointer::ACC => {
       let acc_method_idx = class.map_method(
         REFERENCES_CLASS_NAME,
-        "acc",
+        if input { "inAcc" } else { "outAcc" },
         &constructs::Signature {
-          return_type: constants::Type::Object(String::from(ACC_CLASS_NAME)),
+          return_type: constants::Type::Object(
+            String::from(
+              if input { INPUT_CLASS_NAME } else { OUTPUT_CLASS_NAME })),
           parameter_types: vec![]
         });
       instructions.push(constructs::Operation::invokestatic(acc_method_idx));
@@ -187,7 +189,11 @@ fn create_int_array(
     operations.push(constructs::Operation::iastore);
   }
 
-  constructs::Attribute::Code(3, operations)
+  constructs::Attribute::Code {
+    max_stack: 3,
+    operations,
+    locals: (var_idx as u16) + 1
+  }
 }
 
 fn create_operation_array(
@@ -239,7 +245,7 @@ fn create_operation_array(
         create_math_operation(class, "ADD", value_pointer, &mut instructions);
       },
       &Operation::SUB(ref value_pointer) => {
-        create_math_operation(class, "ADD", value_pointer, &mut instructions);
+        create_math_operation(class, "SUB", value_pointer, &mut instructions);
       },
       &Operation::NEG => {
         let method_idx = class.map_method(
@@ -276,7 +282,13 @@ fn create_operation_array(
     // Add the operation to the list
     instructions.push(constructs::Operation::invokevirtual(add_to_list_idx));
   }
-  constructs::Attribute::Code(10, instructions)
+
+  let locals = constructs::count_local_vars(None, &instructions);
+  constructs::Attribute::Code {
+    max_stack: 10,
+    operations: instructions,
+    locals
+  }
 }
 
 fn create_mov_operation(
@@ -389,7 +401,7 @@ pub fn create_main_file(
   classname.push_str("/Main");
   class.set_class(&classname);
 
-  class.set_super_class(&TZ_ENV_CLASS_NAME);
+  class.set_super_class(&OBJECT_CLASS_NAME);
 
   let mut definition_methods: Vec<class::PoolIdx> = vec![];
   for (i, node) in tree.iter().enumerate() {
@@ -397,8 +409,8 @@ pub fn create_main_file(
     definition_methods.push(pool_idx);
   }
 
-  let init_idx = create_constructor(&mut class, &definition_methods, &slots);
-  create_main(&mut class, init_idx);
+  let create_idx = create_construction(&mut class, &definition_methods, &slots);
+  create_main(&mut class, create_idx);
 
   let mut output_file = output_dir.clone();
   output_file.push("Main");
@@ -407,12 +419,13 @@ pub fn create_main_file(
     .map_err(|e| format!("Failed to write into file. Caused by {}", e))
 }
 
+/// Create a static method
 fn create_node_definition_method(
     i: usize,
     node: &NodeBlock,
     class: &mut class::JavaClass,
     slots: &SlotStructure) -> class::PoolIdx {
-  let add_node_idx = class.map_method(
+  let add_node_idx = class.map_interface_method(
     &TZ_ENV_CLASS_NAME,
     "addNode",
     &constructs::Signature {
@@ -427,45 +440,58 @@ fn create_node_definition_method(
     });
 
   let signature = constructs::Signature {
-    return_type: constants::Type::Void,
-    parameter_types: vec![]
+    return_type: constants::Type::Object(
+      String::from(TZ_ENV_CLASS_NAME)),
+    parameter_types: vec![
+      constants::Type::Object(
+        String::from(TZ_ENV_CLASS_NAME))
+    ]
   };
 
   let node_name = class.map_string(&node.0.get_id());
+  let input_array_var_idx = 1;
   let create_input_array = create_int_array(
-    class, 
+    class,
     &slots.node_inputs.get(&i)
-      .expect(&format!("No inputs for node {}", i)), 
-    1);
+      .expect(&format!("No inputs for node {}", i)),
+    input_array_var_idx);
+  let output_array_var_idx = 2;
   let create_output_array = create_int_array(
-    class, 
+    class,
     &slots.node_outputs.get(&i)
-      .expect(&format!("No outputs for node {}", i)), 
-    2);
-  let create_op_array = create_operation_array(class, &node.3, 3);
+      .expect(&format!("No outputs for node {}", i)),
+    output_array_var_idx);
+  let operation_array_var_idx = 3;
+  let create_op_array = create_operation_array(class, &node.3, operation_array_var_idx);
   let call_to_add_node = vec![
-    constructs::Operation::aload(0),
+    constructs::Operation::aload(0), // first arg
     constructs::Operation::ldc(node_name), // node name
     constructs::Operation::iconst_1, // node memory size
-    constructs::Operation::aload(1), // input array
-    constructs::Operation::aload(2), // output array
-    constructs::Operation::aload(3), // operation array
-    constructs::Operation::invokevirtual(add_node_idx),
-    constructs::Operation::return_void
+    constructs::Operation::aload(input_array_var_idx), // input array
+    constructs::Operation::aload(output_array_var_idx), // output array
+    constructs::Operation::aload(operation_array_var_idx), // operation array
+    constructs::Operation::invokeinterface(add_node_idx, 6),
+    constructs::Operation::areturn
   ];
 
   let access: u16 =
-    (constants::MethodAccess::FINAL as u16) |
+    (constants::MethodAccess::STATIC as u16) |
     (constants::MethodAccess::PRIVATE as u16);
 
   let mut method_name = String::from("createNode");
   method_name.push_str(&(i as u32).to_string());
 
-  let method_code = constructs::merge_codes(vec![
+  let method_code = constructs::merge_codes(
+    Some(&signature),
+    vec![
       create_input_array,
       create_output_array,
       create_op_array,
-      constructs::Attribute::Code(6, call_to_add_node)
+      constructs::Attribute::Code {
+        max_stack: 6,
+        locals: constructs::count_local_vars(None, &call_to_add_node),
+        operations: call_to_add_node
+      }
     ]);
 
   class.create_method(
@@ -475,69 +501,97 @@ fn create_node_definition_method(
     vec![method_code])
 }
 
-fn create_constructor(
+fn create_construction(
     class: &mut class::JavaClass,
     definition_methods: &Vec<class::PoolIdx>,
     slots: &SlotStructure) -> class::PoolIdx {
-  let super_init_idx = class.map_method(
-    TZ_ENV_CLASS_NAME,
-    &"<init>",
+  let get_instance_idx = class.map_interface_method(
+    TZ_SYSTEM_CLASS_NAME,
+    &"getInstance",
     &constructs::Signature {
-      return_type: constants::Type::Void,
+      return_type: constants::Type::Object(
+        String::from(TZ_SYSTEM_CLASS_NAME)),
       parameter_types: vec![]
     });
-  let obj_init_op = constructs::Attribute::Code(
-    1,
-    vec![
-      constructs::Operation::aload(0),
-      constructs::Operation::invokespecial(super_init_idx)
-    ]);
+  let create_env_idx = class.map_interface_method(
+    TZ_SYSTEM_CLASS_NAME,
+    &"createEnv",
+    &constructs::Signature {
+      return_type: constants::Type::Object(
+        String::from(TZ_ENV_CLASS_NAME)),
+      parameter_types: vec![]
+    });
+  let create_env_ops = vec![
+    constructs::Operation::invokestatic(get_instance_idx),
+    constructs::Operation::invokeinterface(create_env_idx, 1)
+  ];
+  let create_env_code = constructs::Attribute::Code {
+    max_stack: 1,
+    locals: constructs::count_local_vars(None, &create_env_ops),
+    operations: create_env_ops
+  };
+
   let create_input_array_op = create_int_array(class, &slots.input_indexes, 1);
   let create_output_array_op = create_int_array(class, &slots.output_indexes, 2);
 
   let slot_count_cst = class.map_integer(slots.count);
   let with_slots_idx = get_with_slots_idx(class);
   let with_slots_op = vec![
-    constructs::Operation::aload(0),
+    // TzEnv already on the top of the stack
     constructs::Operation::ldc(slot_count_cst), // slot count
     constructs::Operation::aload(1), // inputs array
     constructs::Operation::aload(2), // output array
-    constructs::Operation::invokevirtual(with_slots_idx)
+    constructs::Operation::invokeinterface(with_slots_idx, 4)
+    // Method returning the TzEnv instance
   ];
 
   let mut create_nodes_op = Vec::new();
   for idx in definition_methods {
-    // Call each definition private method
-    create_nodes_op.push(constructs::Operation::aload(0));
-    create_nodes_op.push(constructs::Operation::invokespecial(*idx));
+    // Call each definition static method
+    // TzEnv already on the top of the stack
+    create_nodes_op.push(constructs::Operation::invokestatic(*idx));
+    // Method returning the TzEnv instance
   }
 
-  // Complete the function with a return
-  create_nodes_op.push(constructs::Operation::return_void);
+  // Complete the function by returning the TzEnv
+  create_nodes_op.push(constructs::Operation::areturn);
 
   let this_signature = constructs::Signature {
-    return_type: constants::Type::Void,
+    return_type: constants::Type::Object(String::from(TZ_ENV_CLASS_NAME)),
     parameter_types: vec![]
   };
 
-  let access: u16 = constants::MethodAccess::PUBLIC as u16;
+  let access: u16 = constants::MethodAccess::PRIVATE as u16
+    | constants::MethodAccess::STATIC as u16;
 
-  let method_code = constructs::merge_codes(vec![
-    obj_init_op,
-    create_input_array_op,
-    create_output_array_op,
-    constructs::Attribute::Code(5, with_slots_op),
-    constructs::Attribute::Code(1, create_nodes_op)
-  ]);
+  let method_code = constructs::merge_codes(
+    Some(&this_signature),
+    vec![
+      create_env_code,
+      create_input_array_op,
+      create_output_array_op,
+      constructs::Attribute::Code {
+        max_stack: 5,
+        locals: constructs::count_local_vars(None, &with_slots_op),
+        operations: with_slots_op
+      },
+      constructs::Attribute::Code {
+        max_stack: 2,
+        locals: constructs::count_local_vars(None, &create_nodes_op),
+        operations: create_nodes_op
+      }
+    ]);
 
   class.create_method(
     access,
-    &"<init>",
+    &"create",
     this_signature,
     vec![method_code])
 }
 
-fn create_main(class: &mut class::JavaClass, init_idx: class::PoolIdx) -> class::PoolIdx {
+fn create_main(
+    class: &mut class::JavaClass,
+    creator_idx: class::PoolIdx) -> class::PoolIdx {
   let signature = constructs::Signature {
     return_type: constants::Type::Void,
     parameter_types: vec![
@@ -545,17 +599,14 @@ fn create_main(class: &mut class::JavaClass, init_idx: class::PoolIdx) -> class:
     ]
   };
 
-  let this_class_idx = class.class_id;
-  let run_from_idx = get_run_from_idx(class);
+  let run_from_idx = get_run_from_system_idx(class);
   let operations = vec![
-    // Create a new instance of this class
-    constructs::Operation::new(this_class_idx),
-    // Init the new instance
-    constructs::Operation::dup,
-    constructs::Operation::invokespecial(init_idx),
+    constructs::Operation::invokestatic(creator_idx),
     // Call 'runFromSystem' with main parameter array
     constructs::Operation::aload(0),
-    constructs::Operation::invokevirtual(run_from_idx),
+    constructs::Operation::invokeinterface(run_from_idx, 2),
+    constructs::Operation::iconst_m1,
+    constructs::Operation::nop,
     constructs::Operation::return_void
   ];
 
@@ -563,17 +614,23 @@ fn create_main(class: &mut class::JavaClass, init_idx: class::PoolIdx) -> class:
     (constants::MethodAccess::STATIC as u16) |
     (constants::MethodAccess::PUBLIC as u16);
 
+  let local_count = constructs::count_local_vars(Some(&signature), &operations);
   class.create_method(
     access,
     &"main",
     signature,
     vec![
-      constructs::Attribute::Code(3, operations)
+      constructs::Attribute::Code {
+        max_stack: 3,
+        operations,
+        locals: local_count
+      }
     ])
 }
 
 fn get_with_slots_idx(class: &mut class::JavaClass) -> class::PoolIdx {
-  class.map_self_method(
+  class.map_interface_method(
+    TZ_ENV_CLASS_NAME,
     &"withSlots",
     &constructs::Signature {
       return_type: constants::Type::Object(String::from(TZ_ENV_CLASS_NAME)),
@@ -589,8 +646,8 @@ fn get_with_slots_idx(class: &mut class::JavaClass) -> class::PoolIdx {
     })
 }
 
-fn get_run_from_idx(class: &mut class::JavaClass) -> class::PoolIdx {
-  class.map_method(
+fn get_run_from_system_idx(class: &mut class::JavaClass) -> class::PoolIdx {
+  class.map_interface_method(
     &TZ_ENV_CLASS_NAME,
     &"runFromSystem",
     &constructs::Signature {

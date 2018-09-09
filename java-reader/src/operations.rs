@@ -7,13 +7,27 @@ fn print_op(name: &str) {
   println!("[{}]", name);
 }
 
+fn are_same_decimal(before: usize, now: usize) -> bool {
+  let b = before / 10;
+  let n = now / 10;
+  b == n
+}
+
 pub fn read(
-    reader: &mut ByteReader, 
+    reader: &mut ByteReader,
     pool: &PoolList,
     indent: u8) -> ReadResult {
+  let mut last_size: usize = 0;
   while !reader.is_empty() {
     read_u8!(operation_code, reader, indent);
+    if !are_same_decimal(last_size, reader.get_pos()) {
+      print!("<{}> ", reader.get_pos());
+    }
+    last_size = reader.get_pos();
+
     match operation_code {
+      0 => read_nop(),
+      1 => read_aconst_null(),
       2 ... 8 => read_iconst(operation_code),
       9 | 10 => read_lconst_n(operation_code),
       11 ... 13 => read_fconst_n(operation_code),
@@ -28,15 +42,22 @@ pub fn read(
       75 ... 78 => read_astore_n(operation_code),
       79 => read_iastore(),
       80 => read_lastore(),
+      83 => read_aastore(),
+      87 => read_pop(),
+      88 => read_pop2(),
       89 => read_dup(),
+      176 => read_areturn(),
       177 => read_return(),
       178 => read_get_static(reader, pool, indent)?,
       181 => read_put_field(reader, pool, indent)?,
       182 => read_invoke_virtual(reader, pool, indent)?,
       183 => read_invoke_special(reader, pool, indent)?,
       184 => read_invoke_static(reader, pool, indent)?,
+      185 => read_invoke_interface(reader, pool, indent)?,
+      186 => read_invoke_dynamic(reader, pool, indent)?,
       187 => read_new(reader, pool, indent)?,
-      188 => read_new_array(reader, indent)?,
+      188 => read_new_prim_array(reader, indent)?,
+      189 => read_new_object_array(reader, pool, indent)?,
       _ => panic!("Unsupported operation: {}", operation_code)
     }
   }
@@ -63,6 +84,8 @@ macro_rules! single_op {
   }
 }
 
+single_op!(read_aconst_null, "aconst_null");
+
 fn read_aload(reader: &mut Reader, indent: u8) -> ReadResult {
   print_op("aload");
   read_u8!(var_idx, reader, indent + 1);
@@ -83,6 +106,7 @@ shortcut_op!(read_astore_n, "astore", 75, 3);
 
 single_op!(read_iastore, "iastore");
 single_op!(read_lastore, "lastore");
+single_op!(read_aastore, "aastore");
 
 fn read_bipush(reader: &mut Reader, indent: u8) -> ReadResult {
   print_op("bipush");
@@ -115,7 +139,10 @@ shortcut_op!(read_iload_n, "iload", 26, 3);
 
 shortcut_op!(read_lconst_n, "lconst", 9, 1);
 
+single_op!(read_areturn, "areturn");
 single_op!(read_return, "return");
+
+single_op!(read_nop, "nop");
 
 fn read_get_static(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResult {
   print_op("getstatic");
@@ -135,7 +162,8 @@ fn read_put_field(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResul
   Ok(())
 }
 
-macro_rules! read_invoke {
+/// Macro interpreting invoke of standard methods
+macro_rules! read_std_invoke {
   ($method_name: ident, $name: expr) => {
     fn $method_name(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResult {
       print_op($name);
@@ -147,9 +175,38 @@ macro_rules! read_invoke {
     }
   };
 }
-read_invoke!(read_invoke_virtual, "invokevirtual");
-read_invoke!(read_invoke_special, "invokespecial");
-read_invoke!(read_invoke_static, "invokestatic");
+read_std_invoke!(read_invoke_virtual, "invokevirtual");
+read_std_invoke!(read_invoke_special, "invokespecial");
+read_std_invoke!(read_invoke_static, "invokestatic");
+
+fn read_invoke_interface(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResult {
+  print_op("invokeinterface");
+  read_u16!(method_idx, reader, indent + 1);
+  let (ref class_name, ref method_name, ref descriptor) = resolve_method_name(pool, method_idx as usize)
+    .expect(&format!("No method reference in pool at {}", method_idx));
+  println!("Invoke #{} -> {}.{}:{}", method_idx, class_name, method_name, descriptor);
+
+  read_u8!(count, reader, indent + 1);
+  println!("Interface arg count: {}", count);
+
+  read_u8!(null_value, reader, indent + 1);
+  println!("Expected 0 value: <{}>", null_value);
+
+  Ok(())
+}
+fn read_invoke_dynamic(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResult {
+  print_op("invokeinterface");
+  read_u16!(method_idx, reader, indent + 1);
+  let (ref class_name, ref method_name, ref descriptor) = resolve_method_name(pool, method_idx as usize)
+    .expect(&format!("No method reference in pool at {}", method_idx));
+  println!("Invoke #{} -> {}.{}:{}", method_idx, class_name, method_name, descriptor);
+
+  read_u16!(first_null, reader, indent + 1);
+  read_u8!(second_null, reader, indent + 1);
+  println!("Expected 0 values: <{}> <{}>", first_null, second_null);
+
+  Ok(())
+}
 
 fn read_new(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResult {
   print_op("new");
@@ -161,12 +218,22 @@ fn read_new(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResult {
   Ok(())
 }
 
-fn read_new_array(reader: &mut Reader, indent: u8) -> ReadResult {
+fn read_new_prim_array(reader: &mut Reader, indent: u8) -> ReadResult {
   print_op("newarray");
   read_u8!(array_type, reader, indent + 1);
   let type_name = ARRAY_TYPES.get(&array_type)
     .expect(&format!("No array type with code {}", array_type));
   println!("new array of {}", type_name);
+
+  Ok(())
+}
+
+fn read_new_object_array(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResult {
+  print_op("anewarray");
+  read_u16!(class_idx, reader, indent + 1);
+  let class_name = resolve_class_name(pool, class_idx as usize)
+    .expect(&format!("No class name in pool at {}", class_idx));
+  println!("new array of {}", class_name);
 
   Ok(())
 }
@@ -196,3 +263,5 @@ fn read_ldc2_w(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResult {
 }
 
 single_op!(read_dup, "dup");
+single_op!(read_pop, "pop");
+single_op!(read_pop2, "pop2");

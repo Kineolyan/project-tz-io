@@ -12,7 +12,8 @@ pub enum PoolElement {
   String(usize),
   NameAndType(usize, usize),
   FieldRef {class_idx: usize, name_and_type_idx: usize },
-  MethodRef {class_idx: usize, name_and_type_idx: usize }
+  MethodRef {class_idx: usize, name_and_type_idx: usize },
+  InterfaceMethodRef {class_idx: usize, name_and_type_idx: usize }
 }
 
 pub type PoolList = Vec<Option<PoolElement>>;
@@ -79,6 +80,15 @@ fn read_method_ref(reader: &mut Reader, indent: u8) -> io::Result<PoolElement> {
   Ok(PoolElement::MethodRef { class_idx: class_idx, name_and_type_idx: name_and_type_idx })
 }
 
+fn read_interface_method_ref(reader: &mut Reader, indent: u8) -> io::Result<PoolElement> {
+  let bytes = reader.read_4u()?;
+  print_bytes(indent, bytes);
+  let class_idx = to_u16(&bytes[0..2]) as usize;
+  let name_and_type_idx = to_u16(&bytes[2..4]) as usize;
+
+  Ok(PoolElement::InterfaceMethodRef { class_idx: class_idx, name_and_type_idx: name_and_type_idx })
+}
+
 fn read_entry(reader: &mut Reader, index: &mut u16) -> io::Result<PoolElement> {
   let pool_code: u8;
   {
@@ -118,6 +128,10 @@ fn read_entry(reader: &mut Reader, index: &mut u16) -> io::Result<PoolElement> {
     10 => {
       println!("Method ref");
       read_method_ref(reader, indent)?
+    },
+    11 => {
+      println!("Interface method ref");
+      read_interface_method_ref(reader, indent)?
     },
     12 => {
       println!("Name and type");
@@ -199,13 +213,21 @@ pub fn resolve_field_name<'a>(pool: &'a PoolList, index: usize) -> Option<(&'a s
 }
 
 pub fn resolve_method_name<'a>(pool: &'a PoolList, index: usize) -> Option<(&'a str, &'a str, &'a str)> {
-	if let &Some(PoolElement::MethodRef { ref class_idx, ref name_and_type_idx }) = &pool[index] {
-    let class_name = resolve_utf8_value(pool, *class_idx)
-      .expect(&format!("No method name at {}", class_idx));
-    let name_type = resolve_name_and_type(pool, *name_and_type_idx)
-      .expect(&format!("No name & type at {}", name_and_type_idx));
-    Some((class_name, name_type.0, name_type.1))
-	} else {
-		None
-	}
+  match &pool[index] {
+	  &Some(PoolElement::MethodRef { ref class_idx, ref name_and_type_idx }) => {
+      let class_name = resolve_utf8_value(pool, *class_idx)
+        .expect(&format!("No method name at {}", class_idx));
+      let name_type = resolve_name_and_type(pool, *name_and_type_idx)
+        .expect(&format!("No name & type at {}", name_and_type_idx));
+      Some((class_name, name_type.0, name_type.1))
+    },
+	  &Some(PoolElement::InterfaceMethodRef { ref class_idx, ref name_and_type_idx }) => {
+      let class_name = resolve_utf8_value(pool, *class_idx)
+        .expect(&format!("No method name at {}", class_idx));
+      let name_type = resolve_name_and_type(pool, *name_and_type_idx)
+        .expect(&format!("No name & type at {}", name_and_type_idx));
+      Some((class_name, name_type.0, name_type.1))
+    },
+	  _ => None
+  }
 }

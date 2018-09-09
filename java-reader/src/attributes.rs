@@ -8,7 +8,7 @@ pub fn read(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadResult {
 	read_u16!(count, reader, indent);
 	println!("Attribute count = {}", count);
 
-	for _i in 0..count { 
+	for _i in 0..count {
 		read_attribute(reader, pool, indent)?;
 	}
 	Ok(())
@@ -34,6 +34,9 @@ pub fn read_attribute(reader: &mut Reader, pool: &PoolList, indent: u8) -> ReadR
     "InnerClasses" => read_inner_classes(&mut attribute_reader, pool, indent + 1),
     "LineNumberTable" => read_line_number_table(&mut attribute_reader, indent + 1),
     "SourceFile" => read_source_file(&mut attribute_reader, pool, indent + 1),
+    "LocalVariableTable" => read_local_var_table(&mut attribute_reader, pool, indent + 1),
+    "LocalVariableTypeTable" => read_local_var_type_table(&mut attribute_reader, pool, indent + 1),
+    "RuntimeVisibleAnnotations" => read_annotations(&mut attribute_reader, pool, indent + 1),
     _ => panic!("Unsupported attribute '{}'", attribute_name)
   }
 }
@@ -120,6 +123,27 @@ fn read_source_file(reader: &mut ByteReader, pool: &PoolList, indent: u8) -> Rea
     .expect(&format!(
       "No file name string at index {}", file_idx));
   println!("Source file: {}", file_name);
+
+  Ok(())
+}
+
+fn read_local_var_table(_reader: &mut ByteReader, _pool: &PoolList, _indent: u8) -> ReadResult {
+  // TODO complete the decoding
+  println!("Local var table. Ignored ...");
+
+  Ok(())
+}
+
+fn read_local_var_type_table(_reader: &mut ByteReader, _pool: &PoolList, _indent: u8) -> ReadResult {
+  // TODO complete the decoding
+  println!("Local var type table. Ignored ...");
+
+  Ok(())
+}
+
+fn read_annotations(_reader: &mut ByteReader, _pool: &PoolList, _indent: u8) -> ReadResult {
+  // TODO complete the decoding
+  println!("Runtime annotation table ignored. Ignored ...");
 
   Ok(())
 }

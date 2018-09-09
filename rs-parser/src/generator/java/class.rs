@@ -35,6 +35,13 @@ pub enum PoolElement {
   ///  2. INdex to a name & type info
   /// ```
   MethodRef(PoolIdx, PoolIdx),
+  /// Info refering to a method of an interface
+  /// Structure
+  /// ```
+  ///  1. Index to class info
+  ///  2. INdex to a name & type info
+  /// ```
+  InterfaceMethodRef(PoolIdx, PoolIdx),
   /// Info about a function
   /// Structure
   /// ```
@@ -138,7 +145,7 @@ impl JavaClass {
     self.class_pool.map(name_and_type)
   }
 
-  /// Maps a method existing in this or another object.
+  /// Maps a method existing in this or another concrete Class.
   ///
   /// It refers to the method by the class name, the method name
   /// and its signature
@@ -150,6 +157,21 @@ impl JavaClass {
     let class_idx = self.map_class(class_name);
     let nnt_idx = self.map_name_and_type(method_name, signature);
     let method_ref = PoolElement::MethodRef(class_idx, nnt_idx);
+    self.class_pool.map(method_ref)
+  }
+
+  /// Maps a method existing in this or another Interface.
+  ///
+  /// It refers to the interface method by the class name, the method name
+  /// and its signature
+  pub fn map_interface_method(
+      &mut self,
+      class_name: &str,
+      method_name: &str,
+      signature: &Signature) -> PoolIdx {
+    let class_idx = self.map_class(class_name);
+    let nnt_idx = self.map_name_and_type(method_name, signature);
+    let method_ref = PoolElement::InterfaceMethodRef(class_idx, nnt_idx);
     self.class_pool.map(method_ref)
   }
 

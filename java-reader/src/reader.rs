@@ -116,6 +116,10 @@ impl <'a> ByteReader<'a> {
       Err(Error::new(ErrorKind::UnexpectedEof, "Not enough bytes"))
     }
   }
+
+  pub fn get_pos(&self) -> usize {
+    self.position
+  }
 }
 
 impl <'a> Reader for ByteReader<'a> {
@@ -153,20 +157,20 @@ pub fn to_u16(bytes: &[u8]) -> u16 {
 }
 
 pub fn to_u32(bytes: &[u8]) -> u32 {
-	((bytes[0] as u32) << 24) 
-	  | ((bytes[1] as u32) << 16) 
-	  | ((bytes[2] as u32) << 8) 
+	((bytes[0] as u32) << 24)
+	  | ((bytes[1] as u32) << 16)
+	  | ((bytes[2] as u32) << 8)
     | (bytes[3] as u32)
 }
 
 pub fn to_u64(bytes: &[u8]) -> u64 {
-	((bytes[0] as u64) << 56) 
-	  | ((bytes[1] as u64) << 48) 
-	  | ((bytes[2] as u64) << 40) 
+	((bytes[0] as u64) << 56)
+	  | ((bytes[1] as u64) << 48)
+	  | ((bytes[2] as u64) << 40)
     | ((bytes[3] as u64) << 32)
-	  | ((bytes[4] as u64) << 24) 
-	  | ((bytes[5] as u64) << 16) 
-	  | ((bytes[6] as u64) << 8) 
+	  | ((bytes[4] as u64) << 24)
+	  | ((bytes[5] as u64) << 16)
+	  | ((bytes[6] as u64) << 8)
     | (bytes[7] as u64)
 }
 
@@ -177,8 +181,8 @@ pub fn to_i32(bytes: &[u8]) -> i32 {
   //   bytes[2],
   //   bytes[3]
   // ];
-  // unsafe { 
-  //   transmute::<[u8; 4], i32>(b) 
+  // unsafe {
+  //   transmute::<[u8; 4], i32>(b)
   // }
   to_u32(bytes) as i32
 }
@@ -194,8 +198,8 @@ pub fn to_i64(bytes: &[u8]) -> i64 {
   //   bytes[6],
   //   bytes[7]
   // ];
-  // unsafe { 
-  //   transmute::<[u8; 8], i64>(b) 
+  // unsafe {
+  //   transmute::<[u8; 8], i64>(b)
   // }
   to_u64(bytes) as i64
 }

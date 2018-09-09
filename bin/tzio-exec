@@ -13,6 +13,7 @@ Usage:
 Options:
 	-h, --help: Prints this help message
 	--rust: Use the rust compiler, creating a java executable class
+  --verbose: Activate the verbose flag of tzio-run
 HELP
 	exit 0
 }
@@ -20,6 +21,7 @@ HELP
 compiler_option='--rust'
 execution_option='--java'
 file_path=
+exec_args=
 while true
 do
   arg="$1"
@@ -27,6 +29,7 @@ do
   case $arg in
     # environment
     -h|--help) print_help ;;
+    --verbose) exec_args="$exec_args --verbose" ;;
     --rust)
       compiler_option='--rust'
       execution_option='--java' ;;
@@ -51,4 +54,4 @@ readonly output_dir="$DIR/out"
 readonly filename=$(basename "$file_path")
 readonly file_base="${filename%*.io}"
 readonly program_file="$output_dir/com/kineolyan/tzio/$file_base/Main.class"
-"$BIN_DIR/tzio-run" $execution_option $program_file
+"$BIN_DIR/tzio-run" $execution_option $exec_args $program_file

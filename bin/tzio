@@ -14,7 +14,7 @@ Usage:
 Commands:
   build: Builds a TZ IO program
   run: Runs a compiled TZ IO program
-	exec: Runs and copiles a TZ IO program
+	exec: Runs and compiles a TZ IO program
 
 Options:
 	-h, --help: Prints this help message

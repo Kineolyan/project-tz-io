@@ -6,6 +6,11 @@ readonly DIR=$(dirname $(dirname "$THIS_FILE"))
 
 readonly RUST_COMPILER=$DIR/rs-parser/target/debug/rs-parser
 
+readonly JARS=(
+  "$DIR/tzio-core/spec/build/libs/tzio-spec-1.0-SNAPSHOT.jar"
+  "$DIR/tzio-core/java/build/libs/tzio-java-1.0-SNAPSHOT.jar"
+)
+
 function print_help() {
 	cat <<HELP
 Usage:
@@ -15,20 +20,23 @@ Options:
   -h, --help: Prints this help message
   -l <lang>, --lang <lang>: Choose the platform running the program
   --java: Shortcut for --lang=java
+  --verbose: Activate verbose messages of the running platform
 HELP
 	exit 0
 }
 
 function run_java() {
   readonly local main_file=$1
-  readonly local jar_lib=$DIR/tzio-core/build/libs/tzio-core-1.0-SNAPSHOT.jar
 
-  # Check that the jar exist
-  if [ ! -f "$jar_lib" ]
-  then
-    echo -e "\e[31mJava library does not exit.\e[0m You may need to compile it"
-    exit 2
-  fi
+  # Check that the jars exist
+  for jar_lib in ${JARS[@]}
+  do
+    if [ ! -f "$jar_lib" ]
+    then
+      echo -e "\e[31mJava library '$jar_lib' does not exit.\e[0m You may need to compile it"
+      exit 2
+    fi
+  done
   if [ ! -f "$main_file" ]
   then
     echo -e "\e[31mThe file '$main_file' does not exist\e[0m"
@@ -48,6 +56,7 @@ function run_java() {
       exit 5
     fi
   done
+
   # Just check that the previous value are com.kineolyan
   file_dir=$(dirname $file_dir)
   if [[ "$(basename $file_dir)" != "kineolyan" ]]
@@ -65,11 +74,38 @@ function run_java() {
   fi
   file_dir=$(dirname $file_dir)
 
-  java -cp "$jar_lib:$file_dir" "$class_name"
+  local classpath="$file_dir"
+  for jar_lib in ${JARS[@]}
+  do
+    classpath="$classpath:$jar_lib"
+  done
+
+  execArgs=
+  if [[ $verbose == 1 ]]
+  then
+    propertyFile=/tmp/tzio-core.logging.properties
+    if [ ! -f $propertyFile ]
+    then
+      # Create the property file
+      cat > $propertyFile <<PROPS
+# Logging
+handlers = java.util.logging.ConsoleHandler
+.level = ALL
+
+# Console Logging
+java.util.logging.ConsoleHandler.level = ALL
+PROPS
+    fi
+
+    execArgs="$execArgs -Djava.util.logging.config.file=$propertyFile"
+  fi
+
+  java -cp "$classpath" $execArgs "$class_name"
 }
 
 language=
 args=
+verbose=0
 while true
 do
   arg="$1"
@@ -80,6 +116,7 @@ do
     -l|--lang)
       language="$1"
       shift 1 ;;
+    --verbose) verbose=1 ;;
     --java)
       language='java' ;;
     # end of loop and errors
@@ -90,7 +127,7 @@ done
 
 case $language in
   java) run_java $args ;;
-  *) 
-    echo -e "\e[31mUnknown language $language\e[0m" 
+  *)
+    echo -e "\e[31mUnknown language $language\e[0m"
     exit 1 ;;
 esac

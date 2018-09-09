@@ -4,9 +4,13 @@
 (defn create-env
   "Create a blank environment"
   [slot-count input-ids output-ids]
-  (let [slots (map #(queue-slot) input-ids))] 
+  (let 
+    [
+      indexes (range 1 slot-count)
+      is-input (fn [i] (some #(= i %) input-ids))
+      slots (map #(if (is-input %) (queue-slot) (empty-slot)))] 
     {
-      :slots []
+      :slots slots
       :nodes []
       :executions []}))
 

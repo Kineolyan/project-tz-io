@@ -7,6 +7,12 @@ dependencies {
     compile 'org.scala-lang:scala-library:2.12.6'
 }
 
+def javaForScalaVersion = '1.8'
+tasks.withType(ScalaCompile) {
+    sourceCompatibility = javaForScalaVersion
+    targetCompatibility = javaForScalaVersion
+}
+
 test {
     useJUnitPlatform {
         excludeTags 'slow'

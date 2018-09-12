@@ -22,7 +22,7 @@ allprojects {
 }
 
 // Config for java projects
-def javaVersion = 1.9
+ext.javaVersion = 1.9
 def javaProjects = ['tzio-spec', 'tzio-tck', 'tzio-java']
 configure(subprojects.findAll {javaProjects.contains(it.name)}) {
     apply plugin: 'java'

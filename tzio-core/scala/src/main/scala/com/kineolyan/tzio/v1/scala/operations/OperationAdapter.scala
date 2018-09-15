@@ -1,112 +1,53 @@
 package com.kineolyan.tzio.v1.scala.operations
 
-import com.kineolyan.tzio.v1.api.ops._
+import com.kineolyan.tzio.v1.api._
+import com.kineolyan.tzio.v1.scala.refs.{InputAdapter, OutputAdapter}
 
-object OperationAdapter extends OperationVisitor[Operation] {
+object OperationAdapter extends ops.OperationVisitor[Operation] {
 
-  def convert(definition: OperationType): Operation = visit(definition)
+  def convert(definition: ops.OperationType): Operation =
+    definition.accept(this)
 
-  /**
-    * Visits a MOV operation
-    *
-    * @param movOperation operation
-    * @return the result of the visit
-    */
-  override def visit(movOperation: MovOperation): Any = ???
+  override def visit(movOperation: ops.MovOperation): Operation =
+    MovOperation(
+      InputAdapter.convert(movOperation.input),
+      OutputAdapter.convert(movOperation.output))
 
-  /**
-    * Visits a SAV operation
-    *
-    * @param savOperation operation
-    * @return the result of the visit
-    */
-  override def visit(savOperation: SavOperation): Any = ???
+  override def visit(savOperation: ops.SavOperation): Operation =
+    SavOperation(savOperation.slot)
 
-  /**
-    * Visits a SWP operation
-    *
-    * @param swpOperation operation
-    * @return the result of the visit
-    */
-  override def visit(swpOperation: SwpOperation): Any = ???
+  override def visit(swpOperation: ops.SwpOperation): Operation =
+    SwpOperation(swpOperation.slot)
 
-  /**
-    * Visits a ADD operation
-    *
-    * @param addOperation operation
-    * @return the result of the visit
-    */
-  override def visit(addOperation: AddOperation): Any = ???
+  override def visit(addOperation: ops.AddOperation): Operation =
+    AddOperation(
+      InputAdapter.convert(addOperation.input))
 
-  /**
-    * Visits a SUB operation
-    *
-    * @param subOperation operation
-    * @return the result of the visit
-    */
-  override def visit(subOperation: SubOperation): Any = ???
+  override def visit(subOperation: ops.SubOperation): Operation =
+    SubOperation(
+      InputAdapter.convert(subOperation.input))
 
-  /**
-    * Visits a NEG operation
-    *
-    * @param negOperation operation
-    * @return the result of the visit
-    */
-  override def visit(negOperation: NegOperation): Any = ???
+  override def visit(negOperation: ops.NegOperation): Operation = NegOperation()
 
-  /**
-    * Visits a LABEL operation
-    *
-    * @param labelOperation operation
-    * @return the result of the visit
-    */
-  override def visit(labelOperation: LabelOperation): Any = ???
+  override def visit(labelOperation: ops.LabelOperation): Operation =
+    LblOperation(labelOperation.label)
 
-  /**
-    * Visits a JMP operation
-    *
-    * @param jmpOperation operation
-    * @return the result of the visit
-    */
-  override def visit(jmpOperation: JmpOperation): Any = ???
+  override def visit(jmpOperation: ops.JmpOperation): Operation =
+    JmpOperation(jmpOperation.label)
 
-  /**
-    * Visits a JEZ operation
-    *
-    * @param jezOperation operation
-    * @return the result of the visit
-    */
-  override def visit(jezOperation: JezOperation): Any = ???
+  override def visit(jezOperation: ops.JezOperation): Operation =
+    JezOperation(jezOperation.label)
 
-  /**
-    * Visits a JNZ operation
-    *
-    * @param jnzOperation operation
-    * @return the result of the visit
-    */
-  override def visit(jnzOperation: JnzOperation): Any = ???
+  override def visit(jnzOperation: ops.JnzOperation): Operation =
+    JnzOperation(jnzOperation.label)
 
-  /**
-    * Visits a JLZ operation
-    *
-    * @param jlzOperation operation
-    * @return the result of the visit
-    */
-  override def visit(jlzOperation: JlzOperation): Any = ???
+  override def visit(jlzOperation: ops.JlzOperation): Operation =
+    JlzOperation(jlzOperation.label)
 
-  /**
-    * Visits a JGZ operation
-    *
-    * @param jgzOperation operation
-    * @return the result of the visit
-    */
-  override def visit(jgzOperation: JgzOperation): Any = ???
+  override def visit(jgzOperation: ops.JgzOperation): Operation =
+    JgzOperation(jgzOperation.label)
 
-  /**
-    * Visits a JRO operation
-    *
-    * @param jroOperation operation
-    * @return the result of the visit
-    */
-  override def visit(jroOperation: JroOperation): Any = ???
+  override def visit(jroOperation: ops.JroOperation): Operation =
+    JroOperation(
+      InputAdapter.convert(jroOperation.input))
 }

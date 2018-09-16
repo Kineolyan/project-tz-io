@@ -7,12 +7,12 @@ object OutputAdapter extends ref.OutputReferenceVisitor[OutputReference] {
   def convert(definition: ref.OutputReferenceType): OutputReference =
     definition.accept(this)
 
-  override def visit(ref: ref.SlotReference): OutputReference =
-    OutSlotReference(ref.slot)
+  override def visit(reference: ref.SlotReference): OutputReference =
+    OutSlotReference(reference.slot)
 
-  override def visit(ref: ref.AccReference): OutputReference =
+  override def visit(reference: ref.AccReference): OutputReference =
     OutAccReference()
 
-  override def visit(ref: ref.NilReference): OutputReference =
+  override def visit(reference: ref.NilReference): OutputReference =
     OutNilReference()
 }

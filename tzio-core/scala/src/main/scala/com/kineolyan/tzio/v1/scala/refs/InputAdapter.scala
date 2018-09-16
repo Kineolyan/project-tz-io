@@ -7,15 +7,15 @@ object InputAdapter extends ref.InputReferenceVisitor[InputReference] {
   def convert(definition: ref.InputReferenceType): InputReference =
     definition.accept(this)
 
-  override def visit(ref: ref.SlotReference): InputReference =
-    InSlotReference(ref.slot)
+  override def visit(reference: ref.SlotReference): InputReference =
+    InSlotReference(reference.slot)
 
-  override def visit(ref: ref.AccReference): InputReference =
+  override def visit(reference: ref.AccReference): InputReference =
     InAccReference()
 
-  override def visit(ref: ref.ValueReference): InputReference =
-    ValueReference(ref.value)
+  override def visit(reference: ref.ValueReference): InputReference =
+    ValueReference(reference.value)
 
-  override def visit(ref: ref.NilReference): InputReference =
+  override def visit(reference: ref.NilReference): InputReference =
     InNilReference()
 }

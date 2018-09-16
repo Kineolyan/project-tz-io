@@ -24,8 +24,8 @@ class ScalaTzEnv(
     val slots: Array[Any] = Range(0, slotCount)
       .map(i => if (inputs.contains(i)) new QueueSlot(List()) else EmptySlot())
       .toArray
-    ScalaTzEnv(
-      EnvSlots(
+    new ScalaTzEnv(
+      new EnvSlots(
         slots,
         inputs,
         outputs),

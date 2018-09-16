@@ -3,7 +3,7 @@ package com.kineolyan.tzio.v1.scala
 class Node(val acc: Int, val instruction: Int, memory: Array[Int]) {
 
   def copy(acc: Int = acc, instruction: Int = instruction, memory: Array[Int] = memory): Node =
-    Node(acc, instruction, memory)
+    new Node(acc, instruction, memory)
 
   def acc(value: Int): Node = copy(acc = value)
 

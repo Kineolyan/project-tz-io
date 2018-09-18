@@ -45,22 +45,6 @@ public interface TzEnv {
 			final List<OperationType> operations);
 
 	/**
-	 * Configures a consumer for this environment data.
-	 * <p>
-	 *   Without configuration, output data is swallowed.
-	 * </p>
-	 * @param consumer consumer of produced data
-	 * @return this
-	 */
-	TzEnv produceInto(Consumer<OptionalInt[]> consumer);
-
-	/**
-	 * Feeds this environment with data.
-	 * @param input input values to feed to the input slots.
-	 */
-	void consume(final int[] input);
-
-	/**
 	 * Runs this environment using the Java system.
 	 * @param args program arguments
 	 */

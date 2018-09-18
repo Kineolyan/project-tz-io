@@ -20,11 +20,7 @@ class Execution(inputs: Array[Int], outputs: Array[Int], operations: Array[Opera
     }
   }
 
-}
-
-object Execution {
-
-  private[exec] def move(context: Context, in: InputReference, out: OutputReference): Context = {
+  private def move(context: Context, in: InputReference, out: OutputReference): Context = {
     read(context, in) match {
       case Some((value, newInputs)) =>
         write(context, value, out) match {
@@ -38,7 +34,7 @@ object Execution {
     }
   }
 
-  private[exec] def read(context: Context, in: InputReference): Option[(Int, Array[InputSlot])] = {
+  private def read(context: Context, in: InputReference): Option[(Int, Array[InputSlot])] = {
     in match {
       case InSlotReference(idx) =>
         val slot = context.inputs.apply(idx - 1)
@@ -56,7 +52,7 @@ object Execution {
     }
   }
 
-  private[exec] def write(context: Context, value: Int, out: OutputReference): Option[Array[OutputSlot]] = {
+  private def write(context: Context, value: Int, out: OutputReference): Option[Array[OutputSlot]] = {
     out match {
       case OutSlotReference(idx) =>
         val slot = context.outputs.apply(idx - 1)
@@ -74,6 +70,6 @@ object Execution {
     }
   }
 
-  private[exec] def nextInstruction(current: Int, max: Int): Int = (current + 1) % max
+  private def nextInstruction(current: Int, max: Int): Int = (current + 1) % max
 
 }

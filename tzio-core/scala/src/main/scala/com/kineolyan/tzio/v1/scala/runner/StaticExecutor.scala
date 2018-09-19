@@ -12,7 +12,7 @@ class StaticExecutor(inputs: Stream[Array[Int]], cycles: Int) {
     Stream(0, cycles)
       .scanLeft(initialState)((acc, iteration) => {
         val (env, _) = acc
-        env.collect()
+        env.tick().collect()
       })
       .map(acc => acc._2)
   }

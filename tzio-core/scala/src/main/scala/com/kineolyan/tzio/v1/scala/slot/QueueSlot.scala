@@ -6,5 +6,5 @@ class QueueSlot(values: List[Int]) extends InputSlot {
   override def read(): (Int, QueueSlot) = (values.head, new QueueSlot(values.tail))
 
   def consume(value: Int): QueueSlot =
-    new QueueSlot(values ++ value)
+    new QueueSlot(values ++ List(value))
 }

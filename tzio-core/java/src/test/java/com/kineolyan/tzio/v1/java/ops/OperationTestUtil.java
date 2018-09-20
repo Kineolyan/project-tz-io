@@ -31,10 +31,12 @@ public class OperationTestUtil {
 		return new ShiftAssert(shift);
 	}
 
+	@SuppressWarnings("unchecked")
 	static <T extends InputSlot> T getInput(final Node node, final int index) {
 		return (T) node.getInput(index - 1);
 	}
 
+	@SuppressWarnings("unchecked")
 	static <T extends OutputSlot> T getOutput(final Node node, final int index) {
 		return (T) node.getOutput(index - 1);
 	}

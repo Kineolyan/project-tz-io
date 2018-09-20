@@ -4,7 +4,7 @@ import com.kineolyan.tzio.v1.scala.operations.{MovOperation, Operation}
 import com.kineolyan.tzio.v1.scala.refs.{InSlotReference, InputReference, OutSlotReference, OutputReference}
 import com.kineolyan.tzio.v1.scala.slot.{InputSlot, OutputSlot}
 
-class Execution(inputs: Array[Int], outputs: Array[Int], operations: Array[Operation]) {
+class Execution(val inputs: Array[Int], val outputs: Array[Int], val operations: Array[Operation]) {
 
   /**
     * Produces a new context with the result of the execution

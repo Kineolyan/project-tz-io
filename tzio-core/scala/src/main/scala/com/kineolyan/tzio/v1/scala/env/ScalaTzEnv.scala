@@ -16,16 +16,17 @@ import com.kineolyan.tzio.v1.scala.slot.{EmptySlot, InputSlot, OutputSlot, Queue
 import scala.collection.JavaConverters._
 
 class ScalaTzEnv(
-                  slots: EnvSlots,
-                  nodes: Map[String, (Node, Execution)],
-                  contextMapper: ContextMapper)
+                  val slots: EnvSlots,
+                  val nodes: Map[String, (Node, Execution)],
+                  val contextMapper: ContextMapper)
   extends TzEnv {
   type EnvConsumer = Consumer[Array[OptionalInt]]
 
   def copy(
             slots: EnvSlots = slots,
-            nodes: Map[String, (Node, Execution)] = nodes) =
-    new ScalaTzEnv(slots, nodes, )
+            nodes: Map[String, (Node, Execution)] = nodes,
+            contextMapper: ContextMapper = contextMapper) =
+    new ScalaTzEnv(slots, nodes, contextMapper)
 
   override def withSlots(slotCount: Int, inputs: Array[Int], outputs: Array[Int]): TzEnv = {
     val slots: Array[Any] = Range(0, slotCount)
@@ -37,7 +38,7 @@ class ScalaTzEnv(
         inputs,
         outputs),
       nodes,
-      executions)
+      contextMapper)
   }
 
   override def addNode(name: String, memorySize: Int, inputs: Array[Int], outputs: Array[Int], operations: util.List[OperationType]): TzEnv = {
@@ -50,40 +51,42 @@ class ScalaTzEnv(
     val newNodes = nodes + (name -> (node, execution))
 
     val mapperWithInputs = inputs.zipWithIndex
-      .foldLeft(contextMapper)({case (mapper, (inputIdx, slotIdx) => mapper.addInput(name, inputIdx, slotIdx)})
+      .foldLeft(contextMapper)({ case (mapper, (inputIdx, slotIdx)) => mapper.addInput(name, inputIdx, slotIdx) })
     val fullMapper = outputs.zipWithIndex
-      .foldLeft(mapperWithInputs)({case (mapper, (outputIdx, slotIdx) => mapper.addOutput(name, outputIdx, slotIdx)})
+      .foldLeft(mapperWithInputs)({ case (mapper, (outputIdx, slotIdx)) => mapper.addOutput(name, outputIdx, slotIdx) })
 
     new ScalaTzEnv(slots, newNodes, fullMapper)
   }
 
   /**
     * Runs one cycle of the environment, executing operations for every node.
+    *
     * @return the updated environment after execution
     */
   def tick(): ScalaTzEnv = {
-    val executionOrder = nodes.keys
-    val contexts = executionOrder.toStream.map(name => {
-      val (node, exec) = nodes(name)
-      val execInputs = exec.inputs
-        .map(idx => slots.slots.apply(idx))
-        .map({
-          case s: InputSlot => s
-          case slot => throw new IllegalStateException("Expecting " + slot + " to be an input")
-        })
-      val execOutputs = exec.outputs
-        .map(idx => slots.slots.apply(idx))
-        .map({
-          case s: OutputSlot => s
-          case slot => throw new IllegalStateException("Expecting " + slot + " to be an output")
-        })
-      new Context(node, execInputs, execOutputs)
-    })
+    val contexts = nodes.map({ case (name, _) => (name, contextMapper.createContext(name, this)) })
 
-    val updatedContext = contexts.zip(executionOrder.toStream.map(name => nodes(name)._2))
-      .map({case (ctx, execution) => execution.runCycle(ctx)})
+    val updatedContexts = nodes.keys
+      .map(name => {
+        val ctx = contexts(name)
+        val (_, execution) = nodes(name)
+        (name, execution.runCycle(ctx))
+      })
+      .toMap
 
-    null
+    val newSlots = slots.slots.zipWithIndex
+      .map({case (s, idx) => contextMapper.getUpdated(idx, s, updatedContexts)})
+    val updatedNodes = nodes.keys
+      .map(name => {
+        val node = updatedContexts(name).node
+        val (_, execution) = nodes(name)
+        (name, (node, execution))
+      })
+      .toMap
+
+    copy(
+      slots = slots.copy(slots = newSlots),
+      nodes = updatedNodes)
   }
 
   def consume(input: Array[Int]): ScalaTzEnv = {
@@ -115,17 +118,12 @@ class ScalaTzEnv(
   def collect(): (ScalaTzEnv, Array[OptionalInt]) = {
     val results = slots.outputs
       .map(idx => {
-        val slot = slots.slots.apply(idx)
-        slot match {
-          case input: InputSlot =>
-            if (input.canRead) {
-              val (value, newSlot) = input.read()
-              (OptionalInt.of(value), newSlot)
-            } else {
-              (OptionalInt.empty(), input)
-            }
-          case _ =>
-            throw new IllegalStateException("Expecting slot " + slot + " to be a readable slot")
+        val input = slots.input(idx)
+        if (input.canRead) {
+          val (value, newSlot) = input.read()
+          (OptionalInt.of(value), newSlot)
+        } else {
+          (OptionalInt.empty(), input)
         }
       })
     val updatedSlots = (slots.outputs zip results)
@@ -158,5 +156,5 @@ class ScalaTzEnv(
 }
 
 object ScalaTzEnv {
-  def empty(): ScalaTzEnv = new ScalaTzEnv(EnvSlots.empty(), Map(), Map())
+  def empty(): ScalaTzEnv = new ScalaTzEnv(EnvSlots.empty(), Map(), ContextMapper.empty())
 }

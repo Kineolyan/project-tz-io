@@ -42,7 +42,7 @@ class Execution(val inputs: Array[Int], val outputs: Array[Int], val operations:
         if (slot.canRead) {
           val (value, newSlot) = slot.read()
           val readInputs = context.inputs.clone()
-          readInputs.update(idx, newSlot)
+          readInputs.update(idx - 1, newSlot)
 
           Some((value, readInputs))
         } else {
@@ -60,7 +60,7 @@ class Execution(val inputs: Array[Int], val outputs: Array[Int], val operations:
         if (slot.canWrite) {
           val newSlot = slot.write(value)
           val writtenOutputs = context.outputs.clone()
-          writtenOutputs.update(idx, newSlot)
+          writtenOutputs.update(idx - 1, newSlot)
 
           Some(writtenOutputs)
         } else {

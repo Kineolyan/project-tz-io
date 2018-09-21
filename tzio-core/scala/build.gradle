@@ -5,6 +5,8 @@ dependencies {
     testCompile project(':tzio-tck')
 
     compile 'org.scala-lang:scala-library:2.12.6'
+    testCompile 'org.scalatest:scalatest_2.11:3.0.0'
+    testCompile 'junit:junit:4.12'
 }
 
 def javaForScalaVersion = '1.8'

@@ -14,6 +14,11 @@ class StaticExecutor(inputs: Stream[Array[Int]], cycles: Int) {
         val (env, _) = acc
         env.tick().collect()
       })
+      .drop(1) // Drop the first value of the scan
+      .map(dbg => {
+        println(dbg._1)
+        dbg
+      })
       .map(acc => acc._2)
   }
 

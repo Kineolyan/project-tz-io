@@ -51,9 +51,9 @@ class ScalaTzEnv(
     val newNodes = nodes + (name -> (node, execution))
 
     val mapperWithInputs = inputs.zipWithIndex
-      .foldLeft(contextMapper)({ case (mapper, (inputIdx, slotIdx)) => mapper.addInput(name, inputIdx, slotIdx) })
+      .foldLeft(contextMapper)({ case (mapper, (slotIdx, inputIdx)) => mapper.mapInput(name, inputIdx, slotIdx) })
     val fullMapper = outputs.zipWithIndex
-      .foldLeft(mapperWithInputs)({ case (mapper, (outputIdx, slotIdx)) => mapper.addOutput(name, outputIdx, slotIdx) })
+      .foldLeft(mapperWithInputs)({ case (mapper, (slotIdx, outputIdx)) => mapper.mapOutput(name, outputIdx, slotIdx) })
 
     new ScalaTzEnv(slots, newNodes, fullMapper)
   }

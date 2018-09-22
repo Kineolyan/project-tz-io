@@ -9,6 +9,7 @@ class Node(val acc: Int, val instruction: Int, memory: Array[Int]) {
 
   def add(value: Int): Node = copy(acc = acc + value)
   def sub(value: Int): Node = copy(acc = acc - value)
+  def neg(): Node = copy(acc = -acc)
 
   def bak(idx: Int): Node = {
     var newMemory = memory.clone

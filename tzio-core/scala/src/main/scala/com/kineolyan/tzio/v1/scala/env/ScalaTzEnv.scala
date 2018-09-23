@@ -115,27 +115,37 @@ class ScalaTzEnv(
     copy(slots = slots.copy(slots = updatedSlots))
   }
 
-  def collect(): (ScalaTzEnv, Array[OptionalInt]) = {
-    val results = slots.outputs
-      .map(idx => {
-        val input = slots.input(idx)
-        if (input.canRead) {
-          val (value, newSlot) = input.read()
-          (OptionalInt.of(value), newSlot)
-        } else {
-          (OptionalInt.empty(), input)
-        }
-      })
-    val updatedSlots = (slots.outputs zip results)
-      .foldLeft(slots.slots.clone())((acc, entry) => {
-        val (idx, (_, slot)) = entry
-        acc.update(idx, slot)
-        acc
-      })
-    val newEnv = copy(slots = slots.copy(slots = updatedSlots))
+  def collect(): (ScalaTzEnv, Option[Array[OptionalInt]]) = {
+    val externalSlots = slots.outputs
+      .map(i => slots.input(i))
 
-    val output = results.map(entry => entry._1)
-    (newEnv, output)
+    val hasData = externalSlots.exists({
+      case s: InputSlot => s.canRead
+      case _ => false
+    })
+    if (hasData) {
+      val results = externalSlots
+        .map(input => {
+          if (input.canRead) {
+            val (value, newSlot) = input.read()
+            (OptionalInt.of(value), newSlot)
+          } else {
+            (OptionalInt.empty(), input)
+          }
+        })
+      val updatedSlots = (slots.outputs zip results)
+        .foldLeft(slots.slots.clone())((acc, entry) => {
+          val (idx, (_, slot)) = entry
+          acc.update(idx, slot)
+          acc
+        })
+      val newEnv = copy(slots = slots.copy(slots = updatedSlots))
+
+      val output = results.map(entry => entry._1)
+      (newEnv, Some(output))
+    } else {
+      (this, None)
+    }
   }
 
   override def runFromSystem(args: Array[String]): Unit = {

@@ -8,18 +8,17 @@ class StaticExecutor(inputs: Stream[Array[Int]], cycles: Int) {
 
   def run(initialEnv: ScalaTzEnv): Stream[Array[OptionalInt]] = {
     val filledEnv = inputs.foldLeft(initialEnv)((result, inputs) => result.consume(inputs))
-    val initialState: (ScalaTzEnv, Array[OptionalInt]) = (filledEnv, Array())
-    Stream(0, cycles)
+    val initialState: (ScalaTzEnv, Option[Array[OptionalInt]]) = (filledEnv, None)
+
+    Stream.from(0).take(cycles)
       .scanLeft(initialState)((acc, iteration) => {
         val (env, _) = acc
         env.tick().collect()
       })
       .drop(1) // Drop the first value of the scan
-      .map(dbg => {
-        println(dbg._1)
-        dbg
-      })
       .map(acc => acc._2)
+      .filter(e => e.isDefined)
+      .map(data => data.get)
   }
 
 }

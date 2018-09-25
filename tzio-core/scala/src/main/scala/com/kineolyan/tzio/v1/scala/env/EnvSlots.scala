@@ -2,6 +2,12 @@ package com.kineolyan.tzio.v1.scala.env
 
 import com.kineolyan.tzio.v1.scala.slot.{InputSlot, OutputSlot}
 
+/**
+  * Structure holding the environment slots and the indexes of global inputs and outputs.
+  * @param slots environment slots
+  * @param inputs 0-based indexes of slots used as inputs of the environment
+  * @param outputs 0-based indexes of slots used as outputs of the environment
+  */
 class EnvSlots(val slots: Array[Any], val inputs: Array[Int], val outputs: Array[Int]) {
 
   def copy(slots: Array[Any] = slots, inputs: Array[Int] = inputs, outputs: Array[Int] = outputs) =

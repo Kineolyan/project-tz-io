@@ -8,6 +8,10 @@ case class Input(name: String, idx: Int) extends Mapping {}
 
 case class Output(name: String, idx: Int) extends Mapping {}
 
+/**
+  * Mapping between an environment slots and the slots used by nodes.
+  * @param mapping mapping from a node slot and its index in the environment slot list
+  */
 class ContextMapper(mapping: Map[Mapping, Int]) {
 
   def copy(mapping: Map[Mapping, Int] = mapping) = new ContextMapper(mapping)

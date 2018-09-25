@@ -2,6 +2,9 @@ package com.kineolyan.tzio.v1.scala.refs
 
 import com.kineolyan.tzio.v1.api.ref
 
+/**
+  * Object adapting definition of inputs to their actual types in the Scala core
+  */
 object InputAdapter extends ref.InputReferenceVisitor[InputReference] {
 
   def convert(definition: ref.InputReferenceType): InputReference =

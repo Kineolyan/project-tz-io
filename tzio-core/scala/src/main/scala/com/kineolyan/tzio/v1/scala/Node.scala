@@ -1,5 +1,11 @@
 package com.kineolyan.tzio.v1.scala
 
+/**
+  * Structure holding the mutated values of a node changed by operations
+  * @param acc ACC value
+  * @param instruction current instruction to execute
+  * @param memory array of memory values
+  */
 class Node(val acc: Int, val instruction: Int, memory: Array[Int]) {
 
   def copy(acc: Int = acc, instruction: Int = instruction, memory: Array[Int] = memory): Node =

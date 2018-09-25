@@ -8,13 +8,19 @@ import java.util.{OptionalInt, Spliterator, Spliterators}
 import com.kineolyan.tzio.v1.api.TzEnv
 import com.kineolyan.tzio.v1.api.ops.OperationType
 import com.kineolyan.tzio.v1.scala.Node
-import com.kineolyan.tzio.v1.scala.exec.{Context, Execution}
+import com.kineolyan.tzio.v1.scala.exec.Execution
 import com.kineolyan.tzio.v1.scala.operations.OperationAdapter
 import com.kineolyan.tzio.v1.scala.runner.StaticExecutor
-import com.kineolyan.tzio.v1.scala.slot.{EmptySlot, InputSlot, OutputSlot, QueueSlot}
+import com.kineolyan.tzio.v1.scala.slot.{EmptySlot, InputSlot, QueueSlot}
 
 import scala.collection.JavaConverters._
 
+/**
+  * TZ environment for the Scala core
+  * @param slots slots of this environment
+  * @param nodes nodes defined in this environment
+  * @param contextMapper mapping between the environment slots and nodes
+  */
 class ScalaTzEnv(
                   val slots: EnvSlots,
                   val nodes: Map[String, (Node, Execution)],
@@ -30,7 +36,7 @@ class ScalaTzEnv(
 
   override def withSlots(slotCount: Int, inputs: Array[Int], outputs: Array[Int]): TzEnv = {
     val slots: Array[Any] = Range(0, slotCount)
-      .map(i => if (inputs.contains(i)) new QueueSlot(List()) else EmptySlot())
+      .map(i => if (inputs.contains(i)) new QueueSlot(List()) else new EmptySlot())
       .toArray
     new ScalaTzEnv(
       new EnvSlots(

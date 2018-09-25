@@ -2,6 +2,9 @@ package com.kineolyan.tzio.v1.scala.operations
 
 import com.kineolyan.tzio.v1.scala.refs.{InputReference, OutputReference}
 
+/**
+  * Base class for all operations available on a node.
+  */
 abstract class Operation
 case class MovOperation(in: InputReference, out: OutputReference) extends Operation {}
 case class SavOperation(memoryIdx: Int) extends Operation {}

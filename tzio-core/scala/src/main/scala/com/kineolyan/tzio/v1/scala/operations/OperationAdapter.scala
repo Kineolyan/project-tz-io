@@ -3,6 +3,9 @@ package com.kineolyan.tzio.v1.scala.operations
 import com.kineolyan.tzio.v1.api._
 import com.kineolyan.tzio.v1.scala.refs.{InputAdapter, OutputAdapter}
 
+/**
+  * Object adapting the definition of an operation to their actual types in the Scala core
+  */
 object OperationAdapter extends ops.OperationVisitor[Operation] {
 
   def convert(definition: ops.OperationType): Operation =

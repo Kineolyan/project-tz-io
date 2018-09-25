@@ -3,8 +3,15 @@ package com.kineolyan.tzio.v1.scala.exec
 import com.kineolyan.tzio.v1.scala.Node
 import com.kineolyan.tzio.v1.scala.operations._
 import com.kineolyan.tzio.v1.scala.refs._
-import com.kineolyan.tzio.v1.scala.slot.{InputSlot, OutputSlot}
+import com.kineolyan.tzio.v1.scala.slot.InputSlot
 
+/**
+  * Structure defining the execution context for a node.
+  * @param inputs 0-based indexes of the environment slots to use as inputs
+  * @param outputs 0-based indexes of the environment slots to use as outputs
+  * @param operations list of operations to be executed by the node
+  * @param labelMapping mapping from labels to operations
+  */
 class Execution(
                  val inputs: Array[Int],
                  val outputs: Array[Int],

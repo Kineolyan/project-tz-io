@@ -4,6 +4,11 @@ import java.util.OptionalInt
 
 import com.kineolyan.tzio.v1.scala.env.ScalaTzEnv
 
+/**
+  * Executor af an TZ-IO program based on static input data.
+  * @param inputs input values
+  * @param cycles maximal number of cycles to execute
+  */
 class StaticExecutor(inputs: Stream[Array[Int]], cycles: Int) {
 
   def run(initialEnv: ScalaTzEnv): Stream[Array[OptionalInt]] = {

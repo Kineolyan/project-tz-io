@@ -9,4 +9,13 @@ class EmptySlot() extends InputSlot with OutputSlot {
 
   override def canWrite: Boolean = true
   override def write(value: Int): OutputSlot = new FilledSlot(value)
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[EmptySlot]
+  override def equals(other: Any): Boolean = other match {
+    case that: EmptySlot => that canEqual this
+    case _ => false
+  }
+
+  override def hashCode(): Int = 1
+
 }

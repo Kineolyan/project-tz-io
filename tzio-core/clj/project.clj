@@ -6,4 +6,8 @@
   :dependencies [[org.clojure/clojure "1.8.0"]]
   :main ^:skip-aot clj.core
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:uberjar {:aot :all}}
+  :resource-paths
+  [
+    "../spec/build/libs/tzio-spec-1.0-SNAPSHOT.jar"])
+  

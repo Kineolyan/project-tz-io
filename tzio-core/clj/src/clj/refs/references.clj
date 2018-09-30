@@ -11,7 +11,7 @@
 (defn nil-slot
   ([_] [:nil]))
 
-(def value-slot
+(defn value-slot
   [^ValueReference type] 
   [:value (.-value type)])
 

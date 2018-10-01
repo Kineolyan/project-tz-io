@@ -39,7 +39,7 @@
 (defmethod is-label? :label [& _] true)
 (defmethod is-label? :default [& _] false)
 
-(defn get-label [_ lbl] lbl)
+(defn get-label [[_ lbl]] lbl)
 
 (defn index
   [operations]

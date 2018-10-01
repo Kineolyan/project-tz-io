@@ -14,3 +14,24 @@
 (deftest test-data-slot
   (testing "create data slot"
     (is (= (data-slot 13) [:slot 13]))))
+
+(deftest test-enqueue
+  (testing "enqueue"
+    (is (=
+          (as-> 
+            (queue-slot) q 
+            (enqueue q 12) 
+            (enqueue q 5))
+          [:queue [12 5]]))))
+
+(deftest test-dequeue
+  (testing "dequeue"
+    (is (=
+          (as->
+            (queue-slot) q 
+            (enqueue q 12)
+            (enqueue q 5)
+            (dequeue q))
+          [
+            [:queue [5]]
+            12]))))

@@ -51,13 +51,12 @@
 ;   (let
 ;     [
 ;       slots (:slots env)
-;       idx-count (count slots)
-;       indexes (filter #(sl/is-queue %) slots)
+;       slot-indexes (range (count slots))
+;       indexes (filter #(sl/is-queue (nth slots %)) slot-indexes)
 ;       to-update (map vector indexes data)
 ;       fed-slots 
 ;       (reduce
-;         (fn [s (idx value)]
-;           (assoc! s idx value))
-;         slots
+;         (fn [s (idx value)] (assoc! s idx value))
+;         (transient slots)
 ;         to-update)]  
-;     (assoc! env :slots fed-slots)))
+;     (assoc env :slots (persistent! fed-slots))))

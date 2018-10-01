@@ -10,8 +10,21 @@
   
 (defn queue-slot
   "Creates a slot queuing the input values"
-  ([] [:queue]))
+  ([] [:queue []]))
 
 (defmulti is-queue (fn [[slot & remaining]] slot))
 (defmethod is-queue :queue [& _] true)
 (defmethod is-queue :default [& _] false)
+
+(defn enqueue
+  "Enqueues a value into a queue"
+  [[type values] value]
+  [type (conj values value)])
+
+(defn dequeue
+  "Dequeues the first value from a queue"
+  [[type [value & rest]]]
+  [
+    [type rest]
+    value])
+

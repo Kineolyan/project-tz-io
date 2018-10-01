@@ -45,18 +45,26 @@
       :nodes new-nodes 
       :executions new-executions)))
 
-; (defn consume
-;   "Feeds the environment with external data"
-;   [env data]
-;   (let
-;     [
-;       slots (:slots env)
-;       slot-indexes (range (count slots))
-;       indexes (filter #(sl/is-queue (nth slots %)) slot-indexes)
-;       to-update (map vector indexes data)
-;       fed-slots 
-;       (reduce
-;         (fn [s (idx value)] (assoc! s idx value))
-;         (transient slots)
-;         to-update)]  
-;     (assoc env :slots (persistent! fed-slots))))
+(defn consume
+  "Feeds the environment with external data"
+  [env data]
+  (let
+    [
+      slots (:slots env)
+      slot-indexes (range (count slots))
+      indexes (filter #(sl/is-queue (nth slots %)) slot-indexes)
+      to-update (map vector indexes data)
+      fed-slots 
+      (map
+        (fn 
+          [[idx value]] 
+          [
+            idx
+            (sl/enqueue (nth slots idx)) value])
+        to-update)
+      updated-slots
+      (reduce
+        (fn [acc [idx slot]] (assoc! acc idx slot))
+        (transient slots)
+        fed-slots)]  
+    (assoc env :slots (persistent! updated-slots))))

@@ -78,13 +78,19 @@ class ContextMapper(mapping: Map[Mapping, Int]) {
         case (Input(_, _), slotIdx) => slotIdx == idx
         case _ => false
       })
-      .map({case (Input(name, inIdx), _: Int) => contexts(name).inputs.apply(inIdx)})
+      .map({
+        case (Input(name, inIdx), _: Int) => contexts(name).inputs.apply(inIdx)
+        case o => throw new IllegalStateException("Illegal logic. Got " + o)
+      })
     val output = mapping
       .find({
         case (Output(_, _), slotIdx) => slotIdx == idx
         case _ => false
       })
-      .map({case (Output(name, outIdx), _: Int) => contexts(name).outputs.apply(outIdx)})
+      .map({
+        case (Output(name, outIdx), _: Int) => contexts(name).outputs.apply(outIdx)
+        case o => throw new IllegalStateException("Illegal logic. Got " + o)
+      })
 
     if (input.isDefined && output.isDefined) {
       // Sanity check, only one of them mush have changed

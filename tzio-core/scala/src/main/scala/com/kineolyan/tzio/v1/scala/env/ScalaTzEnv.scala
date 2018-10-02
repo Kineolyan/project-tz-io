@@ -10,7 +10,7 @@ import com.kineolyan.tzio.v1.api.ops.OperationType
 import com.kineolyan.tzio.v1.scala.Node
 import com.kineolyan.tzio.v1.scala.exec.Execution
 import com.kineolyan.tzio.v1.scala.operations.OperationAdapter
-import com.kineolyan.tzio.v1.scala.runner.StaticExecutor
+import com.kineolyan.tzio.v1.scala.runner.{StaticExecutor, SystemExecutor}
 import com.kineolyan.tzio.v1.scala.slot.{EmptySlot, InputSlot, QueueSlot}
 
 import scala.collection.JavaConverters._
@@ -155,7 +155,7 @@ class ScalaTzEnv(
   }
 
   override def runFromSystem(args: Array[String]): Unit = {
-    throw new UnsupportedOperationException("Not coded yet")
+    SystemExecutor.fromSystem().run(this)
   }
 
   override def runOn(inputs: Stream[Array[Int]], cycles: Int): Stream[Array[OptionalInt]] = {

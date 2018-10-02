@@ -13,6 +13,8 @@ Usage:
 Options:
 	-h, --help: Prints this help message
 	--rust: Use the rust compiler, creating a java executable class
+  --java: Use the TZ Java core
+  --scala: Use the TZ Scala core
   --verbose: Activate the verbose flag of tzio-run
 HELP
 	exit 0
@@ -30,9 +32,9 @@ do
     # environment
     -h|--help) print_help ;;
     --verbose) exec_args="$exec_args --verbose" ;;
-    --rust)
-      compiler_option='--rust'
-      execution_option='--java' ;;
+    --rust) compiler_option='--rust' ;;
+    --java) execution_option='--java' ;;
+    --scala) execution_option='--scala' ;;
     --|'') break ;;
     *) [ -z "$file_path" ] && file_path="$arg" ;;
   esac

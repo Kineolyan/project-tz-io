@@ -167,6 +167,10 @@ public class JavaTzEnv implements TzEnv {
 	 * @param input input values to feed to the input slots.
 	 */
 	public void consume(final int[] input) {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Consuming " + Arrays.toString(input));
+		}
+
 		for (int i = 0, end_ = Math.max(input.length, inputs.length); i < end_; i += 1) {
 			this.inputs[i].enqueue(input[i]);
 		}
@@ -187,6 +191,11 @@ public class JavaTzEnv implements TzEnv {
 			final OptionalInt[] output = Stream.of(this.outputs)
 				.map(o -> o.canRead() ? OptionalInt.of(o.read()) : OptionalInt.empty())
 				.toArray(OptionalInt[]::new);
+
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("Produced " + Arrays.toString(output));
+			}
+
 			this.consumer.accept(output);
 		}
 	}

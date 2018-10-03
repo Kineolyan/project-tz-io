@@ -15,6 +15,16 @@ tasks.withType(ScalaCompile) {
     targetCompatibility = javaForScalaVersion
 }
 
+task fullJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'TZ Scala Core (Full)',
+                'Implementation-Version': version
+    }
+    baseName = project.name + '-full'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
 test {
     useJUnitPlatform {
         excludeTags 'slow'

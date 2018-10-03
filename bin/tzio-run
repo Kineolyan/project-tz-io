@@ -8,13 +8,10 @@ readonly RUST_COMPILER=$DIR/rs-parser/target/debug/rs-parser
 
 readonly VERSION="1.0-SNAPSHOT"
 readonly JAVA_JARS=(
-  "$DIR/tzio-core/spec/build/libs/tzio-spec-$VERSION.jar"
-  "$DIR/tzio-core/java/build/libs/tzio-java-$VERSION.jar"
+  "$DIR/tzio-core/java/build/libs/tzio-java-full-$VERSION.jar"
 )
 readonly SCALA_JARS=(
-  "$DIR/tzio-core/spec/build/libs/tzio-spec-$VERSION.jar"
-  "/home/oliv/.gradle/caches/modules-2/files-2.1/org.scala-lang/scala-library/2.12.6/6bd975dd5ca2a50b94413b708389b892ae423181/scala-library-2.12.6.jar"
-  "$DIR/tzio-core/scala/build/libs/tzio-scala-$VERSION.jar"
+  "$DIR/tzio-core/scala/build/libs/tzio-scala-full-$VERSION.jar"
 )
 
 function print_help() {

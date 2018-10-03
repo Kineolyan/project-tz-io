@@ -4,6 +4,7 @@ import java.util
 import java.util.function.Consumer
 import java.util.stream.{Stream, StreamSupport}
 import java.util.{OptionalInt, Spliterator, Spliterators}
+import java.util.logging.{Level, Logger}
 
 import com.kineolyan.tzio.v1.api.TzEnv
 import com.kineolyan.tzio.v1.api.ops.OperationType
@@ -38,13 +39,22 @@ class ScalaTzEnv(
     val slots: Array[Any] = Range(0, slotCount)
       .map(i => if (inputs.contains(i)) new QueueSlot(List()) else new EmptySlot())
       .toArray
-    new ScalaTzEnv(
+    val newEnv = new ScalaTzEnv(
       new EnvSlots(
         slots,
         inputs,
         outputs),
       nodes,
       contextMapper)
+
+    if (ScalaTzEnv.logger.isLoggable(Level.FINE)) {
+      ScalaTzEnv.logger.fine(
+        s"Environment configured with $slotCount slots" +
+          s"\nInputs are [${inputs.mkString(",")}]" +
+          s"\nOutputs are [${outputs.mkString(",")}]")
+    }
+
+    newEnv
   }
 
   override def addNode(name: String, memorySize: Int, inputs: Array[Int], outputs: Array[Int], operations: util.List[OperationType]): TzEnv = {
@@ -60,6 +70,13 @@ class ScalaTzEnv(
       .foldLeft(contextMapper)({ case (mapper, (slotIdx, inputIdx)) => mapper.mapInput(name, inputIdx, slotIdx) })
     val fullMapper = outputs.zipWithIndex
       .foldLeft(mapperWithInputs)({ case (mapper, (slotIdx, outputIdx)) => mapper.mapOutput(name, outputIdx, slotIdx) })
+
+    if (ScalaTzEnv.logger.isLoggable(Level.FINE)) {
+      ScalaTzEnv.logger.fine(
+        s"New node added: $name[$memorySize]." +
+          s"\nInputs are [${inputs.mkString(",")}]." +
+          s"\nOutputs are [${outputs.mkString(",")}]")
+    }
 
     new ScalaTzEnv(slots, newNodes, fullMapper)
   }
@@ -97,6 +114,10 @@ class ScalaTzEnv(
 
   def consume(input: Array[Int]): ScalaTzEnv = {
     assert(input.length == slots.inputs.length)
+
+    if (ScalaTzEnv.logger.isLoggable(Level.FINE)) {
+      ScalaTzEnv.logger.fine(s"Consuming [${input.mkString(",")}]")
+    }
 
     val filledSlot$ = slots.inputs.toStream
       .zipWithIndex
@@ -148,6 +169,11 @@ class ScalaTzEnv(
       val newEnv = copy(slots = slots.copy(slots = updatedSlots))
 
       val output = results.map(entry => entry._1)
+
+      if (ScalaTzEnv.logger.isLoggable(Level.FINE)) {
+        ScalaTzEnv.logger.fine(s"Produced [${output.mkString(",")}]")
+      }
+
       (newEnv, Some(output))
     } else {
       (this, None)
@@ -172,5 +198,9 @@ class ScalaTzEnv(
 }
 
 object ScalaTzEnv {
+
+  private val logger: Logger = Logger.getLogger(ScalaTzEnv.getClass.getName)
+
   def empty(): ScalaTzEnv = new ScalaTzEnv(EnvSlots.empty(), Map(), ContextMapper.empty())
+
 }

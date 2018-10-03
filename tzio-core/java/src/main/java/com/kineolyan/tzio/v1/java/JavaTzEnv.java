@@ -58,6 +58,10 @@ public class JavaTzEnv implements TzEnv {
 		this.consumer = values -> {};
 	}
 
+	public int getInputCount() {
+		return this.inputs.length;
+	}
+
 	/**
 	 * Configure the slots existing in this environment.
 	 * @param slotCount total count of slots

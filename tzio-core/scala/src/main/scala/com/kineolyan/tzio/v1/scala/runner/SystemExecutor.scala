@@ -29,7 +29,7 @@ class SystemExecutor(in: InputStream, out: PrintStream) {
 		inputThread.setUncaughtExceptionHandler((t: Thread, err: Throwable) => errors.offer(err))
 		inputThread.start()
 
-		out.println("System up. Waiting for inputs:")
+		out.println(s"System up. Waiting for inputs (${env.slots.inputs.length}):")
 
 		var changedEnv = env
 		while (errors.peek() == null) {

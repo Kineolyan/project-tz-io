@@ -66,7 +66,7 @@ public class SystemExecutor implements TzExecutor {
 		inputThread.setUncaughtExceptionHandler((t, err) -> errors.offer(err));
 		inputThread.start();
 
-		this.out.println("System up. Waiting for inputs:");
+		this.out.printf("System up. Waiting for inputs (%d):%n", env.getInputCount());
 		while (errors.peek() == null) {
 			// Look for entries
 			final int[] input = inputs.poll();

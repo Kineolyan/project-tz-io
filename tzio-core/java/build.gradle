@@ -3,6 +3,16 @@ dependencies {
   testCompile project(':tzio-tck')
 }
 
+task fullJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'TZ Java Core (Full)',
+                'Implementation-Version': version
+    }
+    baseName = project.name + '-full'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
 test {
     useJUnitPlatform {
         excludeTags 'slow'

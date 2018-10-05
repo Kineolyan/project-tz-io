@@ -10,21 +10,42 @@
   
 (defn queue-slot
   "Creates a slot queuing the input values"
-  ([] [:queue []]))
+  ([& rest] (cons :queue (into [] rest))))
 
-(defmulti is-queue (fn [[slot & remaining]] slot))
-(defmethod is-queue :queue [& _] true)
-(defmethod is-queue :default [& _] false)
+(defn get-type [[type & remaining] & _] type)
 
-(defn enqueue
-  "Enqueues a value into a queue"
-  [[type values] value]
-  [type (conj values value)])
+(defmulti is-queue get-type)
+(defmethod is-queue :queue [_] true)
+(defmethod is-queue :default [_] false)
 
-(defn dequeue
-  "Dequeues the first value from a queue"
-  [[type [value & rest]]]
+(defmulti can-read get-type)
+(defmethod can-read :slot [_] true)
+(defmethod can-read :empty [_] false)
+(defmethod can-read :queue 
+  [[_ & vals]] 
+  (not (empty? vals)))
+
+(defmulti can-write get-type)
+(defmethod can-write :slot [_] false)
+(defmethod can-write :empty [_] true)
+(defmethod can-write :queue [_] true)
+
+(defmulti read-slot get-type)
+(defmethod read-slot :slot 
+  [[_ value]] 
   [
-    [type rest]
-    value])
+    value 
+    (empty-slot)])
+(defmethod read-slot :queue
+  [[_ value & rest]]
+  [
+    value
+    (queue-slot rest)])
 
+(defmulti write-slot get-type)
+(defmethod write-slot :empty
+  [_ value]
+  (data-slot value))
+(defmethod write-slot :queue
+  [[_ & values] value]
+  (apply queue-slot (conj (into [] values) value)))

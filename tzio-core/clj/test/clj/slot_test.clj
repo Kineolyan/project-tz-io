@@ -15,23 +15,58 @@
   (testing "create data slot"
     (is (= (data-slot 13) [:slot 13]))))
 
-(deftest test-enqueue
-  (testing "enqueue"
-    (is (=
-          (as-> 
-            (queue-slot) q 
-            (enqueue q 12) 
-            (enqueue q 5))
-          [:queue [12 5]]))))
+(deftest test-queue-slot
+  (testing "queue-slot"
+    (testing "without value"
+      (is 
+        (=  
+          (queue-slot)
+          [:queue])))
+    (testing "with one value"
+      (is
+        (=
+          (queue-slot 13) 
+          [:queue 13])))
+    (testing "with many values"
+      (is
+        (=
+          (queue-slot 23 4)
+          [:queue 23 4])))))
 
-(deftest test-dequeue
-  (testing "dequeue"
-    (is (=
-          (as->
-            (queue-slot) q 
-            (enqueue q 12)
-            (enqueue q 5)
-            (dequeue q))
+(deftest test-read-slot
+  (testing "read-slot"
+    (testing "a data slot"
+      (is
+        (=
+          (->
+            (data-slot 23)
+            (read-slot))
           [
-            [:queue [5]]
-            12]))))
+            23
+            (empty-slot)])))
+    (testing "a queue"
+      (is 
+        (=
+          (as->
+            (queue-slot 12 5) q 
+            (read-slot q))
+          [
+            12
+            [:queue [5]]])))))
+
+(deftest test-write-slot
+  (testing "write-slot"
+    (testing "an empty slot"
+      (is
+        (=
+          (->
+            (empty-slot)
+            (write-slot 42))
+          (data-slot 42))))
+    (testing "a queue"
+      (is (=
+            (as-> 
+              (queue-slot) q 
+              (write-slot q 12) 
+              (write-slot q 5))
+            [:queue 12 5])))))

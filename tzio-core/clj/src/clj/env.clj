@@ -60,7 +60,7 @@
           [[idx value]] 
           [
             idx
-            (sl/enqueue (nth slots idx)) value])
+            (sl/write-slot (nth slots idx)) value])
         to-update)
       updated-slots
       (reduce

@@ -35,6 +35,11 @@
 
 (deftest test-read-slot
   (testing "read-slot"
+    (testing "an empty node"
+      (is
+        (thrown?
+          IllegalArgumentException
+          (-> (empty-slot) (read-slot)))))
     (testing "a data slot"
       (is
         (=
@@ -63,6 +68,13 @@
             (empty-slot)
             (write-slot 42))
           (data-slot 42))))
+    (testing "a data slot"
+      (is
+        (thrown?
+          IllegalArgumentException
+          (->
+            (data-slot 23)
+            (write-slot 42)))))
     (testing "a queue"
       (is (=
             (as-> 

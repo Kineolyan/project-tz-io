@@ -51,7 +51,7 @@
             [:out])))))
 
 (with-test
-  (defn tested-env []
+  (defn env-with-node []
     (add-node
       (create-env 4 [2] [0])
       "node-1"
@@ -59,8 +59,48 @@
       [1] [2]
       [:op1 :op2]))
   (is (= 
-        (get (:nodes (tested-env)) "node-1") 
+        (get (:nodes (env-with-node)) "node-1") 
         (new-node 3)))
   (is (=
-        (get (:executions (tested-env)) "node-1")
+        (get (:executions (env-with-node)) "node-1")
         (new-execution [1] [2] [:op1 :op2]))))
+
+(deftest test-input-slots
+  (testing "extract input slots"
+    (is
+      (=
+        (input-slots
+          {
+            :slots
+            [
+              (queue-slot 1)
+              (empty-slot)
+              (queue-slot)
+              (data-slot 2)
+              (queue-slot 3 4)]})
+        [
+          [0 (queue-slot 1)]
+          [2 (queue-slot)]
+          [4 (queue-slot 3 4)]]))))
+
+(deftest test-consume
+  (testing "consuming input data"
+    (is
+      (=
+        (consume 
+          {
+            :slots 
+            [
+              (empty-slot)
+              (queue-slot 1 2)
+              (queue-slot)
+              (empty-slot)]}
+          [78 45])
+        {
+          :slots
+          [
+            (empty-slot)
+            (queue-slot 1 2 78)
+            (queue-slot 45)
+            (empty-slot)]}))))
+

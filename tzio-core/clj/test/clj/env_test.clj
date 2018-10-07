@@ -7,12 +7,14 @@
   (defn created-env [] 
     (create-env 4 [2] [0]))
   (is (= 
-        (:slots (created-env)) 
+        (:slots (created-env))
         [
           (empty-slot)
           (empty-slot)
           (queue-slot)
           (empty-slot)]))
+  (is (= (:inputs (created-env)) [2]))
+  (is (= (:outputs (created-env)) [0]))
   (is (=
         (:nodes (created-env))
         (hash-map)))
@@ -65,19 +67,21 @@
         (get (:executions (env-with-node)) "node-1")
         (new-execution [1] [2] [:op1 :op2]))))
 
-(deftest test-input-slots
-  (testing "extract input slots"
+(deftest test-indexed-slots
+  (testing "indexed slots"
     (is
       (=
-        (input-slots
+        (indexed-slots
           {
+            :inputs [0 2 4]
             :slots
             [
               (queue-slot 1)
               (empty-slot)
               (queue-slot)
               (data-slot 2)
-              (queue-slot 3 4)]})
+              (queue-slot 3 4)]}
+          :inputs)
         [
           [0 (queue-slot 1)]
           [2 (queue-slot)]
@@ -89,6 +93,7 @@
       (=
         (consume 
           {
+            :inputs [1 2]
             :slots 
             [
               (empty-slot)
@@ -97,6 +102,7 @@
               (empty-slot)]}
           [78 45])
         {
+          :inputs [1 2]
           :slots
           [
             (empty-slot)

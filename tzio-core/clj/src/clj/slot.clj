@@ -2,15 +2,18 @@
 
 (defn empty-slot
   "Creates an empty slot ready to receive new data"
-  ([] [:empty]))
+  [] 
+  [:empty])
 
 (defn data-slot
   "Creates a slot with an int datum inside"
-  ([value] [:slot value]))
+  [value] 
+  [:slot value])
   
 (defn queue-slot
   "Creates a slot queuing the input values"
-  ([& rest] (cons :queue (into [] rest))))
+  [& rest] 
+  (cons :queue (into [] rest)))
 
 (defn get-type [[type & remaining] & _] type)
 

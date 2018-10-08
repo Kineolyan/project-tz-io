@@ -78,7 +78,25 @@
                       fed-slots)]
     (assoc env :slots (persistent! updated-slots))))
 
-; (defn collect
-;   "Collects the produced outputs"
-;   [env]
-;   env)
+(defn collect
+  "Collects the produced outputs"
+  [env]
+  (let 
+    [
+      outputs (indexed-slots env :outputs)
+      read-slots (map
+                    (fn 
+                      [[idx slot]]
+                      [idx (sl/read-if-possible slot)])
+                    outputs)
+      values (map 
+                (fn [[_ [value _]]] value)
+                read-slots)
+      new-slots (reduce
+                  (fn [acc [idx [_ slot]]] (assoc! acc idx slot))
+                  (transient (:slots env))
+                  read-slots)
+      new-env (assoc env :slots (persistent! new-slots))]
+    [new-env values]))
+                      
+    

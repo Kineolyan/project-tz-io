@@ -82,3 +82,18 @@
               (write-slot q 12) 
               (write-slot q 5))
             [:queue 12 5])))))
+
+(deftest test-read-if-possible        
+  (testing "read-if-possible"
+    (testing "with empty slot"
+      (is
+        (=
+          (read-if-possible
+            (empty-slot))
+          [:none (empty-slot)])))
+    (testing "with data"
+      (is
+        (=
+          (read-if-possible
+            (data-slot 12))
+          [12 (empty-slot)])))))

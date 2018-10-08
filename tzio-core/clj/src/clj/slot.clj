@@ -45,6 +45,13 @@
     value
     (queue-slot rest)])
 
+(defn read-if-possible
+  [slot]
+  (if 
+    (can-read slot)
+    (read-slot slot)
+    [:none slot]))
+
 (defmulti write-slot get-type)
 (defmethod write-slot :empty
   [_ value]

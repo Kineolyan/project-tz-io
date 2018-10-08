@@ -110,3 +110,28 @@
             (queue-slot 45)
             (empty-slot)]}))))
 
+(deftest test-collect
+  (testing "collect output data"
+    (is
+      (=
+        (collect 
+          {
+            :outputs [0 1 3 4]
+            :slots 
+            [
+              (data-slot 23)
+              (empty-slot)
+              (data-slot 17)
+              (empty-slot)
+              (data-slot 98)]})
+        [
+          {
+            :outputs [0 1 3 4]
+            :slots
+            [
+              (empty-slot)
+              (empty-slot)
+              (data-slot 17)
+              (empty-slot)
+              (empty-slot)]}
+          [23 :none :none 98]]))))            

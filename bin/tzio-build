@@ -9,7 +9,9 @@ readonly RUST_COMPILER=$DIR/rs-parser/target/debug/rs-parser
 function print_help() {
 	cat <<HELP
 Usage:
-	$(basename $0) [--rust|--clj] <filename> <output_dir>
+	$(basename $0) [--rust|--clj] <filename> [<output_dir>]
+
+The default output directory is "$DIR/out"
 
 Options:
 	-h, --help: Prints this help message
@@ -21,7 +23,7 @@ HELP
 
 compiler=
 case $1 in
-	-h|--help) print_help ;;
+	-h|--help|help) print_help ;;
 	--rust)
 		compiler=$RUST_COMPILER
 		shift 1 ;;

@@ -10,5 +10,7 @@ public class SampleSuite {
 	protected class Increment extends IncrementSampleTest {}
 	@Nested
 	protected class Sum extends SumSampleTest {}
+	@Nested
+	protected class Double extends DoubleSampleTest {}
 
 }

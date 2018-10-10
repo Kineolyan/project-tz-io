@@ -71,7 +71,7 @@ public class SumSampleTest {
 			new int[] {0, 1},
 			new int[] {10, 5},
 			new int[] {-43, 86});
-		final List<List<Integer>> output = SampleHelper.collect(
+		final List<List<Integer>> output = SampleHelper.batchCollect(
 			create().runOn(input, 100));
 		assertThat(output).containsExactly(
 			List.of(2),

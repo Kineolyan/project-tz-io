@@ -43,7 +43,7 @@ public class DoubleSampleTest {
 				new int[]{1},
 				new int[]{3},
 				new int[]{-4});
-		final List<List<Integer>> output = SampleHelper.collect(
+		final List<List<Integer>> output = SampleHelper.batchCollect(
 				create().runOn(input, 100));
 		assertThat(output).containsExactly(
 				List.of(2),

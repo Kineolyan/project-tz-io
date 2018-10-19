@@ -12,6 +12,7 @@ task fullJar(type: Jar) {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
+build.dependsOn fullJar
 
 test {
     useJUnitPlatform {

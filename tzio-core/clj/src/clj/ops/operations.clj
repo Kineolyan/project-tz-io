@@ -18,11 +18,23 @@
   
 (defn mov
   [^MovOperation type]
-  [:mov (refs/convert (.-input type) (.-output type))])
+  [:mov (refs/convert-input (.-input type)) (refs/convert-output (.-output type))])
 
 (defn sav
   [^SavOperation type]
   [:sav (.-slot type)])
+
+(def swp
+  [^SwpOperation type]
+  [:swp (.-slot type)])
+
+(defn add
+  [^AddOperation type]
+  [:add (refs/convert-input (.-input type))])
+
+(defn sub
+  [^SubOperation type]
+  [:sub (refs/convert-input (.-input type))])
 
 (defn neg
   [_]
@@ -32,8 +44,33 @@
   [^LabelOperation type]
   [:label (.-label type)])
 
+(defn jmp
+  [^JmpOperation type]
+  [:jmp (.-label type)])
+
+(defn jez
+  [^JezOperation type]
+  [:jez (.-label type)])
+
+(defn jnz
+  [^JnzOperation type]
+  [:jnz (.-label type)])
+
+(defn jgz
+  [^JgzOperation type]
+  [:jgz (.-label type)])
+
+(defn jlz
+  [^JlzOperation type]
+  [:jlz (.-label type)])
+
+(defn jro
+  [^JroOperation type]
+  [:jro (refs/convert-input (.-input type))])
+
 (defn convert
-  [type])
+  [type]
+  (neg))
 
 (defmulti is-label? (fn [[type & remaining]] type))
 (defmethod is-label? :label [& _] true)

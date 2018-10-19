@@ -7,18 +7,26 @@
 (defn acc-slot
   [_] 
   [:acc])
+(def to-acc-slot acc-slot)
 
 (defn nil-slot
   ([_] [:nil]))
+(def to-nil-slot nil-slot)
 
 (defn value-slot
+  [value]
+  [:value value])
+(defn to-value-slot
   [^ValueReference type] 
-  [:value (.-value type)])
+  (value-slot (.-value type)))
 
 (defn ref-slot
+  [ref]
+  [:slot ref])
+(defn to-ref-slot
   [^SlotReference type]
-  [:slot (.-value type)])
+  (ref-slot (.-value type)))
 
-(defn convert
+(defn convert-input
   [type]
   (acc-slot))

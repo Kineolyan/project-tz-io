@@ -1,5 +1,7 @@
-// Input  [[1, 2], [2, 3], ...]
-// Output [ 5    ,  8    , ...]
+// Doubles the first input, inc the second and sums both values
+/// [1, 2] -> [5]
+/// [2, 3] -> [8]
+/// [-2, 3] -> [0]
 
 Node #1
 ===========

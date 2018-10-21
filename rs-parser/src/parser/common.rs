@@ -26,9 +26,9 @@ named!(pub be_uint<&RawData, u32>, map_res!(digit, to_u32));
 named!(pub be_u8<&RawData, u8>, map_res!(digit, to_u8));
 named!(pub ospace<&RawData, Option<&RawData> >, opt!(space));
 named!(end_line_comment<&RawData, ()>,
-	do_parse!(
-		tag!("//") >> take_until!("\n") >>
-		()
+	alt!(
+		do_parse!(tag!("//\n") >> ()) |
+		do_parse!(tag!("//") >> is_not!("/\n") >> take_until!("\n") >> ())
 	)
 );
 named!(pub eol<&RawData, ()>,

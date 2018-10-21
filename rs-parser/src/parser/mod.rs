@@ -2,6 +2,7 @@ pub mod address;
 pub mod syntax;
 pub mod common;
 pub mod instruction;
+pub mod test;
 
 use nom::{IResult, error_to_list};
 use std::result::Result;

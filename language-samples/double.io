@@ -1,6 +1,7 @@
 // Double the input
-// Input  [1, 3, -4]
-// Output [2, 6, -8]
+/// 1 -> 2
+/// 3 -> 6
+/// -4 -> -8
 
 Node #double
 ===========

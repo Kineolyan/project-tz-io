@@ -16,7 +16,7 @@ use checker::CheckResult;
 type Index<'a> = HashMap<&'a String, usize>;
 // TODO move this method to some utility module
 fn map_node_to_idx<'a>(tree: &'a ParsingTree, index: &mut Index<'a>) {
-  for (i, &(ref node, _, _, _)) in tree.iter().enumerate() {
+  for (i, &(ref node, _, _, _)) in tree.nodes.iter().enumerate() {
     if let &Node::Node(ref node_id) = node {
       index.insert(node_id, i);
     }
@@ -36,7 +36,7 @@ fn check_node_inputs(
   for input in inputs.iter() {
     if let &Node::Node(ref src_id) = &input.from.node {
       let is_match = index.get(src_id)
-        .map(|node_idx| &tree[*node_idx])
+        .map(|node_idx| &tree.nodes[*node_idx])
         .map(|ref src_node| {
           src_node.2.iter().any(|ref output|
             // Output m: i -> n:j <=> Input n: m:i -> j
@@ -74,7 +74,7 @@ fn check_node_outputs(
   for output in outputs.iter() {
     if let &Node::Node(ref src_id) = &output.to.node {
       let is_match = index.get(src_id)
-        .map(|node_idx| &tree[*node_idx])
+        .map(|node_idx| &tree.nodes[*node_idx])
         .map(|ref dst_node| {
           dst_node.1.iter().any(|ref input|
             // Output m: i -> n:j <=> Input n: m:i -> j
@@ -106,7 +106,7 @@ pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
   }
 
   let initial_count = result.error_count();
-  for node in tree.iter() {
+  for node in tree.nodes.iter() {
     check_node_inputs(result, node, tree, &index);
     check_node_outputs(result, node, tree, &index);
   }

@@ -30,7 +30,7 @@ fn check_ranges(ports: &HashSet<u32>) -> Option<HashSet<u32>> {
 fn check_inputs(tree: &ParsingTree, result: &mut CheckResult) {
   let mut input_ports = HashSet::new();
   let mut duplicates = HashSet::new();
-  for node in tree {
+  for node in &tree.nodes {
     let inputs = &node.1;
     for input in inputs {
       let node = &input.from.node;
@@ -57,7 +57,7 @@ fn check_inputs(tree: &ParsingTree, result: &mut CheckResult) {
 fn check_outputs(tree: &ParsingTree, result: &mut CheckResult) {
   let mut output_ports = HashSet::new();
   let mut duplicates = HashSet::new();
-  for node in tree {
+  for node in &tree.nodes {
     let outputs = &node.2;
     for output in outputs {
       let node = &output.to.node;

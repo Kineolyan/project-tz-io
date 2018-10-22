@@ -33,7 +33,7 @@ named!(pub be_i8<&RawData, i8>,
 		s: opt!(tag!("-")) >>
 		d: digit >>
 		(to_i8(d).map(|value|
-			if s.is_some() { value } else { -value }
+			if s.is_some() { -value } else { value }
 		).expect("Not a number"))
 	)
 );
@@ -103,6 +103,20 @@ pub mod tests {
 		let input = b"4";
 		let res = be_u8(input);
 		assert_full_result(res, 4u8);
+	}
+
+	#[test]
+	fn test_parse_be_i8_positive() {
+		let input = b"123";
+		let res = be_i8(input);
+		assert_full_result(res, 123i8);
+	}
+
+	#[test]
+	fn test_parse_be_i8_negative() {
+		let input = b"-98";
+		let res = be_i8(input);
+		assert_full_result(res, -98i8);
 	}
 
 	#[test]

@@ -121,7 +121,7 @@ fn create_slot_indexes(tree: &ParsingTree) -> SlotStructure {
   };
   let mut slots: Dictionary<NodeSlot> = Dictionary::new();
 
-  for (i, node) in tree.iter().enumerate() {
+  for (i, node) in tree.nodes.iter().enumerate() {
     let node_name = node.0.get_id();
     let mut ins = Vec::new();
     for input in &node.1 {
@@ -404,7 +404,7 @@ pub fn create_main_file(
   class.set_super_class(&OBJECT_CLASS_NAME);
 
   let mut definition_methods: Vec<class::PoolIdx> = vec![];
-  for (i, node) in tree.iter().enumerate() {
+  for (i, node) in tree.nodes.iter().enumerate() {
     let pool_idx = create_node_definition_method(i, node, &mut class, &slots);
     definition_methods.push(pool_idx);
   }

@@ -116,12 +116,7 @@ named!(node_block<&RawData, NodeBlock>,
 );
 
 named!(pub node_list<&RawData, Vec<NodeBlock> >,
-	do_parse!(
-		opt_eol >>
-		list: separated_nonempty_list_complete!(opt_eol, node_block) >>
-		opt_eol >>
-		(list)
-	)
+	separated_nonempty_list_complete!(opt_eol, node_block)
 );
 
 #[cfg(test)]

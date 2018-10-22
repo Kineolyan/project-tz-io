@@ -46,7 +46,7 @@ fn check_node(node: &NodeBlock, result: &mut CheckResult) {
 
 pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
   let initial_count = result.error_count();
-  for node in tree {
+  for node in &tree.nodes {
     check_node(node, result);
   }
 

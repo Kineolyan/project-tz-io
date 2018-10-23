@@ -32,9 +32,9 @@ named!(pub program<&RawData, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)>,
 );
 
 pub fn parse(input: &common::RawData) -> ParsingResult {
-  let mut res = program(input);
+  let res = program(input);
   match res {
-    IResult::Done(i, (list, start_cases, end_cases)) => {
+    IResult::Done(i, (list, mut start_cases, mut end_cases)) => {
       if i.len() == 0 {
         // Move all results to one list
         start_cases.append(&mut end_cases);

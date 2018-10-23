@@ -1,4 +1,4 @@
-use nom::{space, newline};
+use nom::newline;
 
 use parser::common::{RawData, be_i8, ospace};
 

@@ -153,8 +153,8 @@ mod tests {
       vec![],
       vec![]
     );
-    let tree = complete_mappings(vec![src, dst]);
-    assert_eq!(tree[1].1, vec![
+    let tree = complete_mappings(ParsingTree { nodes: vec![src, dst], tests: vec![] });
+    assert_eq!(tree.nodes[1].1, vec![
       InputMapping {
         from: Port {
           node: Node::new_node(&"a"),
@@ -194,8 +194,8 @@ mod tests {
       vec![],
       vec![]
     );
-    let tree = complete_mappings(vec![src, dst]);
-    assert_eq!(tree[0].2, vec![
+    let tree = complete_mappings(ParsingTree { nodes: vec![src, dst], tests: vec![] });
+    assert_eq!(tree.nodes[0].2, vec![
       OutputMapping {
         from: 1,
         to: Port {
@@ -236,8 +236,8 @@ mod tests {
       vec![],
       vec![]
     );
-    let tree = complete_mappings(vec![src, dst]);
-    assert_eq!(tree[0].2, vec![
+    let tree = complete_mappings(ParsingTree { nodes: vec![src, dst], tests: vec![] });
+    assert_eq!(tree.nodes[0].2, vec![
       OutputMapping {
         from: 2,
         to: Port {
@@ -253,7 +253,7 @@ mod tests {
         }
       }
     ]);
-    assert_eq!(tree[1].1, vec![
+    assert_eq!(tree.nodes[1].1, vec![
         InputMapping {
           from: Port {
             node: Node::new_node(&"a"),

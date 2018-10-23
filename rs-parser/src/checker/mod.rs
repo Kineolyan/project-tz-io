@@ -136,7 +136,7 @@ mod tests {
 			]
     );
     let tree = vec![src, dst];
-    let result = check(&tree);
+    let result = check(&ParsingTree { nodes: tree, tests: vec![] });
     assert_eq!(result.has_errors(), false);
 	}
 

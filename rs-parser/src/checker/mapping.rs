@@ -117,6 +117,7 @@ pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
 #[cfg(test)]
 mod tests {
   use super::*;
+
   use parser::address::Port;
   use parser::syntax::{InputMapping, OutputMapping};
 
@@ -152,7 +153,8 @@ mod tests {
       vec![],
       vec![]
     );
-    let tree = vec![src, dst];
+    let nodes = vec![src, dst];
+    let tree = ParsingTree { nodes: nodes, tests: vec![] };
     let result = check(&tree, &mut check_result);
     assert_eq!(result, true);
     assert_eq!(check_result.has_errors(), false);
@@ -186,7 +188,8 @@ mod tests {
       vec![],
       vec![]
     );
-    let tree = vec![src, dst];
+    let nodes = vec![src, dst];
+    let tree = ParsingTree { nodes: nodes, tests: vec![] };
     let result = check(&tree, &mut check_result);
     assert_eq!(result, true);
     assert_eq!(check_result.has_errors(), false);
@@ -254,7 +257,7 @@ mod tests {
       ],
       vec![]
     );
-    let tree = vec![src, dst];
+    let tree = ParsingTree { nodes: vec![src, dst], tests: vec![] };
     let result = check(&tree, &mut check_result);
     assert_eq!(result, false);
     assert_eq!(check_result.error_count(), 4);

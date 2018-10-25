@@ -11,11 +11,10 @@ named!(values<&RawData, Vec<i8> >,
 
 named!(array<&RawData, Vec<i8> >,
   alt!(
-    do_parse!(
-      tag!("[") >> ospace >>
-      vs: values >>
-      ospace >> tag!("]") >>
-      (vs)
+    delimited!(
+      tag!("["),
+      values,
+      tag!("]")
     ) |
     values
   )
@@ -39,22 +38,15 @@ named!(pub test_case<&RawData, (TestCase)>,
     ins: array >> 
     ospace >> tag!("->") >> ospace >>
     outs: array >> 
-    ospace >>
+    ospace >> newline >>
     (TestCase::new(ins, outs))
-  )
-);
-
-named!(pub test_cases<&RawData, Vec<TestCase> >,
-  separated_nonempty_list_complete!(
-    newline,
-    test_case
   )
 );
 
 #[cfg(test)]
 mod tests {
   use super::*;
-	use parser::common::tests::{assert_result, assert_full_result, assert_cannot_parse};
+	use parser::common::tests::*;
 
   #[test]
   fn test_parse_values() {
@@ -77,27 +69,59 @@ mod tests {
   #[test]
   fn test_parse_array_mixed() {
     let open_res = array(b"[10,5,2");
-    assert_cannot_parse(open_res);
+    assert_incomplete(open_res);
+
+    // Valid as an array with trailing ]
     let close_res = array(b"10,5,2]");
-    assert_cannot_parse(close_res);
+    assert_result(close_res, vec![10, 5, 2], b"]");
   }
 
   #[test]
   fn test_parse_test_case() {
-		let res = test_case(b"/// [1,2] -> [-1]  next");
+		let res = test_case(b"/// [1,2] -> [-1]  \nnext");
 		assert_result(res, TestCase::new(vec![1, 2], vec![-1]), b"next");
   }
 
   #[test]
-  fn test_parse_test_cases() {
-		let res = test_cases(b"/// [1,2] -> [-1]  \n/// 3->3end");
-		assert_result(
-      res, 
-      vec![
-        TestCase::new(vec![1, 2], vec![-1]),
-        TestCase::new(vec![3], vec![3])
-      ],
-      b"end");
+  fn test_parse_minimal_test_case() {
+		let res = test_case(b"/// 1,2 -> -1  \nnext");
+		assert_result(res, TestCase::new(vec![1, 2], vec![-1]), b"next");
   }
+
+  #[test]
+  fn test_parse_unclosed_test_case() {
+		let res = test_case(b"/// [1,2 -> -1]  \nnext");
+		assert_cannot_parse(res);
+  }
+
+  #[test]
+  fn test_parse_opposite_test_case() {
+		let res = test_case(b"/// 1,2] -> [-1  \nnext");
+		assert_cannot_parse(res);
+  }
+
+  #[test]
+  fn test_parse_opening_test_case() {
+		let res = test_case(b"/// [1,2 -> [-1  \nnext");
+		assert_cannot_parse(res);
+  }
+
+  #[test]
+  fn test_parse_ending_test_case() {
+		let res = test_case(b"/// 1,2] -> -1]  \nnext");
+		assert_cannot_parse(res);
+  }
+
+  // #[test]
+  // fn test_parse_test_cases() {
+	// 	let res = test_cases(b"/// [1,2] -> [-1]  \n/// 3->3end");
+	// 	assert_result(
+  //     res, 
+  //     vec![
+  //       TestCase::new(vec![1, 2], vec![-1]),
+  //       TestCase::new(vec![3], vec![3])
+  //     ],
+  //     b"end");
+  // }
 
 }

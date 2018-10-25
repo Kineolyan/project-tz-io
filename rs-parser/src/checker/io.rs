@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use parser::address::Node;
 use parser::ParsingTree;
+use parser::syntax::NodeBlock;
 use checker::CheckResult;
 
 fn dups_to_str(duplicates: HashSet<u32>) -> String {
@@ -27,10 +28,10 @@ fn check_ranges(ports: &HashSet<u32>) -> Option<HashSet<u32>> {
   }
 }
 
-fn check_inputs(tree: &ParsingTree, result: &mut CheckResult) {
+fn check_inputs(nodes: &Vec<NodeBlock>, result: &mut CheckResult) {
   let mut input_ports = HashSet::new();
   let mut duplicates = HashSet::new();
-  for node in &tree.nodes {
+  for node in nodes {
     let inputs = &node.1;
     for input in inputs {
       let node = &input.from.node;
@@ -54,10 +55,10 @@ fn check_inputs(tree: &ParsingTree, result: &mut CheckResult) {
   }
 }
 
-fn check_outputs(tree: &ParsingTree, result: &mut CheckResult) {
+fn check_outputs(nodes: &Vec<NodeBlock>, result: &mut CheckResult) {
   let mut output_ports = HashSet::new();
   let mut duplicates = HashSet::new();
-  for node in &tree.nodes {
+  for node in nodes {
     let outputs = &node.2;
     for output in outputs {
       let node = &output.to.node;
@@ -83,8 +84,8 @@ fn check_outputs(tree: &ParsingTree, result: &mut CheckResult) {
 
 pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
   let initial_count = result.error_count();
-  check_inputs(tree, result);
-  check_outputs(tree, result);
+  check_inputs(&tree.nodes, result);
+  check_outputs(&tree.nodes, result);
 
 	result.error_count() == initial_count
 }
@@ -293,7 +294,8 @@ mod tests {
         vec![]
       )
     ];
-    check(&nodes, &mut checks);
+    let tree = ParsingTree { nodes: nodes, tests: vec![] }; 
+    check(&tree, &mut checks);
     assert_eq!(checks.has_errors(), true);
     assert_eq!(checks.error_count(), 2);
   }
@@ -317,7 +319,8 @@ mod tests {
         vec![]
       )
     ];
-    check(&nodes, &mut checks);
+    let tree = ParsingTree { nodes: nodes, tests: vec![] };
+    check(&tree, &mut checks);
     assert_eq!(checks.has_warnings(), true);
   }
 
@@ -340,7 +343,8 @@ mod tests {
         vec![]
       )
     ];
-    check(&nodes, &mut checks);
+    let tree = ParsingTree { nodes: nodes, tests: vec![] };
+    check(&tree, &mut checks);
     assert_eq!(checks.has_warnings(), true);
   }
 

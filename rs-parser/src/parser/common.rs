@@ -88,7 +88,31 @@ pub mod tests {
 	}
 
 	pub fn assert_cannot_parse<Result: PartialEq + Debug>(res: IResult<&[u8], Result>) {
-		assert_eq!(res.is_err(), true, "Unexpected sucess of {:?}", res);
+		match res {
+			IResult::Done(i, o) => {
+				panic!("Unexpected successful parsing. Res {:?}, remaining {:?}", o, i);
+			},
+			IResult::Error(_) => {
+				// Ok, nothing to do
+			},
+			IResult::Incomplete(needed) => {
+				panic!("Cannot parse due to missing data. Needed {:?}", needed);
+			}
+		}
+	}
+
+	pub fn assert_incomplete<Result: PartialEq + Debug>(res: IResult<&[u8], Result>) {
+		match res {
+			IResult::Done(i, o) => {
+				panic!("Unexpected successful parsing. Res {:?}, remaining {:?}", o, i);
+			},
+			IResult::Error(e) => {
+				panic!("Unexpected error while parsing: {:?}", e);
+			},
+			IResult::Incomplete(_) => {
+				// Ok, nothing to do
+			}
+		}
 	}
 
 	#[test]

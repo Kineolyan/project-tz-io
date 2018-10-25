@@ -9,7 +9,7 @@ use std::result::Result;
 use std::str::from_utf8;
 
 use parser::common::{RawData, opt_eol};
-use parser::test::{TestCase, test_cases};
+use parser::test::{TestCase, test_case};
 use parser::syntax::{NodeBlock, node_list};
 
 pub struct ParsingTree {
@@ -21,11 +21,11 @@ pub type ParsingResult = Result<ParsingTree, ()>;
 named!(pub program<&RawData, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)>,
 	do_parse!(
 		opt_eol >>
-		start_cases: test_cases >> 
-		many1!(newline) >>
+		start_cases: many0!(test_case) >> 
+		many0!(newline) >>
 		list: node_list >>
 		opt_eol >>
-		end_cases: test_cases >>
+		end_cases: many0!(test_case) >>
 		opt_eol >>
 		(list, start_cases, end_cases)
 	)

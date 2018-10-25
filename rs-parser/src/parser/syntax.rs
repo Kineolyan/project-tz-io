@@ -89,7 +89,7 @@ named!(instruction_list<&RawData, Vec<Operation> >,
 );
 
 pub type NodeBlock = (Node, Vec<InputMapping>, Vec<OutputMapping>, Vec<Operation>);
-named!(node_block<&RawData, NodeBlock>,
+named!(pub node_block<&RawData, NodeBlock>,
 	do_parse!(
 		ospace >>
 		node: node_header >> eol >>
@@ -553,8 +553,7 @@ MOV ACC, >1
 
 	#[test]
 	fn test_parse_node_list() {
-		let input = b"
- Node #1
+		let input = b"Node #1
 ==========
 IN:1 -> 1
 --
@@ -580,7 +579,6 @@ MOV <3, >3
 ----------
 3 -> OUT:1
 ==========
-
 ";
 
 		let res = node_list(input);

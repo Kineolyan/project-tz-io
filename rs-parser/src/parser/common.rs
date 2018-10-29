@@ -59,27 +59,23 @@ pub mod tests {
 	use std::cmp::PartialEq;
 	use std::fmt::Debug;
 
-	use nom::IResult;
-
 	use super::*;
+	use nom::Err;
 
 	pub fn assert_result<Result: PartialEq + Debug> (
-			res: IResult<&[u8], Result>,
+			res: Result<&[u8], Result>,
 			value: Result,
 			remaining: &RawData) {
 		assert_eq!(
 			res,
-			IResult::Done(
-				remaining,
-				value
-			)
+			Ok(remaining, value)
 		);
 	}
 
 	pub fn assert_full_result<Result: PartialEq + Debug> (
-			res: IResult<&[u8], Result>,
+			res: Result<&[u8], Result>,
 			value: Result) {
-		if let &IResult::Done(ref remaining, _) = &res {
+		if let &Ok(ref remaining, _) = &res {
 			if remaining.len() > 0 {
 				println!("Unexpected remaining {}", str::from_utf8(remaining).unwrap());
 			}
@@ -87,30 +83,30 @@ pub mod tests {
 		assert_result(res, value, b"");
 	}
 
-	pub fn assert_cannot_parse<Result: PartialEq + Debug>(res: IResult<&[u8], Result>) {
+	pub fn assert_cannot_parse<Result: PartialEq + Debug>(res: Result<&[u8], Result>) {
 		match res {
-			IResult::Done(i, o) => {
+			Ok((i, o)) => {
 				panic!("Unexpected successful parsing. Res {:?}, remaining {:?}", o, i);
 			},
-			IResult::Error(_) => {
-				// Ok, nothing to do
-			},
-			IResult::Incomplete(needed) => {
+			Err(Err::Incomplete(needed)) => {
 				panic!("Cannot parse due to missing data. Needed {:?}", needed);
+			},
+			Err(Err::Error(e)) | Err(Err::Failure(e)) => {
+				// Ok, nothing to do
 			}
 		}
 	}
 
-	pub fn assert_incomplete<Result: PartialEq + Debug>(res: IResult<&[u8], Result>) {
+	pub fn assert_incomplete<Result: PartialEq + Debug>(res: Result<&[u8], Result>) {
 		match res {
-			IResult::Done(i, o) => {
+			Ok((i, o)) => {
 				panic!("Unexpected successful parsing. Res {:?}, remaining {:?}", o, i);
 			},
-			IResult::Error(e) => {
-				panic!("Unexpected error while parsing: {:?}", e);
-			},
-			IResult::Incomplete(_) => {
+			Err(Err::Incomplete(_)) => {
 				// Ok, nothing to do
+			},
+			Err(Err::Error(e)) | Err(Err::Failure(e)) => {
+				panic!("Unexpected error while parsing: {:?}", e);
 			}
 		}
 	}

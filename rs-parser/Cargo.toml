@@ -4,5 +4,5 @@ version = "0.1.0"
 authors = ["Kineolyan <kineolyan@gmail.com>"]
 
 [dependencies.nom]
-version = "^3.2"
+version = "^4.1.1"
 features = ["verbose-errors"]

@@ -79,8 +79,20 @@ mod tests {
 	}
 
 	#[test]
-	fn test_max_increment() {
+	fn test_sample_max() {
 		let res = process_input("../language-samples/max.io");
+		assert_eq!(res.is_ok(), true);
+	}
+
+	#[test]
+	fn test_sample_double() {
+		let res = process_input("../language-samples/double.io");
+		assert_eq!(res.is_ok(), true);
+	}
+
+	#[test]
+	fn test_sample_diffs() {
+		let res = process_input("../language-samples/diffs.io");
 		assert_eq!(res.is_ok(), true);
 	}
 

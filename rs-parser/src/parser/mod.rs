@@ -4,7 +4,7 @@ pub mod common;
 pub mod instruction;
 pub mod test;
 
-use nom::{IResult, error_to_list, newline};
+use nom::{Err, error_to_list, newline};
 use std::result::Result;
 use std::str::from_utf8;
 
@@ -34,7 +34,7 @@ named!(pub program<&RawData, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)>,
 pub fn parse(input: &common::RawData) -> ParsingResult {
   let res = program(input);
   match res {
-    IResult::Done(i, (list, mut start_cases, mut end_cases)) => {
+    Ok(i, (list, mut start_cases, mut end_cases)) => {
       if i.len() == 0 {
         // Move all results to one list
         start_cases.append(&mut end_cases);
@@ -46,24 +46,29 @@ pub fn parse(input: &common::RawData) -> ParsingResult {
         Result::Err(())
       }
     },
-    IResult::Error(e) => {
-      let mut first = true;
-      println!("{:?}", e);
-      let errors = error_to_list(&e);
-      for error in &errors {
-        if first {
-          println!("Error while parsing: {:?}", error);
-          first = false;
-        } else {
-          println!("  caused by: {:?}", error);
-        }
+    Err(error) => match error {
+      Err(Err::Error(ctx)) | Err(Err::Failure(ctx)) => {
+        let mut first = true;
+        println!("{:?}", ctx);
+        // let errors = error_to_list(&e);
+        // for error in &errors {
+        //   if first {
+        //     println!("Error while parsing: {:?}", error);
+        //     first = false;
+        //   } else {
+        //     println!("  caused by: {:?}", error);
+        //   }
+        // }
+        // println!("{:?}", e);
+        Result::Err(())
+      },
+      Err::Failure(ctx) => {
+
+      },
+      Err::Incomplete(needed) => {
+        println!("Missing data. Needed {:?}", needed);
+        Result::Err(())
       }
-      // println!("{:?}", e);
-      Result::Err(())
-    },
-    IResult::Incomplete(needed) => {
-      println!("Missing data. Needed {:?}", needed);
-      Result::Err(())
     }
   }
 }

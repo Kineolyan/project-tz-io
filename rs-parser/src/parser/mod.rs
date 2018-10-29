@@ -67,3 +67,134 @@ pub fn parse(input: &common::RawData) -> ParsingResult {
     }
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  use parser::common::tests::assert_full_result;
+  use parser::instruction::ValuePointer;
+  use parser::address::{Node, Port};
+  use parser::syntax::{InputMapping, OutputMapping};
+  use parser::instruction::Operation;
+
+  #[test]
+  fn test_program_without_tests() {
+		let input = b"// Start of the program
+// Another comment
+    
+Node #1
+==========
+IN:1 -> 1
+--
+MOV <1,  >1
+---------
+1 -> #2:2
+=======
+
+ Node #2
+==========
+#1:1 -> 2
+----------
+MOV <2, >2
+----------
+2 -> #3:3
+==========
+
+// End comment, to conclude
+";
+
+		let res = program(input);
+		let nodes = vec![
+      (
+        Node::new_node("1"),
+        vec![
+          InputMapping {
+            from: Port::new(Node::In, 1),
+            to: 1
+          }
+        ],
+        vec![
+          OutputMapping {
+            from: 1,
+            to: Port::named_port(&"2", 2)
+          }
+        ],
+        vec![
+          Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1)),
+        ]
+      ),
+      (
+        Node::new_node("2"),
+        vec![
+          InputMapping {
+            from: Port::named_port(&"1", 1),
+            to: 2
+          }
+        ],
+        vec![
+          OutputMapping {
+            from: 2,
+            to: Port::named_port(&"3", 3)
+          }
+        ],
+        vec![
+          Operation::MOV(ValuePointer::PORT(2), ValuePointer::PORT(2)),
+        ]
+      )
+    ];
+		
+		assert_full_result(res, (nodes, vec![], vec![]));
+  }
+
+  #[test]
+  fn test_program_with_tests() {
+		let input = b"// Start of the program
+// Another comment
+/// [1] -> [3]
+    
+Node #1
+==========
+IN:1 -> 1
+---------
+MOV <1,  >1
+---------
+1 -> #2:2
+=======
+
+/// 1 -> [-1, 1]
+// End comment, to conclude
+";
+
+		let res = program(input);
+		let nodes = vec![
+      (
+        Node::new_node("1"),
+        vec![
+          InputMapping {
+            from: Port::new(Node::In, 1),
+            to: 1
+          }
+        ],
+        vec![
+          OutputMapping {
+            from: 1,
+            to: Port::named_port(&"2", 2)
+          }
+        ],
+        vec![
+          Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1)),
+        ]
+      )
+    ];
+    let first_tests = vec![
+      TestCase::new(vec![1, 2], vec![3]),
+      TestCase::new(vec![1, 2, 4], vec![-8])
+    ];
+    let last_tests = vec![
+      TestCase::new(vec![1], vec![-1, 1])
+    ];
+		
+		assert_full_result(res, (nodes, first_tests, last_tests));
+  }
+}

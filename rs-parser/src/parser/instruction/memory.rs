@@ -1,11 +1,11 @@
-use parser::common::RawData;
+use parser::common::Input;
 use parser::instruction::{MemoryPointer, Operation};
 
-named!(pub swp_operation<&RawData, Operation>,
+named!(pub swp_operation<Input, Operation>,
 	value!(Operation::SWP(MemoryPointer::BAK(1)), tag!("SWP"))
 );
 
-named!(pub sav_operation<&RawData, Operation>,
+named!(pub sav_operation<Input, Operation>,
 	value!(Operation::SAV(MemoryPointer::BAK(1)), tag!("SAV"))
 );
 
@@ -13,30 +13,30 @@ named!(pub sav_operation<&RawData, Operation>,
 mod tests {
 	use super::*;
 
-	use parser::common::tests::assert_full_result;
+	use parser::common::tests::*;
 
 	#[test]
 	fn test_parse_swp_operation() {
-		let res = swp_operation(b"SWP");
+		let res = swp_operation(input(b"SWP"));
 		assert_full_result(res, Operation::SWP(MemoryPointer::BAK(1)));
 	}
 
 	#[test]
 	fn test_parse_swp_operation_to_idx() {
-		// let res = swp_operation(b"SWP 3");
+		// let res = swp_operation(input(b"SWP 3"));
 		// assert_full_result(res, Operation::SWP(MemoryPointer::BAK(3)));
 	}
 
 	#[test]
 	fn test_parse_sav_operation() {
-		let res = sav_operation(b"SAV");
+		let res = sav_operation(input(b"SAV"));
 		assert_full_result(res, Operation::SAV(MemoryPointer::BAK(1)));
 	}
 
 	#[test]
 	fn test_parse_sav_operation_to_idx() {
 		// TODO code save to other space
-		// let res = sav_operation(b"SAV 2");
+		// let res = sav_operation(input(b"SAV 2"));
 		// assert_full_result(res, Operation::SAV(MemoryPointer::BAK(2)));
 	}
 }

@@ -1,6 +1,6 @@
 use nom::{space};
 
-use parser::common::{RawData, be_uint, ospace, eol, opt_eol};
+use parser::common::{Input, be_uint, ospace, eol, opt_eol};
 use parser::address::{Node, Port, node_header, port_ref};
 use parser::instruction::{parse_instruction, Operation};
 use parser::instruction::condition::label_operation;
@@ -17,11 +17,11 @@ pub struct OutputMapping {
 }
 
 // Syntax lines
-named!(node_line<&RawData, &RawData>, take_while!(call!(|c| c == b'=')));
-named!(code_line<&RawData, &RawData>, take_while!(call!(|c| c == b'-')));
+named!(node_line<Input, Input>, take_while!(call!(|c| c == b'=')));
+named!(code_line<Input, Input>, take_while!(call!(|c| c == b'-')));
 
 // List of inputs
-named!(input_item<&RawData, InputMapping>,
+named!(input_item<Input, InputMapping>,
 	do_parse!(
 		port: port_ref >>
 		space >> tag!("->") >> space >>
@@ -29,7 +29,7 @@ named!(input_item<&RawData, InputMapping>,
 		(InputMapping { from: port, to: input })
 	)
 );
-named!(inputs<&RawData, Vec<InputMapping> >,
+named!(inputs<Input, Vec<InputMapping> >,
 	separated_list_complete!(
 		do_parse!(
 			ospace >> tag!(",") >> space >> ()
@@ -39,7 +39,7 @@ named!(inputs<&RawData, Vec<InputMapping> >,
 );
 
 // List of outputs
-named!(output_item<&RawData, OutputMapping>,
+named!(output_item<Input, OutputMapping>,
 	do_parse!(
 		input: be_uint >>
 		space >> tag!("->") >> space >>
@@ -47,7 +47,7 @@ named!(output_item<&RawData, OutputMapping>,
 		(OutputMapping { from: input, to: port })
 	)
 );
-named!(outputs<&RawData, Vec<OutputMapping> >,
+named!(outputs<Input, Vec<OutputMapping> >,
 	separated_list_complete!(
 		do_parse!(
 			ospace >> tag!(",") >> space >>
@@ -57,7 +57,7 @@ named!(outputs<&RawData, Vec<OutputMapping> >,
 	)
 );
 
-named!(instruction_line<&RawData, Vec<Operation> >,
+named!(instruction_line<Input, Vec<Operation> >,
 	alt!(
 		// Instruction only
 		do_parse!(
@@ -79,7 +79,7 @@ named!(instruction_line<&RawData, Vec<Operation> >,
 		value!(vec![], eol)
 	)
 );
-named!(instruction_list<&RawData, Vec<Operation> >,
+named!(instruction_list<Input, Vec<Operation> >,
 	fold_many1!(instruction_line, Vec::new(), |mut acc: Vec<_>, ops| {
 		for op in ops {
     	acc.push(op);
@@ -89,7 +89,7 @@ named!(instruction_list<&RawData, Vec<Operation> >,
 );
 
 pub type NodeBlock = (Node, Vec<InputMapping>, Vec<OutputMapping>, Vec<Operation>);
-named!(pub node_block<&RawData, NodeBlock>,
+named!(pub node_block<Input, NodeBlock>,
 	do_parse!(
 		ospace >>
 		node: node_header >> eol >>
@@ -115,7 +115,7 @@ named!(pub node_block<&RawData, NodeBlock>,
 	)
 );
 
-named!(pub node_list<&RawData, Vec<NodeBlock> >,
+named!(pub node_list<Input, Vec<NodeBlock> >,
 	separated_nonempty_list_complete!(opt_eol, node_block)
 );
 
@@ -123,28 +123,28 @@ named!(pub node_list<&RawData, Vec<NodeBlock> >,
 mod tests {
 	use super::*;
 
-	use parser::common::tests::{assert_result, assert_full_result};
+	use parser::common::tests::*;
 	use parser::instruction::{ValuePointer, MemoryPointer};
 
 	#[test]
 	fn test_parse_node_line() {
-		let input = b"===\nrest";
+		let content = input(b"===\nrest");
 
-		let res = node_line(input);
-		assert_result(res, b"===", b"\nrest");
+		let res = node_line(content);
+		assert_result(res, input(b"==="), input(b"\nrest"));
 	}
 
 	#[test]
 	fn test_parse_code_line() {
-		let input = b"----\nrest";
+		let content = input(b"----\nrest");
 
-		let res = code_line(input);
-		assert_result(res, b"----", b"\nrest");
+		let res = code_line(content);
+		assert_result(res, input(b"----"), input(b"\nrest"));
 	}
 
 	#[test]
 	fn test_parse_input_item() {
-		let res_in = input_item(b"IN:1 -> 3");
+		let res_in = input_item(input(b"IN:1 -> 3"));
 		assert_full_result(
 			res_in,
 			InputMapping {
@@ -153,7 +153,7 @@ mod tests {
 			}
 		);
 
-		let res_node = input_item(b"#node:32 -> 1");
+		let res_node = input_item(input(b"#node:32 -> 1"));
 		assert_full_result(
 			res_node,
 			InputMapping {
@@ -165,7 +165,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_inputs() {
-		let res_one = inputs(b"#n:7 -> 14");
+		let res_one = inputs(input(b"#n:7 -> 14"));
 		assert_full_result(
 			res_one,
 			vec![
@@ -176,7 +176,7 @@ mod tests {
 			]
 		);
 
-		let res_many = inputs(b"OUT:1 -> 2, #abc:3 -> 4");
+		let res_many = inputs(input(b"OUT:1 -> 2, #abc:3 -> 4"));
 		assert_full_result(
 			res_many,
 			vec![
@@ -194,7 +194,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_output_item() {
-		let res_in = output_item(b"1 -> OUT:3");
+		let res_in = output_item(input(b"1 -> OUT:3"));
 		assert_full_result(
 			res_in,
 			OutputMapping {
@@ -203,7 +203,7 @@ mod tests {
 			}
 		);
 
-		let res_node = output_item(b"1 -> #node:32");
+		let res_node = output_item(input(b"1 -> #node:32"));
 		assert_full_result(
 			res_node,
 			OutputMapping {
@@ -215,7 +215,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_outputs() {
-		let res_one = outputs(b"3 -> #n:7");
+		let res_one = outputs(input(b"3 -> #n:7"));
 		assert_full_result(
 			res_one,
 			vec![
@@ -226,7 +226,7 @@ mod tests {
 			]
 		);
 
-		let res_many = outputs(b"1 -> OUT:2, 3 -> #abc:4");
+		let res_many = outputs(input(b"1 -> OUT:2, 3 -> #abc:4"));
 		assert_full_result(
 			res_many,
 			vec![
@@ -244,7 +244,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_instruction_line_with_label_only() {
-		let res = instruction_line(b"LBL:  \n");
+		let res = instruction_line(input(b"LBL:  \n"));
 		assert_full_result(
 			res,
 			vec![Operation::LABEL(String::from("LBL"))]
@@ -253,7 +253,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_instruction_line_with_instruction_only() {
-		let res = instruction_line(b"SWP  \n");
+		let res = instruction_line(input(b"SWP  \n"));
 		assert_full_result(
 			res,
 			vec![Operation::SWP(MemoryPointer::BAK(1))]
@@ -262,7 +262,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_instruction_line_with_label_then_instruction() {
-		let res = instruction_line(b"LBL:SWP \n");
+		let res = instruction_line(input(b"LBL:SWP \n"));
 		assert_full_result(
 			res,
 			vec![
@@ -274,25 +274,25 @@ mod tests {
 
 	#[test]
 	fn test_parse_empty_instruction_line() {
-		let res = instruction_line(b" \n");
+		let res = instruction_line(input(b" \n"));
 		assert_full_result(res, vec![]);
 	}
 
 	#[test]
 	fn test_parse_instruction_line_with_comment() {
-		let res = instruction_line(b" // only comment\n");
+		let res = instruction_line(input(b" // only comment\n"));
 		assert_full_result(res, vec![]);
 	}
 
 	#[test]
 	fn test_parse_with_consecutive_labels() {
-		let res = instruction_line(b"L1: L2:\n");
+		let res = instruction_line(input(b"L1: L2:\n"));
 		assert!(res.is_err(), true);
 	}
 
 	#[test]
 	fn test_parse_instruction_with_comment() {
-		let res = instruction_line(b"ADD <2 // Sum the values\n");
+		let res = instruction_line(input(b"ADD <2 // Sum the values\n"));
 		assert_full_result(
 			res,
 			vec![
@@ -303,7 +303,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_label_and_instruction_with_comment() {
-		let res = instruction_line(b"LBL: SUB <3 // Sum the values\n");
+		let res = instruction_line(input(b"LBL: SUB <3 // Sum the values\n"));
 		assert_full_result(
 			res,
 			vec![
@@ -315,12 +315,12 @@ mod tests {
 
 	#[test]
 	fn test_parse_instruction_list() {
-		let input = b"START:
+		let content = b"START:
 MOV <1, ACC
 F1:SWP
 MOV ACC, >1
 JEZ F1\n";
-		let res = instruction_list(input);
+		let res = instruction_list(input(content));
 		assert_full_result(
 			res,
 			vec![
@@ -337,7 +337,7 @@ JEZ F1\n";
 
 	#[test]
 	fn test_parse_node_block() {
-		let input = b"  Node #123
+		let content = b"  Node #123
 ==========
 IN:1 -> 1
 --
@@ -349,7 +349,7 @@ MOV ACC, >1
 =======
 ";
 
-		let res = node_block(input);
+		let res = node_block(input(content));
 		assert_full_result(
 			res,
 			(
@@ -377,13 +377,13 @@ MOV ACC, >1
 
 	#[test]
 	fn test_parse_node_without_mapping() {
-		let input = b"  Node #123
+		let content = b"  Node #123
 ==========
 SWP
 =======
 ";
 
-		let res =  node_block(input);
+		let res =  node_block(input(content));
 		let (_, (_, res_inputs, res_outputs, _)) = res.unwrap();
 		assert_eq!(res_inputs, vec![]);
 		assert_eq!(res_outputs, vec![]);
@@ -391,7 +391,7 @@ SWP
 
 	#[test]
 	fn test_parse_node_with_instruction_within_comments() {
-		let input = b"Node #1
+		let content = b"Node #1
 ==========
 // before
 SWP
@@ -399,7 +399,7 @@ SWP
 =======
 ";
 
-		let res = node_block(input);
+		let res = node_block(input(content));
 		assert_full_result(
 			res,
 			(
@@ -415,13 +415,13 @@ SWP
 
 	#[test]
 	fn test_parse_node_with_instruction_and_eol_comment() {
-		let input = b"Node #1
+		let content = b"Node #1
 ==========
 SWP // commenting operation
 =======
 ";
 
-		let res = node_block(input);
+		let res = node_block(input(content));
 		assert_full_result(
 			res,
 			(
@@ -437,14 +437,14 @@ SWP // commenting operation
 
 	#[test]
 	fn test_parse_node_with_indented_comment() {
-		let input = b"Node #3
+		let content = b"Node #3
 ==========
   // indent
 SWP
 =======
 ";
 
-		let res = node_block(input);
+		let res = node_block(input(content));
 		assert_full_result(
 			res,
 			(
@@ -460,7 +460,7 @@ SWP
 
 	#[test]
 	fn test_parse_node_with_comments_before_intructions() {
-		let input = b"Node #1
+		let content = b"Node #1
 ==========
 // comment before
  // indented comment
@@ -468,7 +468,7 @@ SWP
 =======
 ";
 
-		let res = node_block(input);
+		let res = node_block(input(content));
 		assert_full_result(
 			res,
 			(
@@ -484,7 +484,7 @@ SWP
 
 	#[test]
 	fn test_parse_node_with_comments_after_intructions() {
-		let input = b"Node #1
+		let content = b"Node #1
 ==========
 SWP
  // indented comment
@@ -492,7 +492,7 @@ SWP
 =======
 ";
 
-		let res = node_block(input);
+		let res = node_block(input(content));
 		assert_full_result(
 			res,
 			(
@@ -508,7 +508,7 @@ SWP
 
 	#[test]
 	fn test_parse_commented_node() {
-		let input = b"Node #1
+		let content = b"Node #1
 =======
 // Possible to repeat the same source (for readability)
 #1:1 -> 1, #2:1 -> 2
@@ -521,7 +521,7 @@ MOV ACC, >1
 =========
 ";
 
-		let res = node_block(input);
+		let res = node_block(input(content));
 		assert_full_result(
 			res,
 			(
@@ -553,7 +553,7 @@ MOV ACC, >1
 
 	#[test]
 	fn test_parse_node_list() {
-		let input = b"Node #1
+		let content = b"Node #1
 ==========
 IN:1 -> 1
 --
@@ -581,7 +581,7 @@ MOV <3, >3
 ==========
 ";
 
-		let res = node_list(input);
+		let res = node_list(input(content));
 		assert_full_result(
 			res,
 			vec![

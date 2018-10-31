@@ -1,14 +1,15 @@
+pub mod common;
 pub mod address;
 pub mod syntax;
-pub mod common;
 pub mod instruction;
 pub mod test;
 
 use nom::{Err as IErr, error_to_list, newline};
+use nom::types::CompleteByteSlice;
 use std::result::Result;
 use std::str::from_utf8;
 
-use parser::common::{RawData, opt_eol};
+use parser::common::opt_eol;
 use parser::test::{TestCase, test_case};
 use parser::syntax::{NodeBlock, node_list};
 
@@ -18,7 +19,7 @@ pub struct ParsingTree {
 }
 pub type ParsingResult = Result<ParsingTree, ()>;
 
-named!(pub program<&RawData, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)>,
+named!(pub program<common::Input, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)>,
 	do_parse!(
 		opt_eol >>
 		start_cases: many0!(test_case) >> 
@@ -31,8 +32,8 @@ named!(pub program<&RawData, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)>,
 	)
 );
 
-pub fn parse(input: &common::RawData) -> ParsingResult {
-  let res = program(input);
+pub fn parse(input: &[u8]) -> ParsingResult {
+  let res = program(CompleteByteSlice(input));
   match res {
     Ok((i, (list, mut start_cases, mut end_cases))) => {
       if i.len() == 0 {
@@ -42,7 +43,7 @@ pub fn parse(input: &common::RawData) -> ParsingResult {
         let tree = ParsingTree { nodes: list, tests: start_cases};
         Result::Ok(tree)
       } else {
-        println!("Remaining unparsed content {}", from_utf8(i).unwrap());
+        println!("Remaining unparsed content {}", from_utf8(i.0).unwrap());
         Result::Err(())
       }
     },
@@ -72,7 +73,7 @@ pub fn parse(input: &common::RawData) -> ParsingResult {
 mod tests {
   use super::*;
 
-  use parser::common::tests::assert_full_result;
+  use parser::common::tests::*;
   use parser::instruction::ValuePointer;
   use parser::address::{Node, Port};
   use parser::syntax::{InputMapping, OutputMapping};
@@ -80,7 +81,7 @@ mod tests {
 
   #[test]
   fn test_program_without_tests() {
-		let input = b"// Start of the program
+		let content = b"// Start of the program
 // Another comment
     
 Node #1
@@ -104,7 +105,7 @@ MOV <2, >2
 // End comment, to conclude
 ";
 
-		let res = program(input);
+		let res = program(input(content));
 		let nodes = vec![
       (
         Node::new_node("1"),
@@ -149,7 +150,7 @@ MOV <2, >2
 
   #[test]
   fn test_program_with_tests() {
-		let input = b"// Start of the program
+		let content = b"// Start of the program
 // Another comment
 /// [1] -> [3]
     
@@ -166,7 +167,7 @@ MOV <1,  >1
 // End comment, to conclude
 ";
 
-		let res = program(input);
+		let res = program(input(content));
 		let nodes = vec![
       (
         Node::new_node("1"),

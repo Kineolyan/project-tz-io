@@ -6,7 +6,7 @@ pub mod condition;
 
 use std::fmt;
 
-use parser::common::RawData;
+use parser::common::Input;
 use parser::instruction::mov::*;
 use parser::instruction::memory::*;
 use parser::instruction::math::*;
@@ -44,7 +44,7 @@ pub enum Operation {
   JRO(ValuePointer)
 }
 
-named!(pub parse_instruction<&RawData, Operation>,
+named!(pub parse_instruction<Input, Operation>,
   alt!(
     mov_operation |
     swp_operation |

@@ -60,22 +60,22 @@ pub mod tests {
 	use std::fmt::Debug;
 
 	use super::*;
-	use nom::Err;
+	use nom::{Err, IResult};
 
 	pub fn assert_result<Result: PartialEq + Debug> (
-			res: Result<&[u8], Result>,
+			res: IResult<&[u8], Result>,
 			value: Result,
 			remaining: &RawData) {
 		assert_eq!(
 			res,
-			Ok(remaining, value)
+			Ok((remaining, value))
 		);
 	}
 
 	pub fn assert_full_result<Result: PartialEq + Debug> (
-			res: Result<&[u8], Result>,
+			res: IResult<&[u8], Result>,
 			value: Result) {
-		if let &Ok(ref remaining, _) = &res {
+		if let &Ok((ref remaining, _)) = &res {
 			if remaining.len() > 0 {
 				println!("Unexpected remaining {}", str::from_utf8(remaining).unwrap());
 			}
@@ -83,7 +83,7 @@ pub mod tests {
 		assert_result(res, value, b"");
 	}
 
-	pub fn assert_cannot_parse<Result: PartialEq + Debug>(res: Result<&[u8], Result>) {
+	pub fn assert_cannot_parse<Result: PartialEq + Debug>(res: IResult<&[u8], Result>) {
 		match res {
 			Ok((i, o)) => {
 				panic!("Unexpected successful parsing. Res {:?}, remaining {:?}", o, i);
@@ -91,13 +91,13 @@ pub mod tests {
 			Err(Err::Incomplete(needed)) => {
 				panic!("Cannot parse due to missing data. Needed {:?}", needed);
 			},
-			Err(Err::Error(e)) | Err(Err::Failure(e)) => {
+			Err(Err::Error(_)) | Err(Err::Failure(_)) => {
 				// Ok, nothing to do
 			}
 		}
 	}
 
-	pub fn assert_incomplete<Result: PartialEq + Debug>(res: Result<&[u8], Result>) {
+	pub fn assert_incomplete<Result: PartialEq + Debug>(res: IResult<&[u8], Result>) {
 		match res {
 			Ok((i, o)) => {
 				panic!("Unexpected successful parsing. Res {:?}, remaining {:?}", o, i);

@@ -2,7 +2,7 @@ use std::fmt;
 
 use nom::{space, is_alphanumeric};
 
-use parser::common::{RawData, be_uint, to_string};
+use parser::common::{Input, be_uint, to_string};
 
 #[derive(PartialEq)]
 pub enum Node {
@@ -62,13 +62,13 @@ impl Port {
 	}
 }
 
-named!(input_node<&RawData, Node>,
+named!(input_node<Input, Node>,
   do_parse!(tag!("IN") >> (Node::In))
 );
-named!(output_node<&RawData, Node>,
+named!(output_node<Input, Node>,
   do_parse!(tag!("OUT") >> (Node::Out))
 );
-named!(node_id<&RawData, Node>,
+named!(node_id<Input, Node>,
   do_parse!(
     tag!("#") >>
     id: map_res!(
@@ -78,11 +78,11 @@ named!(node_id<&RawData, Node>,
     (Node::Node(id))
   )
 );
-named!(pub node_ref<&RawData, Node>,
+named!(pub node_ref<Input, Node>,
   alt!(input_node | output_node | node_id)
 );
 
-named!(pub port_ref<&RawData, Port>,
+named!(pub port_ref<Input, Port>,
   do_parse!(
     id: node_ref >>
     tag!(":") >>
@@ -91,7 +91,7 @@ named!(pub port_ref<&RawData, Port>,
   )
 );
 
-named!(pub node_header<&RawData, Node>,
+named!(pub node_header<Input, Node>,
   do_parse!(
     tag!("Node") >>
     opt!(space) >>
@@ -103,52 +103,52 @@ named!(pub node_header<&RawData, Node>,
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use parser::common::tests::{assert_result, assert_full_result};
+	use parser::common::tests::*;
 
 	#[test]
 	fn test_parse_input_node() {
-		let input = b"IN aa";
-		let res = input_node(input);
-		assert_result(res, Node::In, b" aa");
+		let content = input(b"IN aa");
+		let res = input_node(content);
+		assert_result(res, Node::In, input(b" aa"));
 	}
 
 	#[test]
 	fn test_parse_output_node() {
-		let input = b"OUT aa";
-		let res = output_node(input);
-		assert_result(res, Node::Out, b" aa");
+		let content = input(b"OUT aa");
+		let res = output_node(content);
+		assert_result(res, Node::Out, input(b" aa"));
 	}
 
 	#[test]
 	fn test_parse_node_id() {
-		let input = b"#abc42";
-		let res = node_id(input);
+		let content = input(b"#abc42");
+		let res = node_id(content);
 		assert_full_result(res, Node::new_node(&"abc42"));
 	}
 
 	#[test]
 	fn test_parse_node_header() {
-		let input = b"Node #a1";
+		let content = input(b"Node #a1");
 
-		let res = node_header(input);
+		let res = node_header(content);
 		assert_full_result(res, Node::new_node(&"a1"));
 	}
 
 	#[test]
 	fn test_parse_node_ref() {
-		let res_node = node_ref(b"#ref");
+		let res_node = node_ref(input(b"#ref"));
 		assert_full_result(res_node, Node::new_node(&"ref"));
 
-		let res_in = node_ref(b"IN");
+		let res_in = node_ref(input(b"IN"));
 		assert_full_result(res_in, Node::In);
 
-		let res_out = node_ref(b"OUT");
+		let res_out = node_ref(input(b"OUT"));
 		assert_full_result(res_out, Node::Out);
 	}
 
 	#[test]
 	fn test_parse_port_ref() {
-		let res = port_ref(b"IN:13");
+		let res = port_ref(input(b"IN:13"));
 		assert_full_result(res, Port::new(Node::In, 13));
 	}
 }

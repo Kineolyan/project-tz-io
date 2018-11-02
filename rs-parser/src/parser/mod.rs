@@ -33,7 +33,7 @@ named!(pub program<common::Input, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)
 );
 
 pub fn parse(input: &[u8]) -> ParsingResult {
-  let res = program(CompleteByteSlice(input));
+  let res = program(input);
   match res {
     Ok((i, (list, mut start_cases, mut end_cases))) => {
       if i.len() == 0 {
@@ -43,7 +43,7 @@ pub fn parse(input: &[u8]) -> ParsingResult {
         let tree = ParsingTree { nodes: list, tests: start_cases};
         Result::Ok(tree)
       } else {
-        println!("Remaining unparsed content {}", from_utf8(i.0).unwrap());
+        println!("Remaining unparsed content {}", from_utf8(i).unwrap());
         Result::Err(())
       }
     },

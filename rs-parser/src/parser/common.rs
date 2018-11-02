@@ -3,14 +3,14 @@ use nom::types::CompleteByteSlice;
 
 use std::str;
 
-pub type Input<'a> = CompleteByteSlice<'a>;
+pub type Input<'a> = &'a[u8];
 
 pub fn to_string(v: Input) -> Result<String, i8> {
-	str::from_utf8(v.0).map(|s| s.to_string()).or(Err(-1))
+	str::from_utf8(v).map(|s| s.to_string()).or(Err(-1))
 }
 
 fn to<T: str::FromStr>(v: Input) -> Result<T, i8> {
-	str::from_utf8(v.0).or(Err(-1))
+	str::from_utf8(v).or(Err(-1))
 		.and_then(|i| i.parse::<T>().or(Err(-2)))
 
 }
@@ -64,7 +64,8 @@ pub mod tests {
 	use nom::{Err, IResult};
 	
 	pub fn input(content: &[u8]) -> Input {
-		CompleteByteSlice(content)
+		// CompleteByteSlice(content)
+		content
 	}
 
 	pub fn assert_result<Result: PartialEq + Debug> (

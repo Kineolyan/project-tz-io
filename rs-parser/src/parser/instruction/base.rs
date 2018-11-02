@@ -35,7 +35,6 @@ named!(pub bak_pointer<Input, MemoryPointer>,
 
 #[cfg(test)]
 mod tests {
-  #[macro_use]
   use super::*;
   use parser::common::tests::*;
 

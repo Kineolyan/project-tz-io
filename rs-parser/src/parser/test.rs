@@ -1,5 +1,3 @@
-use nom::newline;
-
 use parser::common::{Input, be_i8, ospace};
 
 named!(values<Input, Vec<i8> >,
@@ -32,13 +30,13 @@ impl TestCase {
   }
 }
 
-named!(pub test_case<Input, (TestCase)>,
+named!(pub test_case<Input, TestCase>,
   do_parse!(
     tag!("///") >> ospace >>
     ins: array >> 
     ospace >> tag!("->") >> ospace >>
     outs: array >> 
-    ospace >> newline >>
+    ospace >> tag!("\n") >>
     (TestCase::new(ins, outs))
   )
 );

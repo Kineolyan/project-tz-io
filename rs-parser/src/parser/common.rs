@@ -1,16 +1,24 @@
-use nom::{digit, space, newline};
+use nom::{digit, space};
 use nom::types::CompleteByteSlice;
 
 use std::str;
 
-pub type Input<'a> = &'a[u8];
+// pub type Input<'a> = &'a[u8];
+pub type Input<'a> = CompleteByteSlice<'a>;
+
+pub fn to_input(content: &[u8]) -> Input {
+	CompleteByteSlice(content)
+}
+pub fn from_input<'a>(content: Input<'a>) -> &'a[u8] {
+	content.0
+}
 
 pub fn to_string(v: Input) -> Result<String, i8> {
-	str::from_utf8(v).map(|s| s.to_string()).or(Err(-1))
+	str::from_utf8(v.0).map(|s| s.to_string()).or(Err(-1))
 }
 
 fn to<T: str::FromStr>(v: Input) -> Result<T, i8> {
-	str::from_utf8(v).or(Err(-1))
+	str::from_utf8(v.0).or(Err(-1))
 		.and_then(|i| i.parse::<T>().or(Err(-2)))
 
 }
@@ -27,7 +35,7 @@ fn to_u32(v: Input) -> Result<u32, i8> {
 	to(v)
 }
 
-named!(pub be_uint<Input, u32>, map_res!(digit, to_u32));
+named!(pub be_uint<Input, u32>, map_res!(take_while!(nom::is_digit), to_u32));
 named!(pub be_u8<Input, u8>, map_res!(digit, to_u8));
 named!(pub be_i8<Input, i8>, 
 	do_parse!(
@@ -49,7 +57,7 @@ named!(pub eol<Input, ()>,
 	do_parse!(
 		ospace >>
 		opt!(end_line_comment) >>
-		newline >>
+		tag!("\n") >>
 		()
 	)
 );
@@ -64,8 +72,8 @@ pub mod tests {
 	use nom::{Err, IResult};
 	
 	pub fn input(content: &[u8]) -> Input {
-		// CompleteByteSlice(content)
-		content
+		CompleteByteSlice(content)
+		// content
 	}
 
 	pub fn assert_result<Result: PartialEq + Debug> (

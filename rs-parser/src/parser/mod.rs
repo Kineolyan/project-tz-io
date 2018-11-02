@@ -4,12 +4,11 @@ pub mod syntax;
 pub mod instruction;
 pub mod test;
 
-use nom::{Err as IErr, error_to_list, newline};
-use nom::types::CompleteByteSlice;
+use nom::{Err as IErr, error_to_list};
 use std::result::Result;
 use std::str::from_utf8;
 
-use parser::common::opt_eol;
+use parser::common::{to_input, from_input, opt_eol};
 use parser::test::{TestCase, test_case};
 use parser::syntax::{NodeBlock, node_list};
 
@@ -23,7 +22,7 @@ named!(pub program<common::Input, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)
 	do_parse!(
 		opt_eol >>
 		start_cases: many0!(test_case) >> 
-		many0!(newline) >>
+		many0!(tag!("\n")) >>
 		list: node_list >>
 		opt_eol >>
 		end_cases: many0!(test_case) >>
@@ -33,7 +32,7 @@ named!(pub program<common::Input, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)
 );
 
 pub fn parse(input: &[u8]) -> ParsingResult {
-  let res = program(input);
+  let res = program(to_input(input));
   match res {
     Ok((i, (list, mut start_cases, mut end_cases))) => {
       if i.len() == 0 {
@@ -43,7 +42,7 @@ pub fn parse(input: &[u8]) -> ParsingResult {
         let tree = ParsingTree { nodes: list, tests: start_cases};
         Result::Ok(tree)
       } else {
-        println!("Remaining unparsed content {}", from_utf8(i).unwrap());
+        println!("Remaining unparsed content {}", from_utf8(from_input(i)).unwrap());
         Result::Err(())
       }
     },

@@ -2,6 +2,7 @@ mod mapping;
 mod instruction;
 mod interface;
 mod io;
+mod test;
 
 use parser::ParsingTree;
 
@@ -74,6 +75,9 @@ pub fn check(tree: &ParsingTree) -> CheckResult {
 	}
 	if !io::check(tree, &mut checks) {
 		checks.add_error(String::from(" -> IOs errors ..."));
+	}
+	if !test::check(tree, &mut checks) {
+		checks.add_error(String::from(" -> Tests errors ..."));
 	}
 	checks
 }

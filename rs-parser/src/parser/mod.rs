@@ -9,9 +9,10 @@ use std::result::Result;
 use std::str::from_utf8;
 
 use parser::common::{to_input, from_input, ospace, opt_eol};
-use parser::test::{TestCase, test_case};
+use parser::test::test_case;
 use parser::syntax::{NodeBlock, node_list};
 
+pub use parser::test::TestCase;
 pub struct ParsingTree {
   pub nodes: Vec<NodeBlock>,
   pub tests: Vec<TestCase>

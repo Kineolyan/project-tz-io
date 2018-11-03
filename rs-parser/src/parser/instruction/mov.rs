@@ -39,12 +39,13 @@ named!(pub mov_operation<Input, Operation>,
 mod tests {
   use super::*;
 
+	use parser::common::to_input;
   use parser::common::tests::*;
   use parser::instruction::ValuePointer;
 
   #[test]
   fn test_parse_mov_in_to_out() {
-    let res = mov_operation(input(b"MOV <1, >2"));
+    let res = mov_operation(to_input(b"MOV <1, >2"));
     assert_full_result(
       res,
       Operation::MOV(
@@ -56,7 +57,7 @@ mod tests {
 
   #[test]
   fn test_parse_mov_in_to_acc() {
-    let res = mov_operation(input(b"MOV <1, ACC"));
+    let res = mov_operation(to_input(b"MOV <1, ACC"));
     assert_full_result(
       res,
       Operation::MOV(
@@ -68,7 +69,7 @@ mod tests {
 
   #[test]
   fn test_parse_mov_value_to_out() {
-    let res = mov_operation(input(b"MOV 12, >3"));
+    let res = mov_operation(to_input(b"MOV 12, >3"));
     assert_full_result(
       res,
       Operation::MOV(
@@ -80,7 +81,7 @@ mod tests {
 
   #[test]
   fn test_parse_mov_acc_to_out() {
-    let res = mov_operation(input(b"MOV ACC, >4"));
+    let res = mov_operation(to_input(b"MOV ACC, >4"));
     assert_full_result(
       res,
       Operation::MOV(
@@ -92,7 +93,7 @@ mod tests {
 
   #[test]
   fn test_parse_mov_value_to_acc() {
-    let res = mov_operation(input(b"MOV 45, ACC"));
+    let res = mov_operation(to_input(b"MOV 45, ACC"));
     assert_full_result(
       res,
       Operation::MOV(
@@ -104,7 +105,7 @@ mod tests {
 
   #[test]
   fn test_parse_mov_val_to_acc() {
-    let res = mov_operation(input(b"MOV 76, ACC"));
+    let res = mov_operation(to_input(b"MOV 76, ACC"));
     assert_full_result(
       res,
       Operation::MOV(
@@ -116,7 +117,7 @@ mod tests {
 
   #[test]
   fn test_parse_mov_acc_to_acc() {
-    let res = mov_operation(input(b"MOV ACC, ACC"));
+    let res = mov_operation(to_input(b"MOV ACC, ACC"));
     assert_full_result(
       res,
       Operation::MOV(
@@ -128,7 +129,7 @@ mod tests {
 
   #[test]
   fn test_parse_mov_nil_to_acc() {
-    let res = mov_operation(input(b"MOV NIL, ACC"));
+    let res = mov_operation(to_input(b"MOV NIL, ACC"));
     assert_full_result(
       res,
       Operation::MOV(
@@ -140,7 +141,7 @@ mod tests {
 
   #[test]
   fn test_parse_mov_nil_to_out() {
-    let res = mov_operation(input(b"MOV NIL, >12"));
+    let res = mov_operation(to_input(b"MOV NIL, >12"));
     assert_full_result(
       res,
       Operation::MOV(
@@ -152,7 +153,7 @@ mod tests {
 
   #[test]
   fn test_parse_mov_in_to_nil() {
-    let res = mov_operation(input(b"MOV <1, NIL"));
+    let res = mov_operation(to_input(b"MOV <1, NIL"));
     assert_full_result(
       res,
       Operation::MOV(
@@ -164,7 +165,7 @@ mod tests {
 
   #[test]
   fn test_cannot_parse_out_to_in() {
-    let res = mov_operation(input(b"MOV >1, <2"));
+    let res = mov_operation(to_input(b"MOV >1, <2"));
     assert_cannot_parse(res);
   }
 }

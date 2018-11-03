@@ -123,28 +123,29 @@ named!(pub node_list<Input, Vec<NodeBlock> >,
 mod tests {
 	use super::*;
 
+	use parser::common::to_input;
 	use parser::common::tests::*;
 	use parser::instruction::{ValuePointer, MemoryPointer};
 
 	#[test]
 	fn test_parse_node_line() {
-		let content = input(b"===\nrest");
+		let content = to_input(b"===\nrest");
 
 		let res = node_line(content);
-		assert_result(res, input(b"==="), input(b"\nrest"));
+		assert_result(res, to_input(b"==="), to_input(b"\nrest"));
 	}
 
 	#[test]
 	fn test_parse_code_line() {
-		let content = input(b"----\nrest");
+		let content = to_input(b"----\nrest");
 
 		let res = code_line(content);
-		assert_result(res, input(b"----"), input(b"\nrest"));
+		assert_result(res, to_input(b"----"), to_input(b"\nrest"));
 	}
 
 	#[test]
 	fn test_parse_input_item() {
-		let res_in = input_item(input(b"IN:1 -> 3"));
+		let res_in = input_item(to_input(b"IN:1 -> 3"));
 		assert_full_result(
 			res_in,
 			InputMapping {
@@ -153,7 +154,7 @@ mod tests {
 			}
 		);
 
-		let res_node = input_item(input(b"#node:32 -> 1"));
+		let res_node = input_item(to_input(b"#node:32 -> 1"));
 		assert_full_result(
 			res_node,
 			InputMapping {
@@ -165,7 +166,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_inputs() {
-		let res_one = inputs(input(b"#n:7 -> 14"));
+		let res_one = inputs(to_input(b"#n:7 -> 14"));
 		assert_full_result(
 			res_one,
 			vec![
@@ -176,7 +177,7 @@ mod tests {
 			]
 		);
 
-		let res_many = inputs(input(b"OUT:1 -> 2, #abc:3 -> 4"));
+		let res_many = inputs(to_input(b"OUT:1 -> 2, #abc:3 -> 4"));
 		assert_full_result(
 			res_many,
 			vec![
@@ -194,7 +195,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_output_item() {
-		let res_in = output_item(input(b"1 -> OUT:3"));
+		let res_in = output_item(to_input(b"1 -> OUT:3"));
 		assert_full_result(
 			res_in,
 			OutputMapping {
@@ -203,7 +204,7 @@ mod tests {
 			}
 		);
 
-		let res_node = output_item(input(b"1 -> #node:32"));
+		let res_node = output_item(to_input(b"1 -> #node:32"));
 		assert_full_result(
 			res_node,
 			OutputMapping {
@@ -215,7 +216,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_outputs() {
-		let res_one = outputs(input(b"3 -> #n:7"));
+		let res_one = outputs(to_input(b"3 -> #n:7"));
 		assert_full_result(
 			res_one,
 			vec![
@@ -226,7 +227,7 @@ mod tests {
 			]
 		);
 
-		let res_many = outputs(input(b"1 -> OUT:2, 3 -> #abc:4"));
+		let res_many = outputs(to_input(b"1 -> OUT:2, 3 -> #abc:4"));
 		assert_full_result(
 			res_many,
 			vec![
@@ -244,7 +245,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_instruction_line_with_label_only() {
-		let res = instruction_line(input(b"LBL:  \n"));
+		let res = instruction_line(to_input(b"LBL:  \n"));
 		assert_full_result(
 			res,
 			vec![Operation::LABEL(String::from("LBL"))]
@@ -253,7 +254,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_instruction_line_with_instruction_only() {
-		let res = instruction_line(input(b"SWP  \n"));
+		let res = instruction_line(to_input(b"SWP  \n"));
 		assert_full_result(
 			res,
 			vec![Operation::SWP(MemoryPointer::BAK(1))]
@@ -262,7 +263,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_instruction_line_with_label_then_instruction() {
-		let res = instruction_line(input(b"LBL:SWP \n"));
+		let res = instruction_line(to_input(b"LBL:SWP \n"));
 		assert_full_result(
 			res,
 			vec![
@@ -274,25 +275,25 @@ mod tests {
 
 	#[test]
 	fn test_parse_empty_instruction_line() {
-		let res = instruction_line(input(b" \n"));
+		let res = instruction_line(to_input(b" \n"));
 		assert_full_result(res, vec![]);
 	}
 
 	#[test]
 	fn test_parse_instruction_line_with_comment() {
-		let res = instruction_line(input(b" // only comment\n"));
+		let res = instruction_line(to_input(b" // only comment\n"));
 		assert_full_result(res, vec![]);
 	}
 
 	#[test]
 	fn test_parse_with_consecutive_labels() {
-		let res = instruction_line(input(b"L1: L2:\n"));
+		let res = instruction_line(to_input(b"L1: L2:\n"));
 		assert!(res.is_err(), true);
 	}
 
 	#[test]
 	fn test_parse_instruction_with_comment() {
-		let res = instruction_line(input(b"ADD <2 // Sum the values\n"));
+		let res = instruction_line(to_input(b"ADD <2 // Sum the values\n"));
 		assert_full_result(
 			res,
 			vec![
@@ -303,7 +304,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_label_and_instruction_with_comment() {
-		let res = instruction_line(input(b"LBL: SUB <3 // Sum the values\n"));
+		let res = instruction_line(to_input(b"LBL: SUB <3 // Sum the values\n"));
 		assert_full_result(
 			res,
 			vec![
@@ -320,7 +321,7 @@ MOV <1, ACC
 F1:SWP
 MOV ACC, >1
 JEZ F1\n";
-		let res = instruction_list(input(content));
+		let res = instruction_list(to_input(content));
 		assert_full_result(
 			res,
 			vec![
@@ -349,7 +350,7 @@ MOV ACC, >1
 =======
 ";
 
-		let res = node_block(input(content));
+		let res = node_block(to_input(content));
 		assert_full_result(
 			res,
 			(
@@ -383,7 +384,7 @@ SWP
 =======
 ";
 
-		let res =  node_block(input(content));
+		let res =  node_block(to_input(content));
 		let (_, (_, res_inputs, res_outputs, _)) = res.unwrap();
 		assert_eq!(res_inputs, vec![]);
 		assert_eq!(res_outputs, vec![]);
@@ -399,7 +400,7 @@ SWP
 =======
 ";
 
-		let res = node_block(input(content));
+		let res = node_block(to_input(content));
 		assert_full_result(
 			res,
 			(
@@ -421,7 +422,7 @@ SWP // commenting operation
 =======
 ";
 
-		let res = node_block(input(content));
+		let res = node_block(to_input(content));
 		assert_full_result(
 			res,
 			(
@@ -444,7 +445,7 @@ SWP
 =======
 ";
 
-		let res = node_block(input(content));
+		let res = node_block(to_input(content));
 		assert_full_result(
 			res,
 			(
@@ -468,7 +469,7 @@ SWP
 =======
 ";
 
-		let res = node_block(input(content));
+		let res = node_block(to_input(content));
 		assert_full_result(
 			res,
 			(
@@ -492,7 +493,7 @@ SWP
 =======
 ";
 
-		let res = node_block(input(content));
+		let res = node_block(to_input(content));
 		assert_full_result(
 			res,
 			(
@@ -521,7 +522,7 @@ MOV ACC, >1
 =========
 ";
 
-		let res = node_block(input(content));
+		let res = node_block(to_input(content));
 		assert_full_result(
 			res,
 			(
@@ -581,7 +582,7 @@ MOV <3, >3
 ==========
 ";
 
-		let res = node_list(input(content));
+		let res = node_list(to_input(content));
 		assert_full_result(
 			res,
 			vec![

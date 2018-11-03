@@ -8,7 +8,7 @@ use nom::{Err as IErr, error_to_list};
 use std::result::Result;
 use std::str::from_utf8;
 
-use parser::common::{to_input, from_input, opt_eol};
+use parser::common::{to_input, from_input, ospace, opt_eol};
 use parser::test::{TestCase, test_case};
 use parser::syntax::{NodeBlock, node_list};
 
@@ -22,7 +22,7 @@ named!(pub program<common::Input, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)
 	do_parse!(
 		opt_eol >>
 		start_cases: many0!(test_case) >> 
-		many0!(tag!("\n")) >>
+		many0!(do_parse!(ospace >> tag!("\n") >> ())) >>
 		list: node_list >>
 		opt_eol >>
 		end_cases: many0!(test_case) >>
@@ -104,7 +104,7 @@ MOV <2, >2
 // End comment, to conclude
 ";
 
-		let res = program(input(content));
+		let res = program(to_input(content));
 		let nodes = vec![
       (
         Node::new_node("1"),
@@ -151,8 +151,9 @@ MOV <2, >2
   fn test_program_with_tests() {
 		let content = b"// Start of the program
 // Another comment
-/// [1] -> [3]
-    
+/// [1, 2] -> [3]
+/// [1, 2, 4] -> -8
+
 Node #1
 ==========
 IN:1 -> 1
@@ -166,7 +167,7 @@ MOV <1,  >1
 // End comment, to conclude
 ";
 
-		let res = program(input(content));
+		let res = program(to_input(content));
 		let nodes = vec![
       (
         Node::new_node("1"),
@@ -196,5 +197,43 @@ MOV <1,  >1
     ];
 		
 		assert_full_result(res, (nodes, first_tests, last_tests));
+  }
+
+  #[test]
+  fn test_program_with_trailing_spaces() {
+		let content = b"// Start of the program   
+// Another comment   
+/// [1, 2] -> [3]   
+/// [1, 2, 4] -> -8   
+   
+Node #1   
+==========
+MOV <1,  >1
+=======
+       
+/// 1 -> [-1, 1]    
+// End comment, to conclude   
+   ";
+
+		let res = program(to_input(content));
+		let nodes = vec![
+      (
+        Node::new_node("1"),
+        vec![],
+        vec![],
+        vec![
+          Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1)),
+        ]
+      )
+    ];
+    let first_tests = vec![
+      TestCase::new(vec![1, 2], vec![3]),
+      TestCase::new(vec![1, 2, 4], vec![-8])
+    ];
+    let last_tests = vec![
+      TestCase::new(vec![1], vec![-1, 1])
+    ];
+		
+		assert_result(res, (nodes, first_tests, last_tests), to_input(b"   "));
   }
 }

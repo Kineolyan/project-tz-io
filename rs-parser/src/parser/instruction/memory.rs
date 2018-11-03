@@ -13,30 +13,31 @@ named!(pub sav_operation<Input, Operation>,
 mod tests {
 	use super::*;
 
+	use parser::common::to_input;
 	use parser::common::tests::*;
 
 	#[test]
 	fn test_parse_swp_operation() {
-		let res = swp_operation(input(b"SWP"));
+		let res = swp_operation(to_input(b"SWP"));
 		assert_full_result(res, Operation::SWP(MemoryPointer::BAK(1)));
 	}
 
 	#[test]
 	fn test_parse_swp_operation_to_idx() {
-		// let res = swp_operation(input(b"SWP 3"));
+		// let res = swp_operation(to_input(b"SWP 3"));
 		// assert_full_result(res, Operation::SWP(MemoryPointer::BAK(3)));
 	}
 
 	#[test]
 	fn test_parse_sav_operation() {
-		let res = sav_operation(input(b"SAV"));
+		let res = sav_operation(to_input(b"SAV"));
 		assert_full_result(res, Operation::SAV(MemoryPointer::BAK(1)));
 	}
 
 	#[test]
 	fn test_parse_sav_operation_to_idx() {
 		// TODO code save to other space
-		// let res = sav_operation(input(b"SAV 2"));
+		// let res = sav_operation(to_input(b"SAV 2"));
 		// assert_full_result(res, Operation::SAV(MemoryPointer::BAK(2)));
 	}
 }

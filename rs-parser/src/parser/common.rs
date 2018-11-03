@@ -70,11 +70,6 @@ pub mod tests {
 
 	use super::*;
 	use nom::{Err, IResult};
-	
-	pub fn input(content: &[u8]) -> Input {
-		CompleteByteSlice(content)
-		// content
-	}
 
 	pub fn assert_result<Result: PartialEq + Debug> (
 			res: IResult<Input, Result>,
@@ -94,7 +89,7 @@ pub mod tests {
 				println!("Unexpected remaining {}", str::from_utf8(remaining).unwrap());
 			}
 		}
-		assert_result(res, value, input(b""));
+		assert_result(res, value, to_input(b""));
 	}
 
 	pub fn assert_cannot_parse<Result: PartialEq + Debug>(res: IResult<Input, Result>) {
@@ -127,53 +122,53 @@ pub mod tests {
 
 	#[test]
 	fn test_parse_be_uint() {
-		let content = input(b"14");
+		let content = to_input(b"14");
 		let res = be_uint(content);
 		assert_full_result(res, 14u32);
 	}
 
 	#[test]
 	fn test_parse_be_u8() {
-		let content = input(b"4");
+		let content = to_input(b"4");
 		let res = be_u8(content);
 		assert_full_result(res, 4u8);
 	}
 
 	#[test]
 	fn test_parse_be_i8_positive() {
-		let content = input(b"123");
+		let content = to_input(b"123");
 		let res = be_i8(content);
 		assert_full_result(res, 123i8);
 	}
 
 	#[test]
 	fn test_parse_be_i8_negative() {
-		let content = input(b"-98");
+		let content = to_input(b"-98");
 		let res = be_i8(content);
 		assert_full_result(res, -98i8);
 	}
 
 	#[test]
 	fn test_parse_end_line_comment() {
-		let res = end_line_comment(input(b"// some comment\nnext"));
-		assert_result(res, (), input(b"\nnext"));
+		let res = end_line_comment(to_input(b"// some comment\nnext"));
+		assert_result(res, (), to_input(b"\nnext"));
 	}
 
 	#[test]
 	fn test_parse_eol_with_comment() {
-		let res = eol(input(b"// eol with comment\nnext"));
-		assert_result(res, (), input(b"next"));
+		let res = eol(to_input(b"// eol with comment\nnext"));
+		assert_result(res, (), to_input(b"next"));
 	}
 
 	#[test]
 	fn test_parse_eol_with_indented_comment() {
-		let res = eol(input(b"  	// eol with comment\nnext"));
-		assert_result(res, (), input(b"next"));
+		let res = eol(to_input(b"  	// eol with comment\nnext"));
+		assert_result(res, (), to_input(b"next"));
 	}
 
 	#[test]
 	fn test_parse_multiline_combining_comment_and_spaces() {
-		let res = opt_eol(input(b"
+		let res = opt_eol(to_input(b"
 
 	// Some comment
 
@@ -181,7 +176,7 @@ pub mod tests {
 // lines with comments
 next"));
 		let (remaining, _) = res.unwrap();
-		assert_eq!(remaining, input(b"next"));
+		assert_eq!(remaining, to_input(b"next"));
 	}
 
 }

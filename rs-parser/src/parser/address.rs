@@ -103,32 +103,33 @@ named!(pub node_header<Input, Node>,
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use parser::common::to_input;
 	use parser::common::tests::*;
 
 	#[test]
 	fn test_parse_input_node() {
-		let content = input(b"IN aa");
+		let content = to_input(b"IN aa");
 		let res = input_node(content);
-		assert_result(res, Node::In, input(b" aa"));
+		assert_result(res, Node::In, to_input(b" aa"));
 	}
 
 	#[test]
 	fn test_parse_output_node() {
-		let content = input(b"OUT aa");
+		let content = to_input(b"OUT aa");
 		let res = output_node(content);
-		assert_result(res, Node::Out, input(b" aa"));
+		assert_result(res, Node::Out, to_input(b" aa"));
 	}
 
 	#[test]
 	fn test_parse_node_id() {
-		let content = input(b"#abc42");
+		let content = to_input(b"#abc42");
 		let res = node_id(content);
 		assert_full_result(res, Node::new_node(&"abc42"));
 	}
 
 	#[test]
 	fn test_parse_node_header() {
-		let content = input(b"Node #a1");
+		let content = to_input(b"Node #a1");
 
 		let res = node_header(content);
 		assert_full_result(res, Node::new_node(&"a1"));
@@ -136,19 +137,19 @@ mod tests {
 
 	#[test]
 	fn test_parse_node_ref() {
-		let res_node = node_ref(input(b"#ref"));
+		let res_node = node_ref(to_input(b"#ref"));
 		assert_full_result(res_node, Node::new_node(&"ref"));
 
-		let res_in = node_ref(input(b"IN"));
+		let res_in = node_ref(to_input(b"IN"));
 		assert_full_result(res_in, Node::In);
 
-		let res_out = node_ref(input(b"OUT"));
+		let res_out = node_ref(to_input(b"OUT"));
 		assert_full_result(res_out, Node::Out);
 	}
 
 	#[test]
 	fn test_parse_port_ref() {
-		let res = port_ref(input(b"IN:13"));
+		let res = port_ref(to_input(b"IN:13"));
 		assert_full_result(res, Port::new(Node::In, 13));
 	}
 }

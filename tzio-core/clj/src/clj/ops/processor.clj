@@ -14,7 +14,4 @@
         (ctx/read-value context input)
         (apply ctx/write-value))
       context)))
-      
-    
-      
-  
+

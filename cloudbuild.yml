@@ -1,0 +1,5 @@
+steps:
+  - name: gcr.io/cloud-builders/git
+    args: ['--version']
+
+tags: ['test']

@@ -1,16 +1,16 @@
 steps:
   - name: gcr.io/cloud-builders/git
     args: ['--version']
-  - name: ubuntu
-    entrypoint: /bin/ls
-  - name: circleci/rust
-    entrypoint: /usr/local/cargo/bin/cargo
-    args: ['test']
-    dir: rs-parser
-  - name: circleci/rust
-    entrypoint: /usr/local/cargo/bin/cargo
-    args: ['test']
-    dir: java-reader
+  # - name: ubuntu
+  #   entrypoint: /bin/ls
+  # - name: rust:1.26.2-stretch
+  #   entrypoint: /usr/local/cargo/bin/cargo
+  #   args: ['test']
+  #   dir: rs-parser
+  # - name: rust:1.26.2-stretch
+  #   entrypoint: /usr/local/cargo/bin/cargo
+  #   args: ['test']
+  #   dir: java-reader
   - name: circleci/openjdk:9-jdk
     entrypoint: /opt/gradle/bin/gradle
     args: ['test']

@@ -1,5 +1,19 @@
 steps:
   - name: gcr.io/cloud-builders/git
     args: ['--version']
+  - name: circleci/rust
+    entrypoint: /usr/local/cargo/bin/cargo
+    args: ['test']
+    dir: rs-parser
+  - name: circleci/rust
+    entrypoint: /usr/local/cargo/bin/cargo
+    args: ['test']
+    dir: java-reader
+  - name: circleci/openjdk:9-jdk
+    entrypoint: /opt/gradle/bin/gradle
+    args: ['test']
+    dir: tzio-core
+    env:
+      - 'TERM=dumb'
 
 tags: ['test']

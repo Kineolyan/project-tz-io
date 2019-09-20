@@ -1,6 +1,8 @@
 steps:
   - name: gcr.io/cloud-builders/git
     args: ['--version']
+  - name: ubuntu
+    entrypoint: /bin/ls
   - name: circleci/rust
     entrypoint: /usr/local/cargo/bin/cargo
     args: ['test']

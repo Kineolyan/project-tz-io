@@ -2,7 +2,7 @@ steps:
   - name: ubuntu
     args: ['ls', '-l', 'rs-parser']
   - name: rust:1.37-stretch
-    args: ['cargo' 'test']
+    args: ['cargo', 'test']
     dir: rs-parser
   - name: rust:1.37-stretch
     args: ['cargo', 'test']

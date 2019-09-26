@@ -11,8 +11,8 @@ steps:
     dir: java-reader
   - id: java-core
     waitFor: ['-']
-    name: gradle:5.6.2-jdk11
-    args: ['gradle', 'test']
+    name: gcr.io/cloud-builders/gradle
+    args: ['test']
     dir: tzio-core
     env:
       - 'TERM=dumb'

@@ -1,13 +1,17 @@
 steps:
-  - name: ubuntu
-    args: ['ls', '-l', 'rs-parser']
-  - name: rust:1.37.0-stretch
+  - id: rs-parser
+    waitFor: ['-']
+    name: rust:1.37.0-stretch
     args: ['cargo', 'test']
     dir: rs-parser
-  - name: rust:1.37.0-stretch
+  - id: java-reader
+    waitFor: ['-']
+    name: rust:1.37.0-stretch
     args: ['cargo', 'test']
     dir: java-reader
-  - name: gradle:5.6.2-jdk11
+  - id: java-core
+    waitFor: ['-']
+    name: gradle:5.6.2-jdk11
     args: ['gradle', 'test']
     dir: tzio-core
     env:

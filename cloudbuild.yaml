@@ -3,7 +3,7 @@ steps:
     args: ['--version']
   - name: ubuntu
     args: ['ls', '-l', 'rs-parser']
-  - name: rust:1.26.2-stretch
+  - name: rust:1.37-stretch
     entrypoint: /usr/local/cargo/bin/cargo
     args: ['test']
     dir: rs-parser

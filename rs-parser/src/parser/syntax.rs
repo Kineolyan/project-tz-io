@@ -101,14 +101,15 @@ named!(instruction_line<Input, Vec<Operation> >,
 		value!(vec![], eol)
 	)
 );
-named!(instruction_list<Input, Vec<Operation> >,
-	fold_many1!(instruction_line, Vec::new(), |mut acc: Vec<_>, ops| {
-		for op in ops {
-			acc.push(op);
-		}
-		acc
-	})
-);
+pub fn instruction_list(input: Input) -> IResult<Input, Vec<Operation>> {
+	// fold_many1!(instruction_line, Vec::new(), |mut acc: Vec<_>, ops| {
+	// 	for op in ops {
+	// 		acc.push(op);
+	// 	}
+	// 	acc
+	// })
+	todo!()
+}
 
 pub type NodeBlock = (Node, Vec<InputMapping>, Vec<OutputMapping>, Vec<Operation>);
 named!(pub node_block<Input, NodeBlock>,
@@ -137,9 +138,10 @@ named!(pub node_block<Input, NodeBlock>,
 	)
 );
 
-named!(pub node_list<Input, Vec<NodeBlock> >,
-	separated_nonempty_list_complete!(opt_eol, node_block)
-);
+pub fn node_list(input: Input) -> IResult<Input, Vec<NodeBlock>> {
+	// separated_nonempty_list_complete!(opt_eol, node_block)
+	todo!()
+}
 
 #[cfg(test)]
 mod tests {

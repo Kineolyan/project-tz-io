@@ -1,22 +1,25 @@
+use nom::IResult;
 use parser::common::{Input, be_i8, ospace};
 
-named!(values<Input, Vec<i8> >,
-  separated_nonempty_list_complete!(
-    do_parse!(ospace >> tag!(",") >> ospace >> ()),
-    be_i8
-  )
-);
+pub fn values(input: Input) -> IResult<Input, Vec<i8>> {
+  // separated_nonempty_list_complete!(
+  //   do_parse!(ospace >> tag!(",") >> ospace >> ()),
+  //   be_i8
+  // )
+  todo!()
+}
 
-named!(array<Input, Vec<i8> >,
-  alt!(
-    delimited!(
-      tag!("["),
-      values,
-      tag!("]")
-    ) |
-    values
-  )
-);
+pub fn array(input: Input) -> IResult<Input, Vec<i8>> {
+  // alt!(
+  //   delimited!(
+  //     tag!("["),
+  //     values,
+  //     tag!("]")
+  //   ) |
+  //   values
+  // )
+  todo!()
+}
 
 #[derive(Debug, PartialEq)]
 pub struct TestCase {
@@ -33,9 +36,9 @@ impl TestCase {
 named!(pub test_case<Input, TestCase>,
   do_parse!(
     tag!("///") >> ospace >>
-    ins: array >> 
+    ins: array >>
     ospace >> tag!("->") >> ospace >>
-    outs: array >> 
+    outs: array >>
     ospace >> tag!("\n") >>
     (TestCase::new(ins, outs))
   )
@@ -115,7 +118,7 @@ mod tests {
   // fn test_parse_test_cases() {
 	// 	let res = test_cases(to_input(b"/// [1,2] -> [-1]  \n/// 3->3end"));
 	// 	assert_result(
-  //     res, 
+  //     res,
   //     vec![
   //       TestCase::new(vec![1, 2], vec![-1]),
   //       TestCase::new(vec![3], vec![3])

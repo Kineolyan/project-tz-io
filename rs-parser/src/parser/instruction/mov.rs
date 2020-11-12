@@ -1,39 +1,45 @@
-use nom::space;
+use nom::IResult;
 
 use parser::common::{Input, ospace};
 use parser::instruction::Operation;
 use parser::instruction::base::*;
 
-named!(mov_from_in<Input, Operation>,
-  do_parse!(
-    tag!("MOV") >> space >>
-    from: input_pointer >>
-    ospace >> tag!(",") >> ospace >>
-    to: alt!(acc_pointer | nil_pointer | output_pointer) >>
-    (Operation::MOV(from, to))
-  )
-);
-named!(mov_to_out<Input, Operation>,
-  do_parse!(
-    tag!("MOV") >> space >>
-    from: alt!(acc_pointer | nil_pointer | value_pointer) >>
-    ospace >> tag!(",") >> ospace >>
-    to: output_pointer >>
-    (Operation::MOV(from, to))
-  )
-);
-named!(mov_accs<Input, Operation>,
-  do_parse!(
-    tag!("MOV") >> space >>
-    from: alt!(value_pointer | acc_pointer | nil_pointer ) >>
-    ospace >> tag!(",") >> ospace >>
-    to: acc_pointer >>
-    (Operation::MOV(from, to))
-  )
-);
-named!(pub mov_operation<Input, Operation>,
-  alt!(mov_from_in | mov_to_out | mov_accs)
-);
+fn mov_from_in(input: Input) -> IResult<Input, Operation> {
+  todo!()
+  // do_parse!(
+  //   tag!("MOV") >> space >>
+  //   from: input_pointer >>
+  //   ospace >> tag!(",") >> ospace >>
+  //   to: alt!(acc_pointer | nil_pointer | output_pointer) >>
+  //   (Operation::MOV(from, to))
+  // )
+}
+
+fn mov_to_out(input: Input) -> IResult<Input, Operation> {
+  // do_parse!(
+  //   tag!("MOV") >> space >>
+  //   from: alt!(acc_pointer | nil_pointer | value_pointer) >>
+  //   ospace >> tag!(",") >> ospace >>
+  //   to: output_pointer >>
+  //   (Operation::MOV(from, to))
+  // )
+  todo!()
+}
+
+fn mov_accs(input: Input) -> IResult<Input, Operation> {
+  // do_parse!(
+  //   tag!("MOV") >> space >>
+  //   from: alt!(value_pointer | acc_pointer | nil_pointer ) >>
+  //   ospace >> tag!(",") >> ospace >>
+  //   to: acc_pointer >>
+  //   (Operation::MOV(from, to))
+  // )
+  todo!()
+}
+
+pub fn mov_operation(input: Input) -> IResult<Input, Operation> {
+  nom::branch::alt((mov_from_in, mov_to_out, mov_accs))(input)
+}
 
 #[cfg(test)]
 mod tests {

@@ -1,26 +1,26 @@
 use std::fmt;
 
-use nom::{space, is_alphanumeric};
+use nom::IResult;
 
-use parser::common::{Input, be_uint, to_string};
+use parser::common::{be_uint, to_string, Input};
 
 #[derive(PartialEq)]
 pub enum Node {
 	In,
 	Out,
-	Node(String)
+	Node(String),
 }
 
 impl fmt::Debug for Node {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    self.do_fmt(f)
-  }
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		self.do_fmt(f)
+	}
 }
 
 impl fmt::Display for Node {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    self.do_fmt(f)
-  }
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		self.do_fmt(f)
+	}
 }
 
 impl Node {
@@ -32,79 +32,93 @@ impl Node {
 	pub fn get_id<'a>(&'a self) -> &'a String {
 		match self {
 			&Node::Node(ref id) => id,
-			_ => panic!("Not a named node: {}", self)
+			_ => panic!("Not a named node: {}", self),
 		}
 	}
 
 	fn do_fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    match self {
-      &Node::In => write!(f, "<IN>"),
-      &Node::Out => write!(f, "<OUT>"),
-      &Node::Node(ref id) => write!(f, "Node#{}", id)
-    }
-  }
+		match self {
+			&Node::In => write!(f, "<IN>"),
+			&Node::Out => write!(f, "<OUT>"),
+			&Node::Node(ref id) => write!(f, "Node#{}", id),
+		}
+	}
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Port {
 	pub node: Node,
-	pub port: u32
+	pub port: u32,
 }
 
 impl Port {
 	pub fn new(node: Node, port: u32) -> Self {
-		Port { node: node, port: port }
+		Port {
+			node: node,
+			port: port,
+		}
 	}
 
 	#[cfg(test)]
 	pub fn named_port(node_name: &str, port: u32) -> Self {
-		Port { node: Node::new_node(node_name), port: port }
+		Port {
+			node: Node::new_node(node_name),
+			port: port,
+		}
 	}
 }
 
-named!(input_node<Input, Node>,
-  do_parse!(tag!("IN") >> (Node::In))
-);
-named!(output_node<Input, Node>,
-  do_parse!(tag!("OUT") >> (Node::Out))
-);
-named!(node_id<Input, Node>,
-  do_parse!(
-    tag!("#") >>
-    id: map_res!(
-      take_while!(is_alphanumeric),
-      to_string
-    ) >>
-    (Node::Node(id))
-  )
-);
-named!(pub node_ref<Input, Node>,
-  alt!(input_node | output_node | node_id)
-);
+fn input_node(input: Input) -> IResult<Input, Node> {
+	let (remaining, _) = nom::bytes::complete::tag("IN")(input)?;
+	Ok((remaining, Node::In))
+}
 
-named!(pub port_ref<Input, Port>,
-  do_parse!(
-    id: node_ref >>
-    tag!(":") >>
-    port: be_uint >>
-    (Port::new(id, port))
-  )
-);
+fn output_node(input: Input) -> IResult<Input, Node> {
+	let (remaining, _) = nom::bytes::complete::tag("OUT")(input)?;
+	Ok((remaining, Node::Out))
+}
 
-named!(pub node_header<Input, Node>,
-  do_parse!(
-    tag!("Node") >>
-    opt!(space) >>
-    id: node_id >>
-    (id)
-  )
-);
+fn node_id(input: Input) -> IResult<Input, Node> {
+	// do_parse!(
+	// 	tag!("#") >>
+	// 	id: map_res!(
+	// 		take_while!(is_alphanumeric),
+	// 		to_string
+	// 	) >>
+	// 	(Node::Node(id))
+	// )
+	todo!()
+}
+
+pub fn node_ref(input: Input) -> IResult<Input, Node> {
+	nom::branch::alt((input_node, output_node, node_id))(input)
+}
+
+pub fn port_ref(input: Input) -> IResult<Input, Port> {
+	todo!()
+	// do_parse!(
+	// 	id: node_ref >>
+	// 	tag!(":") >>
+	// 	port: be_uint >>
+	// 	(Port::new(id, port))
+	// )
+}
+
+pub fn node_header(input: Input) -> IResult<Input, Node> {
+	todo!()
+	// do_parse!(
+	// 	tag!("Node") >>
+	// 	opt!(space) >>
+	// 	id: node_id >>
+	// 	(id)
+	// )
+}
 
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use parser::common::to_input;
 	use parser::common::tests::*;
+	use parser::common::to_input;
 
 	#[test]
 	fn test_parse_input_node() {

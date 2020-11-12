@@ -4,7 +4,7 @@ pub mod syntax;
 pub mod instruction;
 pub mod test;
 
-use nom::{Err as IErr, error_to_list};
+use nom;
 use std::result::Result;
 use std::str::from_utf8;
 
@@ -19,18 +19,19 @@ pub struct ParsingTree {
 }
 pub type ParsingResult = Result<ParsingTree, ()>;
 
-named!(pub program<common::Input, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)>,
-	do_parse!(
-		opt_eol >>
-		start_cases: many0!(test_case) >> 
-		many0!(do_parse!(ospace >> tag!("\n") >> ())) >>
-		list: node_list >>
-		opt_eol >>
-		end_cases: many0!(test_case) >>
-		opt_eol >>
-		(list, start_cases, end_cases)
-	)
-);
+pub fn program(input: common::Input) -> nom::IResult<common::Input, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)> {
+	// do_parse!(
+	// 	opt_eol >>
+	// 	start_cases: many0!(test_case) >>
+	// 	many0!(do_parse!(ospace >> tag!("\n") >> ())) >>
+	// 	list: node_list >>
+	// 	opt_eol >>
+	// 	end_cases: many0!(test_case) >>
+	// 	opt_eol >>
+	// 	(list, start_cases, end_cases)
+  // )
+  todo!("Migration in progress")
+}
 
 pub fn parse(input: &[u8]) -> ParsingResult {
   let res = program(to_input(input));
@@ -47,22 +48,23 @@ pub fn parse(input: &[u8]) -> ParsingResult {
         Result::Err(())
       }
     },
-    Err(IErr::Error(ctx)) | Err(IErr::Failure(ctx)) => {
+    Err(nom::Err::Error(ctx)) | Err(nom::Err::Failure(ctx)) => {
       let mut first = true;
       println!("{:?}", ctx);
-      let errors = error_to_list(&ctx);
-      for error in &errors {
-        if first {
-          println!("Error while parsing: {:?}", error);
-          first = false;
-        } else {
-          println!("  caused by: {:?}", error);
-        }
-      }
+      // FIXME
+      // let errors = error_to_list(&ctx);
+      // for error in &errors {
+      //   if first {
+      //     println!("Error while parsing: {:?}", error);
+      //     first = false;
+      //   } else {
+      //     println!("  caused by: {:?}", error);
+      //   }
+      // }
       // println!("{:?}", e);
       Result::Err(())
     },
-    Err(IErr::Incomplete(needed)) => {
+    Err(nom::Err::Incomplete(needed)) => {
       println!("Missing data. Needed {:?}", needed);
       Result::Err(())
     }
@@ -83,7 +85,7 @@ mod tests {
   fn test_program_without_tests() {
 		let content = b"// Start of the program
 // Another comment
-    
+
 Node #1
 ==========
 IN:1 -> 1
@@ -144,7 +146,7 @@ MOV <2, >2
         ]
       )
     ];
-		
+
 		assert_full_result(res, (nodes, vec![], vec![]));
   }
 
@@ -196,24 +198,24 @@ MOV <1,  >1
     let last_tests = vec![
       TestCase::new(vec![1], vec![-1, 1])
     ];
-		
+
 		assert_full_result(res, (nodes, first_tests, last_tests));
   }
 
   #[test]
   fn test_program_with_trailing_spaces() {
-		let content = b"// Start of the program   
-// Another comment   
-/// [1, 2] -> [3]   
-/// [1, 2, 4] -> -8   
-   
-Node #1   
+		let content = b"// Start of the program
+// Another comment
+/// [1, 2] -> [3]
+/// [1, 2, 4] -> -8
+
+Node #1
 ==========
 MOV <1,  >1
 =======
-       
-/// 1 -> [-1, 1]    
-// End comment, to conclude   
+
+/// 1 -> [-1, 1]
+// End comment, to conclude
    ";
 
 		let res = program(to_input(content));
@@ -234,7 +236,7 @@ MOV <1,  >1
     let last_tests = vec![
       TestCase::new(vec![1], vec![-1, 1])
     ];
-		
+
 		assert_result(res, (nodes, first_tests, last_tests), to_input(b"   "));
   }
 }

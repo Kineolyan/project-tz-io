@@ -7,7 +7,7 @@ pub fn to_input(v: &[u8]) -> &[u8] {
 }
 
 pub fn to_string(v: &[u8]) -> Result<String, i8> {
-	str::from_utf8(v.0).map(|s| s.to_string()).or(Err(-1))
+	str::from_utf8(v).map(|s| s.to_string()).or(Err(-1))
 }
 
 fn end_line_comment(input: &[u8]) -> IResult<&[u8], ()> {

@@ -8,7 +8,7 @@ use nom;
 use std::fmt;
 
 use parser::instruction::condition::*;
-use parser::instruction::math;
+use parser::instruction::math::*;
 use parser::instruction::memory::*;
 use parser::instruction::mov::*;
 
@@ -49,9 +49,9 @@ pub fn parse_instruction(input: &[u8]) -> nom::IResult<&[u8], Operation> {
     mov_operation,
     swp_operation,
     sav_operation,
-    math::add_operation,
-    math::sub_operation,
-    math::neg_operation,
+    add_operation,
+    sub_operation,
+    neg_operation,
     // label_operation |
     jmp_operation,
     jez_operation,

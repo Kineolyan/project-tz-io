@@ -4,12 +4,18 @@ use nom::IResult;
 
 use parser::common::to_string;
 use parser::instruction::Operation;
+use parser::instruction::base::{
+	value_pointer,
+	input_pointer,
+	acc_pointer,
+	nil_pointer
+};
 
-fn label_name(input: Input) -> IResult<&[u8], String> {
+fn label_name(input: &[u8]) -> IResult<&[u8], String> {
 	nom::combinator::map_res(nom::character::complete::alphanumeric1, to_string)(input)
 }
 
-pub fn label_operation(input: Input) -> IResult<&[u8], Operation> {
+pub fn label_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 	let (input, (label, _, _)) = nom::sequence::tuple((
 		label_name,
 		nom::character::complete::space0,
@@ -37,14 +43,11 @@ jump_fn!(jnz_operation, "JNZ", Operation::JNZ);
 jump_fn!(jlz_operation, "JLZ", Operation::JLZ);
 jump_fn!(jgz_operation, "JGZ", Operation::JGZ);
 
-pub fn jro_operation(input: Input) -> IResult<&[u8], Operation> {
-	// do_parse!(
-	// 	tag!("JRO")
-	// 		>> space
-	// 		>> value: alt!(acc_pointer | nil_pointer | input_pointer | value_pointer)
-	// 		>> (Operation::JRO(value))
-	// )
-	todo!()
+pub fn jro_operation(input: &[u8]) -> IResult<&[u8], Operation> {
+	let (input, _) = nom::bytes::complete::tag("JRO")(input)?;
+	let (input, value) =
+		nom::branch::alt((acc_pointer, nil_pointer, input_pointer, value_pointer))(input)?;
+	Ok((input, Operation::JRO(value)))
 }
 
 #[cfg(test)]

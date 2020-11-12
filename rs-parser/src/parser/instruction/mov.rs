@@ -4,7 +4,7 @@ use nom::character::complete::space0;
 use parser::instruction::Operation;
 use parser::instruction::base::*;
 
-fn mov_from_in(input: Input) -> IResult<Input, Operation> {
+fn mov_from_in(input: &[u8]) -> IResult<&[u8], Operation> {
   todo!()
   // do_parse!(
   //   tag!("MOV") >> space >>
@@ -15,7 +15,7 @@ fn mov_from_in(input: Input) -> IResult<Input, Operation> {
   // )
 }
 
-fn mov_to_out(input: Input) -> IResult<Input, Operation> {
+fn mov_to_out(input: &[u8]) -> IResult<&[u8], Operation> {
   // do_parse!(
   //   tag!("MOV") >> space >>
   //   from: alt!(acc_pointer | nil_pointer | value_pointer) >>
@@ -26,7 +26,7 @@ fn mov_to_out(input: Input) -> IResult<Input, Operation> {
   todo!()
 }
 
-fn mov_accs(input: Input) -> IResult<Input, Operation> {
+fn mov_accs(input: &[u8]) -> IResult<&[u8], Operation> {
   // do_parse!(
   //   tag!("MOV") >> space >>
   //   from: alt!(value_pointer | acc_pointer | nil_pointer ) >>
@@ -37,7 +37,7 @@ fn mov_accs(input: Input) -> IResult<Input, Operation> {
   todo!()
 }
 
-pub fn mov_operation(input: Input) -> IResult<Input, Operation> {
+pub fn mov_operation(input: &[u8]) -> IResult<&[u8], Operation> {
   nom::branch::alt((mov_from_in, mov_to_out, mov_accs))(input)
 }
 

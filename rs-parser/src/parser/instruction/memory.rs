@@ -1,13 +1,13 @@
 use nom;
 use parser::instruction::{MemoryPointer, Operation};
 
-pub fn swp_operation(input: Input) -> nom::IResult<&[u8], Operation> {
+pub fn swp_operation(input: &[u8]) -> nom::IResult<&[u8], Operation> {
 	nom::combinator::value(
 		Operation::SWP(MemoryPointer::BAK(1)),
 		nom::bytes::complete::tag("SWP"))(input)
 }
 
-pub fn sav_operation(input: Input) -> nom::IResult<&[u8], Operation> {
+pub fn sav_operation(input: &[u8]) -> nom::IResult<&[u8], Operation> {
 	nom::combinator::value(
 		Operation::SAV(MemoryPointer::BAK(1)),
 		nom::bytes::complete::tag("SAV"))(input)

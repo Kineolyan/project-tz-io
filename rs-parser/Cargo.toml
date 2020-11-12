@@ -1,8 +1,7 @@
 [package]
 name = "rs-parser"
-version = "0.1.0"
-authors = ["Kineolyan <kineolyan@gmail.com>"]
+version = "0.2.0"
+authors = ["Kineolyan <kineolyan@protonmail.com>"]
 
 [dependencies.nom]
-version = "^4.1.1"
-features = ["verbose-errors"]
+version = "6.0.0"

@@ -1,61 +1,83 @@
-use nom::{space};
+use nom;
+use nom::bytes::complete::tag;
+use nom::bytes::complete::take_while;
+use nom::character::complete::{space0, space1};
+use nom::IResult; //space;
 
-use parser::common::{Input, be_uint, ospace, eol, opt_eol};
-use parser::address::{Node, Port, node_header, port_ref};
-use parser::instruction::{parse_instruction, Operation};
+use parser::address::{node_header, port_ref, Node, Port};
+use parser::common::{be_uint, eol, opt_eol, ospace, Input};
 use parser::instruction::condition::label_operation;
+use parser::instruction::{parse_instruction, Operation};
 
 #[derive(Debug, PartialEq)]
 pub struct InputMapping {
 	pub from: Port,
-	pub to: u32
+	pub to: u32,
 }
 #[derive(Debug, PartialEq)]
 pub struct OutputMapping {
 	pub from: u32,
-	pub to: Port
+	pub to: Port,
 }
 
+/// A combinator that takes a parser `inner` and produces a parser that also consumes both leading and
+/// trailing whitespace, returning the output of `inner`.
+// fn list_separator<T, Input, Error: nom::error::ParseError<Input>>(sep: T) -> impl Fn(Input) -> IResult<Input, Input, Error>
+// where
+// 	Input: nom::InputTake + nom::Compare<T>,
+// 	T: nom::InputLength + Clone {
+//   nom::sequence::delimited(
+//     space0,
+//     tag(sep),
+//     space0
+//   )
+// }
+
 // Syntax lines
-named!(node_line<Input, Input>, take_while!(call!(|c| c == b'=')));
-named!(code_line<Input, Input>, take_while!(call!(|c| c == b'-')));
+pub fn node_line(input: Input) -> IResult<Input, Input> {
+	take_while(|c| c == b'=')(input)
+}
+pub fn code_line(input: Input) -> IResult<Input, Input> {
+	take_while(|c| c == b'-')(input)
+}
 
 // List of inputs
-named!(input_item<Input, InputMapping>,
-	do_parse!(
-		port: port_ref >>
-		space >> tag!("->") >> space >>
-		input: be_uint >>
-		(InputMapping { from: port, to: input })
-	)
-);
-named!(inputs<Input, Vec<InputMapping> >,
-	separated_list_complete!(
-		do_parse!(
-			ospace >> tag!(",") >> space >> ()
-		),
-		input_item
-	)
-);
+pub fn input_item(input: Input) -> IResult<Input, InputMapping> {
+	let (remaining, (port, _, _, _, input)) =
+		nom::sequence::tuple((port_ref, space0, tag("->"), space0, be_uint))(input)?;
+	let mapping = InputMapping {
+		from: port,
+		to: input,
+	};
+	Ok((remaining, mapping))
+}
+
+fn input_separator(input: Input) -> IResult<Input, ()> {
+	let (input, _) = space0(input)?;
+	let (input, _) = tag(",")(input)?;
+	let (input, _) = space1(input)?;
+
+	Ok((input, ()))
+}
+
+pub fn inputs(input: Input) -> IResult<Input, Vec<InputMapping>> {
+	nom::multi::separated_list1(input_separator, input_item)(input)
+}
 
 // List of outputs
-named!(output_item<Input, OutputMapping>,
-	do_parse!(
-		input: be_uint >>
-		space >> tag!("->") >> space >>
-		port: port_ref >>
-		(OutputMapping { from: input, to: port })
-	)
-);
-named!(outputs<Input, Vec<OutputMapping> >,
-	separated_list_complete!(
-		do_parse!(
-			ospace >> tag!(",") >> space >>
-			()
-		),
-		output_item
-	)
-);
+pub fn output_item(input: Input) -> IResult<Input, OutputMapping> {
+	let (remaining, (input, _, _, _, port)) =
+		nom::sequence::tuple((be_uint, space0, tag("->"), space0, port_ref))(input)?;
+	let mapping = OutputMapping {
+		from: input,
+		to: port,
+	};
+	Ok((remaining, mapping))
+}
+
+pub fn outputs(input: Input) -> IResult<Input, Vec<OutputMapping>> {
+	nom::multi::separated_list1(input_separator, output_item)(input)
+}
 
 named!(instruction_line<Input, Vec<Operation> >,
 	alt!(
@@ -82,9 +104,9 @@ named!(instruction_line<Input, Vec<Operation> >,
 named!(instruction_list<Input, Vec<Operation> >,
 	fold_many1!(instruction_line, Vec::new(), |mut acc: Vec<_>, ops| {
 		for op in ops {
-    	acc.push(op);
+			acc.push(op);
 		}
-    acc
+		acc
 	})
 );
 
@@ -123,9 +145,9 @@ named!(pub node_list<Input, Vec<NodeBlock> >,
 mod tests {
 	use super::*;
 
-	use parser::common::to_input;
 	use parser::common::tests::*;
-	use parser::instruction::{ValuePointer, MemoryPointer};
+	use parser::common::to_input;
+	use parser::instruction::{MemoryPointer, ValuePointer};
 
 	#[test]
 	fn test_parse_node_line() {
@@ -150,8 +172,8 @@ mod tests {
 			res_in,
 			InputMapping {
 				from: Port::new(Node::In, 1),
-				to: 3u32
-			}
+				to: 3u32,
+			},
 		);
 
 		let res_node = input_item(to_input(b"#node:32 -> 1"));
@@ -159,8 +181,8 @@ mod tests {
 			res_node,
 			InputMapping {
 				from: Port::named_port(&"node", 32),
-				to: 1u32
-			}
+				to: 1u32,
+			},
 		);
 	}
 
@@ -169,12 +191,10 @@ mod tests {
 		let res_one = inputs(to_input(b"#n:7 -> 14"));
 		assert_full_result(
 			res_one,
-			vec![
-				InputMapping {
-					from: Port::named_port(&"n", 7),
-					to: 14u32,
-				}
-			]
+			vec![InputMapping {
+				from: Port::named_port(&"n", 7),
+				to: 14u32,
+			}],
 		);
 
 		let res_many = inputs(to_input(b"OUT:1 -> 2, #abc:3 -> 4"));
@@ -183,13 +203,13 @@ mod tests {
 			vec![
 				InputMapping {
 					from: Port::new(Node::Out, 1),
-					to: 2u32
+					to: 2u32,
 				},
 				InputMapping {
 					from: Port::named_port(&"abc", 3),
-					to: 4u32
-				}
-			]
+					to: 4u32,
+				},
+			],
 		);
 	}
 
@@ -200,8 +220,8 @@ mod tests {
 			res_in,
 			OutputMapping {
 				from: 1u32,
-				to: Port::new(Node::Out, 3)
-			}
+				to: Port::new(Node::Out, 3),
+			},
 		);
 
 		let res_node = output_item(to_input(b"1 -> #node:32"));
@@ -209,8 +229,8 @@ mod tests {
 			res_node,
 			OutputMapping {
 				from: 1u32,
-				to: Port::named_port(&"node", 32)
-			}
+				to: Port::named_port(&"node", 32),
+			},
 		);
 	}
 
@@ -219,12 +239,10 @@ mod tests {
 		let res_one = outputs(to_input(b"3 -> #n:7"));
 		assert_full_result(
 			res_one,
-			vec![
-				OutputMapping {
-					from: 3,
-					to: Port::named_port(&"n", 7)
-				}
-			]
+			vec![OutputMapping {
+				from: 3,
+				to: Port::named_port(&"n", 7),
+			}],
 		);
 
 		let res_many = outputs(to_input(b"1 -> OUT:2, 3 -> #abc:4"));
@@ -233,32 +251,26 @@ mod tests {
 			vec![
 				OutputMapping {
 					from: 1u32,
-					to: Port::new(Node::Out, 2)
+					to: Port::new(Node::Out, 2),
 				},
 				OutputMapping {
 					from: 3u32,
-					to: Port::named_port(&"abc", 4)
-				}
-			]
+					to: Port::named_port(&"abc", 4),
+				},
+			],
 		);
 	}
 
 	#[test]
 	fn test_parse_instruction_line_with_label_only() {
 		let res = instruction_line(to_input(b"LBL:  \n"));
-		assert_full_result(
-			res,
-			vec![Operation::LABEL(String::from("LBL"))]
-		);
+		assert_full_result(res, vec![Operation::LABEL(String::from("LBL"))]);
 	}
 
 	#[test]
 	fn test_parse_instruction_line_with_instruction_only() {
 		let res = instruction_line(to_input(b"SWP  \n"));
-		assert_full_result(
-			res,
-			vec![Operation::SWP(MemoryPointer::BAK(1))]
-		);
+		assert_full_result(res, vec![Operation::SWP(MemoryPointer::BAK(1))]);
 	}
 
 	#[test]
@@ -268,8 +280,8 @@ mod tests {
 			res,
 			vec![
 				Operation::LABEL(String::from("LBL")),
-				Operation::SWP(MemoryPointer::BAK(1))
-			]
+				Operation::SWP(MemoryPointer::BAK(1)),
+			],
 		);
 	}
 
@@ -294,12 +306,7 @@ mod tests {
 	#[test]
 	fn test_parse_instruction_with_comment() {
 		let res = instruction_line(to_input(b"ADD <2 // Sum the values\n"));
-		assert_full_result(
-			res,
-			vec![
-				Operation::ADD(ValuePointer::PORT(2))
-			]
-		);
+		assert_full_result(res, vec![Operation::ADD(ValuePointer::PORT(2))]);
 	}
 
 	#[test]
@@ -309,8 +316,8 @@ mod tests {
 			res,
 			vec![
 				Operation::LABEL(String::from("LBL")),
-				Operation::SUB(ValuePointer::PORT(3))
-			]
+				Operation::SUB(ValuePointer::PORT(3)),
+			],
 		);
 	}
 
@@ -330,10 +337,9 @@ JEZ F1\n";
 				Operation::LABEL(String::from("F1")),
 				Operation::SWP(MemoryPointer::BAK(1)),
 				Operation::MOV(ValuePointer::ACC, ValuePointer::PORT(1)),
-				Operation::JEZ(String::from("F1"))
-			]
+				Operation::JEZ(String::from("F1")),
+			],
 		);
-
 	}
 
 	#[test]
@@ -355,24 +361,20 @@ MOV ACC, >1
 			res,
 			(
 				Node::new_node("123"),
-				vec![
-					InputMapping {
-						from: Port::new(Node::In, 1),
-						to: 1
-					}
-				],
-				vec![
-					OutputMapping {
-						from: 1,
-						to: Port::new(Node::Out, 1)
-					}
-				],
+				vec![InputMapping {
+					from: Port::new(Node::In, 1),
+					to: 1,
+				}],
+				vec![OutputMapping {
+					from: 1,
+					to: Port::new(Node::Out, 1),
+				}],
 				vec![
 					Operation::MOV(ValuePointer::PORT(1), ValuePointer::ACC),
 					Operation::SWP(MemoryPointer::BAK(1)),
-					Operation::MOV(ValuePointer::ACC, ValuePointer::PORT(1))
-				]
-			)
+					Operation::MOV(ValuePointer::ACC, ValuePointer::PORT(1)),
+				],
+			),
 		);
 	}
 
@@ -384,7 +386,7 @@ SWP
 =======
 ";
 
-		let res =  node_block(to_input(content));
+		let res = node_block(to_input(content));
 		let (_, (_, res_inputs, res_outputs, _)) = res.unwrap();
 		assert_eq!(res_inputs, vec![]);
 		assert_eq!(res_outputs, vec![]);
@@ -407,10 +409,8 @@ SWP
 				Node::new_node("1"),
 				vec![],
 				vec![],
-				vec![
-					Operation::SWP(MemoryPointer::BAK(1)),
-				]
-			)
+				vec![Operation::SWP(MemoryPointer::BAK(1))],
+			),
 		);
 	}
 
@@ -429,10 +429,8 @@ SWP // commenting operation
 				Node::new_node("1"),
 				vec![],
 				vec![],
-				vec![
-					Operation::SWP(MemoryPointer::BAK(1)),
-				]
-			)
+				vec![Operation::SWP(MemoryPointer::BAK(1))],
+			),
 		);
 	}
 
@@ -452,10 +450,8 @@ SWP
 				Node::new_node("3"),
 				vec![],
 				vec![],
-				vec![
-					Operation::SWP(MemoryPointer::BAK(1)),
-				]
-			)
+				vec![Operation::SWP(MemoryPointer::BAK(1))],
+			),
 		);
 	}
 
@@ -476,10 +472,8 @@ SWP
 				Node::new_node("1"),
 				vec![],
 				vec![],
-				vec![
-					Operation::SWP(MemoryPointer::BAK(1)),
-				]
-			)
+				vec![Operation::SWP(MemoryPointer::BAK(1))],
+			),
 		);
 	}
 
@@ -500,10 +494,8 @@ SWP
 				Node::new_node("1"),
 				vec![],
 				vec![],
-				vec![
-					Operation::SWP(MemoryPointer::BAK(1)),
-				]
-			)
+				vec![Operation::SWP(MemoryPointer::BAK(1))],
+			),
 		);
 	}
 
@@ -530,25 +522,23 @@ MOV ACC, >1
 				vec![
 					InputMapping {
 						from: Port::named_port(&"1", 1),
-						to: 1
+						to: 1,
 					},
 					InputMapping {
 						from: Port::named_port(&"2", 1),
-						to: 2
-					}
+						to: 2,
+					},
 				],
-				vec![
-					OutputMapping {
-						from: 1,
-						to: Port::new(Node::Out, 1)
-					}
-				],
+				vec![OutputMapping {
+					from: 1,
+					to: Port::new(Node::Out, 1),
+				}],
 				vec![
 					Operation::MOV(ValuePointer::PORT(1), ValuePointer::ACC),
 					Operation::ADD(ValuePointer::PORT(2)),
 					Operation::MOV(ValuePointer::ACC, ValuePointer::PORT(1)),
-				]
-			)
+				],
+			),
 		);
 	}
 
@@ -588,61 +578,41 @@ MOV <3, >3
 			vec![
 				(
 					Node::new_node("1"),
-					vec![
-						InputMapping {
-							from: Port::new(Node::In, 1),
-							to: 1
-						}
-					],
-					vec![
-						OutputMapping {
-							from: 1,
-							to: Port::named_port(&"2", 2)
-						}
-					],
-					vec![
-						Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1)),
-					]
+					vec![InputMapping {
+						from: Port::new(Node::In, 1),
+						to: 1,
+					}],
+					vec![OutputMapping {
+						from: 1,
+						to: Port::named_port(&"2", 2),
+					}],
+					vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
 				),
 				(
 					Node::new_node("2"),
-					vec![
-						InputMapping {
-							from: Port::named_port(&"1", 1),
-							to: 2
-						}
-					],
-					vec![
-						OutputMapping {
-							from: 2,
-							to: Port::named_port(&"3", 3)
-						}
-					],
-					vec![
-						Operation::MOV(ValuePointer::PORT(2), ValuePointer::PORT(2)),
-					]
+					vec![InputMapping {
+						from: Port::named_port(&"1", 1),
+						to: 2,
+					}],
+					vec![OutputMapping {
+						from: 2,
+						to: Port::named_port(&"3", 3),
+					}],
+					vec![Operation::MOV(ValuePointer::PORT(2), ValuePointer::PORT(2))],
 				),
 				(
 					Node::new_node("3"),
-					vec![
-						InputMapping {
-							from: Port::named_port(&"2", 2),
-							to: 3
-						}
-					],
-					vec![
-						OutputMapping {
-							from: 3,
-							to: Port::new(Node::Out, 1)
-						}
-					],
-					vec![
-						Operation::MOV(ValuePointer::PORT(3), ValuePointer::PORT(3)),
-					]
-				)
-			]
+					vec![InputMapping {
+						from: Port::named_port(&"2", 2),
+						to: 3,
+					}],
+					vec![OutputMapping {
+						from: 3,
+						to: Port::new(Node::Out, 1),
+					}],
+					vec![Operation::MOV(ValuePointer::PORT(3), ValuePointer::PORT(3))],
+				),
+			],
 		);
-
 	}
-
 }

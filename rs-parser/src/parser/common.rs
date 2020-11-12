@@ -3,8 +3,8 @@ use nom::types::CompleteByteSlice;
 
 use std::str;
 
-// pub type Input<'a> = &'a[u8];
-pub type Input<'a> = CompleteByteSlice<'a>;
+pub type Input = &[u8];
+// pub type Input<'a> = CompleteByteSlice<'a>;
 
 pub fn to_input(content: &[u8]) -> Input {
 	CompleteByteSlice(content)
@@ -37,7 +37,7 @@ fn to_u32(v: Input) -> Result<u32, i8> {
 
 named!(pub be_uint<Input, u32>, map_res!(take_while!(nom::is_digit), to_u32));
 named!(pub be_u8<Input, u8>, map_res!(digit, to_u8));
-named!(pub be_i8<Input, i8>, 
+named!(pub be_i8<Input, i8>,
 	do_parse!(
 		s: opt!(tag!("-")) >>
 		d: digit >>

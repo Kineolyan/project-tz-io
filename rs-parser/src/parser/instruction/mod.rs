@@ -12,7 +12,7 @@ use parser::instruction::memory::*;
 use parser::instruction::math::*;
 use parser::instruction::condition::*;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum ValuePointer {
   VALUE(u32),
   ACC,
@@ -22,12 +22,12 @@ pub enum ValuePointer {
 
 // The idea is to have ACC is the top of the stack, for ADD, SUB, NEG, ...
 // and have multiple BAK if needed
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum MemoryPointer {
 	BAK(u8) // Limiting to 256 values
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum Operation {
   MOV(ValuePointer, ValuePointer),
 	SAV(MemoryPointer),

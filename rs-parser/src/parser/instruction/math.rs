@@ -1,4 +1,6 @@
-use nom::{space};
+use nom::IResult;
+use nom::bytes::complete::tag;
+use nom::branch::alt;
 
 use parser::common::Input;
 use parser::instruction::Operation;
@@ -9,25 +11,22 @@ use parser::instruction::base::{
 	nil_pointer
 };
 
-named!(pub add_operation<Input, Operation>,
-	do_parse!(
-		tag!("ADD") >> space >>
-		value: alt!(input_pointer | acc_pointer | nil_pointer | value_pointer) >>
-		(Operation::ADD(value))
-	)
-);
+pub fn add_operation(input: Input) -> IResult<Input, Operation> {
+	let (input, _) = tag("ADD")(input)?;
+	let (input, value) = alt((input_pointer, acc_pointer, nil_pointer, value_pointer))(input)?;
+	Ok((input, Operation::ADD(value)))
+}
 
-named!(pub sub_operation<Input, Operation>,
-	do_parse!(
-		tag!("SUB") >> space >>
-		value: alt!(input_pointer | acc_pointer | nil_pointer | value_pointer) >>
-		(Operation::SUB(value))
-	)
-);
+pub fn sub_operation(input: Input) -> IResult<Input, Operation> {
+	let (input, _) = tag("SUB")(input)?;
+	let (input, value) = alt((input_pointer, acc_pointer, nil_pointer, value_pointer))(input)?;
+	Ok((input, Operation::SUB(value)))
+}
 
-named!(pub neg_operation<Input, Operation>,
-	value!(Operation::NEG, tag!("NEG"))
-);
+pub fn neg_operation(input: Input) -> IResult<Input, Operation> {
+	use nom::combinator::value;
+	value(Operation::NEG, tag("NEG"))(input)
+}
 
 #[cfg(test)]
 mod tests {

@@ -101,6 +101,7 @@ named!(instruction_line<Input, Vec<Operation> >,
 		value!(vec![], eol)
 	)
 );
+
 pub fn instruction_list(input: Input) -> IResult<Input, Vec<Operation>> {
 	// fold_many1!(instruction_line, Vec::new(), |mut acc: Vec<_>, ops| {
 	// 	for op in ops {

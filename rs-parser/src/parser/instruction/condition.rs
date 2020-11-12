@@ -1,31 +1,29 @@
-use nom::{alphanumeric, space};
+use nom;
+use nom::character::complete::space1;
+use nom::IResult;
 
-use parser::common::{Input, ospace, to_string};
+use parser::common::{to_string, Input};
 use parser::instruction::Operation;
-use parser::instruction::base::{
-	acc_pointer,
-	nil_pointer,
-	input_pointer,
-	value_pointer
-};
 
-named!(label_name<Input, String>,
-	map_res!(alphanumeric, to_string)
-);
+fn label_name(input: Input) -> IResult<Input, String> {
+	nom::combinator::map_res(nom::character::complete::alphanumeric1, to_string)(input)
+}
 
-named!(pub label_operation<Input, Operation>,
-	do_parse!(
-		label: label_name >> ospace >> tag!(":") >>
-		(Operation::LABEL(label))
-	)
-);
+pub fn label_operation(input: Input) -> IResult<Input, Operation> {
+	let (input, (label, _, _)) = nom::sequence::tuple((
+		label_name,
+		nom::character::complete::space0,
+		nom::bytes::complete::tag(":"),
+	))(input)?;
+	Ok((input, Operation::LABEL(label)))
+}
 
 // JMP, JEZ, JNZ, JGZ, JLZ, JRO
 macro_rules! jump_fn {
 	($name:ident, $pattern:expr, $cnstr:path) => {
 		named!(pub $name<Input, Operation>,
 			do_parse!(
-				tag!($pattern) >> space >>
+				tag!($pattern) >> space1 >>
 				label: label_name >>
 				($cnstr(label))
 			)
@@ -38,20 +36,21 @@ jump_fn!(jnz_operation, "JNZ", Operation::JNZ);
 jump_fn!(jlz_operation, "JLZ", Operation::JLZ);
 jump_fn!(jgz_operation, "JGZ", Operation::JGZ);
 
-named!(pub jro_operation<Input, Operation>,
+pub fn jro_operation(input: Input) -> IResult<Input, Operation> {
 	do_parse!(
-		tag!("JRO") >> space >>
-		value: alt!(acc_pointer | nil_pointer | input_pointer | value_pointer) >>
-		(Operation::JRO(value))
+		tag!("JRO")
+			>> space
+			>> value: alt!(acc_pointer | nil_pointer | input_pointer | value_pointer)
+			>> (Operation::JRO(value))
 	)
-);
+}
 
 #[cfg(test)]
 mod tests {
 	use super::*;
 
-	use parser::common::to_input;
 	use parser::common::tests::*;
+	use parser::common::to_input;
 	use parser::instruction::ValuePointer;
 
 	#[test]
@@ -69,7 +68,11 @@ mod tests {
 	#[test]
 	fn test_parse_label_operation_with_next() {
 		let res = label_operation(to_input(b"lbl: NEG"));
-		assert_result(res, Operation::LABEL(String::from("lbl")), to_input(b" NEG"));
+		assert_result(
+			res,
+			Operation::LABEL(String::from("lbl")),
+			to_input(b" NEG"),
+		);
 	}
 
 	#[test]

@@ -35,15 +35,15 @@ pub struct OutputMapping {
 // }
 
 // Syntax lines
-pub fn node_line(input: Input) -> IResult<&[u8], Input> {
+pub fn node_line(input: &[u8]) -> IResult<&[u8], &[u8]> {
 	take_while(|c| c == b'=')(input)
 }
-pub fn code_line(input: Input) -> IResult<&[u8], Input> {
+pub fn code_line(input: &[u8]) -> IResult<&[u8], &[u8]> {
 	take_while(|c| c == b'-')(input)
 }
 
 // List of inputs
-pub fn input_item(input: Input) -> IResult<&[u8], InputMapping> {
+pub fn input_item(input: &[u8]) -> IResult<&[u8], InputMapping> {
 	let (remaining, (port, _, _, _, input)) =
 		nom::sequence::tuple((port_ref, space0, tag("->"), space0, be_u32))(input)?;
 	let mapping = InputMapping {
@@ -53,7 +53,7 @@ pub fn input_item(input: Input) -> IResult<&[u8], InputMapping> {
 	Ok((remaining, mapping))
 }
 
-fn input_separator(input: Input) -> IResult<&[u8], ()> {
+fn input_separator(input: &[u8]) -> IResult<&[u8], ()> {
 	let (input, _) = space0(input)?;
 	let (input, _) = tag(",")(input)?;
 	let (input, _) = space1(input)?;
@@ -61,12 +61,12 @@ fn input_separator(input: Input) -> IResult<&[u8], ()> {
 	Ok((input, ()))
 }
 
-pub fn inputs(input: Input) -> IResult<&[u8], Vec<&[u8]Mapping>> {
+pub fn inputs(input: &[u8]) -> IResult<&[u8], Vec<InputMapping>> {
 	nom::multi::separated_list1(input_separator, input_item)(input)
 }
 
 // List of outputs
-pub fn output_item(input: Input) -> IResult<&[u8], OutputMapping> {
+pub fn output_item(input: &[u8]) -> IResult<&[u8], OutputMapping> {
 	let (remaining, (input, _, _, _, port)) =
 		nom::sequence::tuple((be_u32, space0, tag("->"), space0, port_ref))(input)?;
 	let mapping = OutputMapping {
@@ -76,34 +76,35 @@ pub fn output_item(input: Input) -> IResult<&[u8], OutputMapping> {
 	Ok((remaining, mapping))
 }
 
-pub fn outputs(input: Input) -> IResult<&[u8], Vec<OutputMapping>> {
+pub fn outputs(input: &[u8]) -> IResult<&[u8], Vec<OutputMapping>> {
 	nom::multi::separated_list1(input_separator, output_item)(input)
 }
 
-named!(instruction_line<&[u8], Vec<Operation> >,
-	alt!(
-		// Instruction only
-		do_parse!(
-			op: parse_instruction >> eol >>
-			(vec![op])
-		) |
-		// Label only
-		do_parse!(
-			label: label_operation >> eol >>
-			(vec![label])
-		) |
-		// Label then instruction
-		do_parse!(
-			label: label_operation >> space0 >>
-			op: parse_instruction >> eol >>
-			(vec![label, op])
-		) |
-		// Nothing but empty lines
-		value!(vec![], eol)
-	)
-);
+fn instruction_line(input: &[u8]) -> IResult<&[u8], Vec<Operation> > {
+	// alt!(
+	// 	// Instruction only
+	// 	do_parse!(
+	// 		op: parse_instruction >> eol >>
+	// 		(vec![op])
+	// 	) |
+	// 	// Label only
+	// 	do_parse!(
+	// 		label: label_operation >> eol >>
+	// 		(vec![label])
+	// 	) |
+	// 	// Label then instruction
+	// 	do_parse!(
+	// 		label: label_operation >> space0 >>
+	// 		op: parse_instruction >> eol >>
+	// 		(vec![label, op])
+	// 	) |
+	// 	// Nothing but empty lines
+	// 	value!(vec![], eol)
+	// )
+	todo!()
+}
 
-pub fn instruction_list(input: Input) -> IResult<&[u8], Vec<Operation>> {
+pub fn instruction_list(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
 	// fold_many1!(instruction_line, Vec::new(), |mut acc: Vec<_>, ops| {
 	// 	for op in ops {
 	// 		acc.push(op);
@@ -113,36 +114,36 @@ pub fn instruction_list(input: Input) -> IResult<&[u8], Vec<Operation>> {
 	todo!()
 }
 
-pub type NodeBlock = (Node, Vec<&[u8]Mapping>, Vec<OutputMapping>, Vec<Operation>);
-named!(pub node_block<&[u8], NodeBlock>,
-	do_parse!(
-		space0 >>
-		node: node_header >> eol >>
-		node_line >> eol >>
-		opt_eol >>
-		inputs: opt!(
-			do_parse!(
-				space0 >> is: inputs >> eol >>
-				code_line >> eol >>
-				(is)
-			)
-		) >>
-		ops: instruction_list >>
-		outputs: opt!(
-			do_parse!(
-				code_line >> eol >>
-				space0 >> os: outputs >> eol >>
-				(os)
-			)
-		) >>
-		node_line >> eol >>
-		(node, inputs.unwrap_or(vec![]), outputs.unwrap_or(vec![]), ops)
-	)
-);
-
-pub fn node_list(input: Input) -> IResult<&[u8], Vec<NodeBlock>> {
-	// separated_nonempty_list_complete!(opt_eol, node_block)
+pub type NodeBlock = (Node, Vec<InputMapping>, Vec<OutputMapping>, Vec<Operation>);
+pub fn node_block(input: &[u8]) -> IResult<&[u8], NodeBlock> {
 	todo!()
+	// do_parse!(
+	// 	space0 >>
+	// 	node: node_header >> eol >>
+	// 	node_line >> eol >>
+	// 	opt_eol >>
+	// 	inputs: opt!(
+	// 		do_parse!(
+	// 			space0 >> is: inputs >> eol >>
+	// 			code_line >> eol >>
+	// 			(is)
+	// 		)
+	// 	) >>
+	// 	ops: instruction_list >>
+	// 	outputs: opt!(
+	// 		do_parse!(
+	// 			code_line >> eol >>
+	// 			space0 >> os: outputs >> eol >>
+	// 			(os)
+	// 		)
+	// 	) >>
+	// 	node_line >> eol >>
+	// 	(node, inputs.unwrap_or(vec![]), outputs.unwrap_or(vec![]), ops)
+	// )
+}
+
+pub fn node_list(input: &[u8]) -> IResult<&[u8], Vec<NodeBlock>> {
+	nom::multi::separated_list1(opt_eol, node_block)(input)
 }
 
 #[cfg(test)]

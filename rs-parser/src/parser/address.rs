@@ -69,17 +69,17 @@ impl Port {
 	}
 }
 
-fn input_node(input: Input) -> IResult<&[u8], Node> {
+fn input_node(input: &[u8]) -> IResult<&[u8], Node> {
 	let (remaining, _) = nom::bytes::complete::tag("IN")(input)?;
 	Ok((remaining, Node::In))
 }
 
-fn output_node(input: Input) -> IResult<&[u8], Node> {
+fn output_node(input: &[u8]) -> IResult<&[u8], Node> {
 	let (remaining, _) = nom::bytes::complete::tag("OUT")(input)?;
 	Ok((remaining, Node::Out))
 }
 
-fn node_id(input: Input) -> IResult<&[u8], Node> {
+fn node_id(input: &[u8]) -> IResult<&[u8], Node> {
 	// do_parse!(
 	// 	tag!("#") >>
 	// 	id: map_res!(
@@ -91,11 +91,11 @@ fn node_id(input: Input) -> IResult<&[u8], Node> {
 	todo!()
 }
 
-pub fn node_ref(input: Input) -> IResult<&[u8], Node> {
+pub fn node_ref(input: &[u8]) -> IResult<&[u8], Node> {
 	nom::branch::alt((input_node, output_node, node_id))(input)
 }
 
-pub fn port_ref(input: Input) -> IResult<&[u8], Port> {
+pub fn port_ref(input: &[u8]) -> IResult<&[u8], Port> {
 	todo!()
 	// do_parse!(
 	// 	id: node_ref >>
@@ -105,7 +105,7 @@ pub fn port_ref(input: Input) -> IResult<&[u8], Port> {
 	// )
 }
 
-pub fn node_header(input: Input) -> IResult<&[u8], Node> {
+pub fn node_header(input: &[u8]) -> IResult<&[u8], Node> {
 	todo!()
 	// do_parse!(
 	// 	tag!("Node") >>

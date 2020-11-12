@@ -2,7 +2,6 @@ use nom::IResult;
 use nom::bytes::complete::tag;
 use nom::branch::alt;
 
-use parser::common::&[u8];
 use parser::instruction::Operation;
 use parser::instruction::base::{
 	value_pointer,
@@ -11,19 +10,19 @@ use parser::instruction::base::{
 	nil_pointer
 };
 
-pub fn add_operation(input: Input) -> IResult<&[u8], Operation> {
+pub fn add_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 	let (input, _) = tag("ADD")(input)?;
 	let (input, value) = alt((input_pointer, acc_pointer, nil_pointer, value_pointer))(input)?;
 	Ok((input, Operation::ADD(value)))
 }
 
-pub fn sub_operation(input: Input) -> IResult<&[u8], Operation> {
+pub fn sub_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 	let (input, _) = tag("SUB")(input)?;
 	let (input, value) = alt((input_pointer, acc_pointer, nil_pointer, value_pointer))(input)?;
 	Ok((input, Operation::SUB(value)))
 }
 
-pub fn neg_operation(input: Input) -> IResult<&[u8], Operation> {
+pub fn neg_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 	use nom::combinator::value;
 	value(Operation::NEG, tag("NEG"))(input)
 }

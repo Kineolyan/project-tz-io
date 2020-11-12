@@ -21,13 +21,14 @@ pub fn label_operation(input: Input) -> IResult<&[u8], Operation> {
 // JMP, JEZ, JNZ, JGZ, JLZ, JRO
 macro_rules! jump_fn {
 	($name:ident, $pattern:expr, $cnstr:path) => {
-		named!(pub $name<&[u8], Operation>,
-			do_parse!(
-				tag!($pattern) >> space1 >>
-				label: label_name >>
-				($cnstr(label))
-			)
-		);
+		pub fn $name(input: &[u8]) -> IResult<&[u8], Operation> {
+			// do_parse!(
+			// 	tag!($pattern) >> space1 >>
+			// 	label: label_name >>
+			// 	($cnstr(label))
+			// )
+			todo!()
+		}
 	};
 }
 jump_fn!(jmp_operation, "JMP", Operation::JMP);
@@ -37,12 +38,13 @@ jump_fn!(jlz_operation, "JLZ", Operation::JLZ);
 jump_fn!(jgz_operation, "JGZ", Operation::JGZ);
 
 pub fn jro_operation(input: Input) -> IResult<&[u8], Operation> {
-	do_parse!(
-		tag!("JRO")
-			>> space
-			>> value: alt!(acc_pointer | nil_pointer | input_pointer | value_pointer)
-			>> (Operation::JRO(value))
-	)
+	// do_parse!(
+	// 	tag!("JRO")
+	// 		>> space
+	// 		>> value: alt!(acc_pointer | nil_pointer | input_pointer | value_pointer)
+	// 		>> (Operation::JRO(value))
+	// )
+	todo!()
 }
 
 #[cfg(test)]

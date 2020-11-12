@@ -1,13 +1,17 @@
-use parser::common::&[u8];
+use nom;
 use parser::instruction::{MemoryPointer, Operation};
 
-named!(pub swp_operation<&[u8], Operation>,
-	value!(Operation::SWP(MemoryPointer::BAK(1)), tag!("SWP"))
-);
+pub fn swp_operation(input: Input) -> nom::IResult<&[u8], Operation> {
+	nom::combinator::value(
+		Operation::SWP(MemoryPointer::BAK(1)),
+		nom::bytes::complete::tag("SWP"))(input)
+}
 
-named!(pub sav_operation<&[u8], Operation>,
-	value!(Operation::SAV(MemoryPointer::BAK(1)), tag!("SAV"))
-);
+pub fn sav_operation(input: Input) -> nom::IResult<&[u8], Operation> {
+	nom::combinator::value(
+		Operation::SAV(MemoryPointer::BAK(1)),
+		nom::bytes::complete::tag("SAV"))(input)
+}
 
 #[cfg(test)]
 mod tests {

@@ -1,37 +1,37 @@
 mod base;
-mod mov;
-mod memory;
-mod math;
 pub mod condition;
+mod math;
+mod memory;
+mod mov;
 
+use nom;
 use std::fmt;
 
-use parser::common::&[u8];
-use parser::instruction::mov::*;
-use parser::instruction::memory::*;
-use parser::instruction::math::*;
 use parser::instruction::condition::*;
+use parser::instruction::math;
+use parser::instruction::memory::*;
+use parser::instruction::mov::*;
 
 #[derive(PartialEq, Clone)]
 pub enum ValuePointer {
   VALUE(u32),
   ACC,
   NIL,
-  PORT(u32)
+  PORT(u32),
 }
 
 // The idea is to have ACC is the top of the stack, for ADD, SUB, NEG, ...
 // and have multiple BAK if needed
 #[derive(PartialEq, Clone)]
 pub enum MemoryPointer {
-	BAK(u8) // Limiting to 256 values
+  BAK(u8), // Limiting to 256 values
 }
 
 #[derive(PartialEq, Clone)]
 pub enum Operation {
   MOV(ValuePointer, ValuePointer),
-	SAV(MemoryPointer),
-	SWP(MemoryPointer),
+  SAV(MemoryPointer),
+  SWP(MemoryPointer),
   ADD(ValuePointer),
   SUB(ValuePointer),
   NEG,
@@ -41,26 +41,26 @@ pub enum Operation {
   JNZ(String),
   JLZ(String),
   JGZ(String),
-  JRO(ValuePointer)
+  JRO(ValuePointer),
 }
 
-named!(pub parse_instruction<&[u8], Operation>,
-  alt!(
-    mov_operation |
-    swp_operation |
-    sav_operation |
-    add_operation |
-    sub_operation |
-    neg_operation |
+pub fn parse_instruction(input: &[u8]) -> nom::IResult<&[u8], Operation> {
+  nom::branch::alt((
+    mov_operation,
+    swp_operation,
+    sav_operation,
+    math::add_operation,
+    math::sub_operation,
+    math::neg_operation,
     // label_operation |
-    jmp_operation |
-    jez_operation |
-    jnz_operation |
-    jlz_operation |
-    jgz_operation |
-    jro_operation
-  )
-);
+    jmp_operation,
+    jez_operation,
+    jnz_operation,
+    jlz_operation,
+    jgz_operation,
+    jro_operation,
+  ))(input)
+}
 
 // Default implementations for printing
 
@@ -77,12 +77,12 @@ impl fmt::Display for ValuePointer {
 }
 
 impl ValuePointer {
-	fn do_fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+  fn do_fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self {
       &ValuePointer::VALUE(ref value) => write!(f, "Value({})", value),
       &ValuePointer::ACC => write!(f, "ACC"),
       &ValuePointer::NIL => write!(f, "NIL"),
-      &ValuePointer::PORT(ref port) => write!(f, "Port({})", port)
+      &ValuePointer::PORT(ref port) => write!(f, "Port({})", port),
     }
   }
 }
@@ -100,9 +100,9 @@ impl fmt::Display for MemoryPointer {
 }
 
 impl MemoryPointer {
-	fn do_fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+  fn do_fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self {
-      &MemoryPointer::BAK(ref slot) => write!(f, "BAK({})", slot)
+      &MemoryPointer::BAK(ref slot) => write!(f, "BAK({})", slot),
     }
   }
 }
@@ -120,7 +120,7 @@ impl fmt::Display for Operation {
 }
 
 impl Operation {
-	fn do_fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+  fn do_fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self {
       &Operation::MOV(ref from, ref to) => write!(f, "MOV {} {}", from, to),
       &Operation::SAV(ref ptr) => write!(f, "SAV {}", ptr),
@@ -134,7 +134,7 @@ impl Operation {
       &Operation::JNZ(ref label) => write!(f, "JNZ {}", label),
       &Operation::JLZ(ref label) => write!(f, "JLZ {}", label),
       &Operation::JGZ(ref label) => write!(f, "JGZ {}", label),
-      &Operation::JRO(ref ptr) => write!(f, "JRO {}", ptr)
+      &Operation::JRO(ref ptr) => write!(f, "JRO {}", ptr),
     }
   }
 }

@@ -2,7 +2,7 @@ use nom::IResult;
 use nom::number::complete::be_i8;
 use nom::character::complete::space0;
 
-pub fn values(input: Input) -> IResult<&[u8], Vec<i8>> {
+pub fn values(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
   // separated_nonempty_list_complete!(
   //   do_parse!(space0 >> tag!(",") >> space0 >> ()),
   //   be_i8
@@ -10,7 +10,7 @@ pub fn values(input: Input) -> IResult<&[u8], Vec<i8>> {
   todo!()
 }
 
-pub fn array(input: Input) -> IResult<&[u8], Vec<i8>> {
+pub fn array(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
   // alt!(
   //   delimited!(
   //     tag!("["),

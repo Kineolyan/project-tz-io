@@ -1,35 +1,35 @@
 use nom::IResult;
-use nom::{digit, space};
-use nom::types::CompleteByteSlice;
 
 use std::str;
 
-pub fn to_input(content: &[u8]) -> &[u8] {
-	CompleteByteSlice(content)
-}
-pub fn from_input<'a>(content: Input<'a>) -> &'a[u8] {
-	content.0
+pub fn to_input(v: &[u8]) -> &[u8] {
+	v
 }
 
-pub fn to_string(v: Input) -> Result<String, i8> {
+pub fn to_string(v: &[u8]) -> Result<String, i8> {
 	str::from_utf8(v.0).map(|s| s.to_string()).or(Err(-1))
 }
 
-fn end_line_comment(input: Input) -> IResult<&[u8], ()> {
-	alt!(
-		do_parse!(tag!("//\n") >> ()) |
-		do_parse!(tag!("//") >> is_not!("/\n") >> take_until!("\n") >> ())
-	)
-);
-pub fn eol(input: Input) -> IResult<&[u8], ()> {
-	do_parse!(
-		nom::character::complete::space0 >>
-		opt!(end_line_comment) >>
-		tag!("\n") >>
-		()
-	)
-);
-pub fn opt_eol(input: Input) -> IResult<&[u8], Vec<()> > { many0!(eol));
+fn end_line_comment(input: &[u8]) -> IResult<&[u8], ()> {
+	// alt!(
+	// 	do_parse!(tag!("//\n") >> ()) |
+	// 	do_parse!(tag!("//") >> is_not!("/\n") >> take_until!("\n") >> ())
+	// )
+	todo!()
+}
+pub fn eol(input: &[u8]) -> IResult<&[u8], ()> {
+	// do_parse!(
+	// 	ospace >>
+	// 	opt!(end_line_comment) >>
+	// 	tag!("\n") >>
+	// 	()
+	// )
+	todo!()
+}
+
+pub fn opt_eol(input: &[u8]) -> IResult<&[u8], Vec<()> > {
+	nom::multi::many0(eol)(input)
+}
 
 #[cfg(test)]
 pub mod tests {
@@ -42,7 +42,7 @@ pub mod tests {
 	pub fn assert_result<Result: PartialEq + Debug> (
 			res: IResult<&[u8], Result>,
 			value: Result,
-			remaining: Input) {
+			remaining: &[u8]) {
 		assert_eq!(
 			res,
 			Ok((remaining, value))

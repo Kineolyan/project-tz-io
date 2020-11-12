@@ -112,7 +112,7 @@ MOV <2, >2
 // End comment, to conclude
 ";
 
-    let res = program(to_input(content));
+    let res = program(content);
     let nodes = vec![
       (
         Node::new_node("1"),
@@ -163,7 +163,7 @@ MOV <1,  >1
 // End comment, to conclude
 ";
 
-    let res = program(to_input(content));
+    let res = program(content);
     let nodes = vec![(
       Node::new_node("1"),
       vec![InputMapping {
@@ -201,7 +201,7 @@ MOV <1,  >1
 // End comment, to conclude
    ";
 
-    let res = program(to_input(content));
+    let res = program(content);
     let nodes = vec![(
       Node::new_node("1"),
       vec![],
@@ -214,6 +214,6 @@ MOV <1,  >1
     ];
     let last_tests = vec![TestCase::new(vec![1], vec![-1, 1])];
 
-    assert_result(res, (nodes, first_tests, last_tests), to_input(b"   "));
+    assert_result(res, (nodes, first_tests, last_tests), b"   ");
   }
 }

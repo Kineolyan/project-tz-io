@@ -1,11 +1,11 @@
-use parser::common::Input;
+use parser::common::&[u8];
 use parser::instruction::{MemoryPointer, Operation};
 
-named!(pub swp_operation<Input, Operation>,
+named!(pub swp_operation<&[u8], Operation>,
 	value!(Operation::SWP(MemoryPointer::BAK(1)), tag!("SWP"))
 );
 
-named!(pub sav_operation<Input, Operation>,
+named!(pub sav_operation<&[u8], Operation>,
 	value!(Operation::SAV(MemoryPointer::BAK(1)), tag!("SAV"))
 );
 

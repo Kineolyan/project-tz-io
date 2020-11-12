@@ -1,6 +1,6 @@
 use nom::IResult;
+use nom::character::complete::space0;
 
-use parser::common::{Input, ospace};
 use parser::instruction::Operation;
 use parser::instruction::base::*;
 
@@ -9,7 +9,7 @@ fn mov_from_in(input: Input) -> IResult<Input, Operation> {
   // do_parse!(
   //   tag!("MOV") >> space >>
   //   from: input_pointer >>
-  //   ospace >> tag!(",") >> ospace >>
+  //   space0 >> tag!(",") >> space0 >>
   //   to: alt!(acc_pointer | nil_pointer | output_pointer) >>
   //   (Operation::MOV(from, to))
   // )
@@ -19,7 +19,7 @@ fn mov_to_out(input: Input) -> IResult<Input, Operation> {
   // do_parse!(
   //   tag!("MOV") >> space >>
   //   from: alt!(acc_pointer | nil_pointer | value_pointer) >>
-  //   ospace >> tag!(",") >> ospace >>
+  //   space0 >> tag!(",") >> space0 >>
   //   to: output_pointer >>
   //   (Operation::MOV(from, to))
   // )
@@ -30,7 +30,7 @@ fn mov_accs(input: Input) -> IResult<Input, Operation> {
   // do_parse!(
   //   tag!("MOV") >> space >>
   //   from: alt!(value_pointer | acc_pointer | nil_pointer ) >>
-  //   ospace >> tag!(",") >> ospace >>
+  //   space0 >> tag!(",") >> space0 >>
   //   to: acc_pointer >>
   //   (Operation::MOV(from, to))
   // )

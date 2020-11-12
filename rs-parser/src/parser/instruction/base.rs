@@ -1,35 +1,35 @@
-use parser::common::{Input, be_uint};
+use nom::number::complete::be_u32;
 use parser::instruction::{ValuePointer, MemoryPointer};
 
-named!(pub acc_pointer<Input, ValuePointer>,
+named!(pub acc_pointer<&[u8], ValuePointer>,
 	value!(ValuePointer::ACC, tag!("ACC"))
 );
 
-named!(pub nil_pointer<Input, ValuePointer>,
+named!(pub nil_pointer<&[u8], ValuePointer>,
 	value!(ValuePointer::NIL, tag!("NIL"))
 );
 
-named!(pub input_pointer<Input, ValuePointer>,
+named!(pub input_pointer<&[u8], ValuePointer>,
   do_parse!(
     tag!("<") >>
-    port: be_uint >>
+    port: be_u32 >>
     (ValuePointer::PORT(port))
   )
 );
 
-named!(pub output_pointer<Input, ValuePointer>,
+named!(pub output_pointer<&[u8], ValuePointer>,
   do_parse!(
     tag!(">") >>
-    port: be_uint >>
+    port: be_u32 >>
     (ValuePointer::PORT(port))
   )
 );
 
-named!(pub value_pointer<Input, ValuePointer>,
-  map!(be_uint, |value| ValuePointer::VALUE(value))
+named!(pub value_pointer<&[u8], ValuePointer>,
+  map!(be_u32, |value| ValuePointer::VALUE(value))
 );
 
-named!(pub bak_pointer<Input, MemoryPointer>,
+named!(pub bak_pointer<&[u8], MemoryPointer>,
 	value!(MemoryPointer::BAK(1), tag!("BAK"))
 );
 

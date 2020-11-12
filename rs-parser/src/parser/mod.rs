@@ -8,7 +8,8 @@ use nom;
 use std::result::Result;
 use std::str::from_utf8;
 
-use parser::common::{to_input, from_input, ospace, opt_eol};
+use nom::character::complete::space0;
+use parser::common::{to_input, from_input, opt_eol};
 use parser::test::test_case;
 use parser::syntax::{NodeBlock, node_list};
 
@@ -19,11 +20,11 @@ pub struct ParsingTree {
 }
 pub type ParsingResult = Result<ParsingTree, ()>;
 
-pub fn program(input: common::Input) -> nom::IResult<common::Input, (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)> {
+pub fn program(input: common::&[u8]) -> nom::IResult<common::&[u8], (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)> {
 	// do_parse!(
 	// 	opt_eol >>
 	// 	start_cases: many0!(test_case) >>
-	// 	many0!(do_parse!(ospace >> tag!("\n") >> ())) >>
+	// 	many0!(do_parse!(space0 >> tag!("\n") >> ())) >>
 	// 	list: node_list >>
 	// 	opt_eol >>
 	// 	end_cases: many0!(test_case) >>

@@ -1,12 +1,10 @@
+use nom::IResult;
 use nom::{digit, space};
 use nom::types::CompleteByteSlice;
 
 use std::str;
 
-pub type Input = &[u8];
-// pub type Input<'a> = CompleteByteSlice<'a>;
-
-pub fn to_input(content: &[u8]) -> Input {
+pub fn to_input(content: &[u8]) -> &[u8] {
 	CompleteByteSlice(content)
 }
 pub fn from_input<'a>(content: Input<'a>) -> &'a[u8] {
@@ -17,51 +15,21 @@ pub fn to_string(v: Input) -> Result<String, i8> {
 	str::from_utf8(v.0).map(|s| s.to_string()).or(Err(-1))
 }
 
-fn to<T: str::FromStr>(v: Input) -> Result<T, i8> {
-	str::from_utf8(v.0).or(Err(-1))
-		.and_then(|i| i.parse::<T>().or(Err(-2)))
-
-}
-
-fn to_u8(v: Input) -> Result<u8, i8> {
-	to(v)
-}
-
-fn to_i8(v: Input) -> Result<i8, i8> {
-	to(v)
-}
-
-fn to_u32(v: Input) -> Result<u32, i8> {
-	to(v)
-}
-
-named!(pub be_uint<Input, u32>, map_res!(take_while!(nom::is_digit), to_u32));
-named!(pub be_u8<Input, u8>, map_res!(digit, to_u8));
-named!(pub be_i8<Input, i8>,
-	do_parse!(
-		s: opt!(tag!("-")) >>
-		d: digit >>
-		(to_i8(d).map(|value|
-			if s.is_some() { -value } else { value }
-		).expect("Not a number"))
-	)
-);
-named!(pub ospace<Input, Option<Input> >, opt!(space));
-named!(end_line_comment<Input, ()>,
+fn end_line_comment(input: Input) -> IResult<&[u8], ()> {
 	alt!(
 		do_parse!(tag!("//\n") >> ()) |
 		do_parse!(tag!("//") >> is_not!("/\n") >> take_until!("\n") >> ())
 	)
 );
-named!(pub eol<Input, ()>,
+pub fn eol(input: Input) -> IResult<&[u8], ()> {
 	do_parse!(
-		ospace >>
+		nom::character::complete::space0 >>
 		opt!(end_line_comment) >>
 		tag!("\n") >>
 		()
 	)
 );
-named!(pub opt_eol<Input, Vec<()> >, many0!(eol));
+pub fn opt_eol(input: Input) -> IResult<&[u8], Vec<()> > { many0!(eol));
 
 #[cfg(test)]
 pub mod tests {
@@ -72,7 +40,7 @@ pub mod tests {
 	use nom::{Err, IResult};
 
 	pub fn assert_result<Result: PartialEq + Debug> (
-			res: IResult<Input, Result>,
+			res: IResult<&[u8], Result>,
 			value: Result,
 			remaining: Input) {
 		assert_eq!(
@@ -82,7 +50,7 @@ pub mod tests {
 	}
 
 	pub fn assert_full_result<Result: PartialEq + Debug> (
-			res: IResult<Input, Result>,
+			res: IResult<&[u8], Result>,
 			value: Result) {
 		if let &Ok((ref remaining, _)) = &res {
 			if remaining.len() > 0 {
@@ -92,7 +60,7 @@ pub mod tests {
 		assert_result(res, value, to_input(b""));
 	}
 
-	pub fn assert_cannot_parse<Result: PartialEq + Debug>(res: IResult<Input, Result>) {
+	pub fn assert_cannot_parse<Result: PartialEq + Debug>(res: IResult<&[u8], Result>) {
 		match res {
 			Ok((i, o)) => {
 				panic!("Unexpected successful parsing. Res {:?}, remaining {:?}", o, i);
@@ -106,7 +74,7 @@ pub mod tests {
 		}
 	}
 
-	pub fn assert_incomplete<Result: PartialEq + Debug>(res: IResult<Input, Result>) {
+	pub fn assert_incomplete<Result: PartialEq + Debug>(res: IResult<&[u8], Result>) {
 		match res {
 			Ok((i, o)) => {
 				panic!("Unexpected successful parsing. Res {:?}, remaining {:?}", o, i);
@@ -118,34 +86,6 @@ pub mod tests {
 				panic!("Unexpected error while parsing: {:?}", e);
 			}
 		}
-	}
-
-	#[test]
-	fn test_parse_be_uint() {
-		let content = to_input(b"14");
-		let res = be_uint(content);
-		assert_full_result(res, 14u32);
-	}
-
-	#[test]
-	fn test_parse_be_u8() {
-		let content = to_input(b"4");
-		let res = be_u8(content);
-		assert_full_result(res, 4u8);
-	}
-
-	#[test]
-	fn test_parse_be_i8_positive() {
-		let content = to_input(b"123");
-		let res = be_i8(content);
-		assert_full_result(res, 123i8);
-	}
-
-	#[test]
-	fn test_parse_be_i8_negative() {
-		let content = to_input(b"-98");
-		let res = be_i8(content);
-		assert_full_result(res, -98i8);
 	}
 
 	#[test]

@@ -1,15 +1,16 @@
 use nom::IResult;
-use parser::common::{Input, be_i8, ospace};
+use nom::number::complete::be_i8;
+use nom::character::complete::space0;
 
-pub fn values(input: Input) -> IResult<Input, Vec<i8>> {
+pub fn values(input: Input) -> IResult<&[u8], Vec<i8>> {
   // separated_nonempty_list_complete!(
-  //   do_parse!(ospace >> tag!(",") >> ospace >> ()),
+  //   do_parse!(space0 >> tag!(",") >> space0 >> ()),
   //   be_i8
   // )
   todo!()
 }
 
-pub fn array(input: Input) -> IResult<Input, Vec<i8>> {
+pub fn array(input: Input) -> IResult<&[u8], Vec<i8>> {
   // alt!(
   //   delimited!(
   //     tag!("["),
@@ -33,13 +34,13 @@ impl TestCase {
   }
 }
 
-named!(pub test_case<Input, TestCase>,
+named!(pub test_case<&[u8], TestCase>,
   do_parse!(
-    tag!("///") >> ospace >>
+    tag!("///") >> space0 >>
     ins: array >>
-    ospace >> tag!("->") >> ospace >>
+    space0 >> tag!("->") >> space0 >>
     outs: array >>
-    ospace >> tag!("\n") >>
+    space0 >> tag!("\n") >>
     (TestCase::new(ins, outs))
   )
 );

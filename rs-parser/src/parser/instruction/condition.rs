@@ -2,14 +2,14 @@ use nom;
 use nom::character::complete::space1;
 use nom::IResult;
 
-use parser::common::{to_string, Input};
+use parser::common::to_string;
 use parser::instruction::Operation;
 
-fn label_name(input: Input) -> IResult<Input, String> {
+fn label_name(input: Input) -> IResult<&[u8], String> {
 	nom::combinator::map_res(nom::character::complete::alphanumeric1, to_string)(input)
 }
 
-pub fn label_operation(input: Input) -> IResult<Input, Operation> {
+pub fn label_operation(input: Input) -> IResult<&[u8], Operation> {
 	let (input, (label, _, _)) = nom::sequence::tuple((
 		label_name,
 		nom::character::complete::space0,
@@ -21,7 +21,7 @@ pub fn label_operation(input: Input) -> IResult<Input, Operation> {
 // JMP, JEZ, JNZ, JGZ, JLZ, JRO
 macro_rules! jump_fn {
 	($name:ident, $pattern:expr, $cnstr:path) => {
-		named!(pub $name<Input, Operation>,
+		named!(pub $name<&[u8], Operation>,
 			do_parse!(
 				tag!($pattern) >> space1 >>
 				label: label_name >>
@@ -36,7 +36,7 @@ jump_fn!(jnz_operation, "JNZ", Operation::JNZ);
 jump_fn!(jlz_operation, "JLZ", Operation::JLZ);
 jump_fn!(jgz_operation, "JGZ", Operation::JGZ);
 
-pub fn jro_operation(input: Input) -> IResult<Input, Operation> {
+pub fn jro_operation(input: Input) -> IResult<&[u8], Operation> {
 	do_parse!(
 		tag!("JRO")
 			>> space

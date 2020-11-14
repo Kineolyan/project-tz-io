@@ -48,8 +48,8 @@ named!(pub test_case<&[u8], TestCase>,
 #[cfg(test)]
 mod tests {
   use super::*;
-	use parser::common::to_input;
-	use parser::common::tests::*;
+	use common::to_input;
+	use common::tests::*;
 
   #[test]
   fn test_parse_values() {

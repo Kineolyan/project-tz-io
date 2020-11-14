@@ -3,12 +3,12 @@ use std::io::Write;
 use std::path::Path;
 use std::io;
 
-use generator::java::class::{
+use java::class::{
   JavaClass,
   PoolElement
 };
-use generator::java::constants;
-use generator::java::constructs::{
+use java::constants;
+use java::constructs::{
   Attribute,
   Operation
 };

@@ -1,4 +1,4 @@
-use generator::java::constants::{Type, ArrayType};
+use java::constants::{Type, ArrayType};
 use std::cmp;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -158,7 +158,7 @@ pub fn merge_codes(
 #[cfg(test)]
 mod tests {
   use super::*;
-  use generator::java::constants::{Type, ArrayType};
+  use java::constants::{Type, ArrayType};
 
   #[test]
   fn test_count_local_vars_from_loads() {

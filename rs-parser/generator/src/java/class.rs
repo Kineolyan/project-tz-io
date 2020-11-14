@@ -1,14 +1,14 @@
 use std::cmp::Eq;
-use generator::java::constructs::{
+use java::constructs::{
   Attribute,
   Signature,
   Method
 };
-use generator::java::constants::{
+use java::constants::{
   ArrayType,
   Type
 };
-use generator::java::dictionary::{Dictionary, DictionaryIter};
+use java::dictionary::{Dictionary, DictionaryIter};
 
 pub type PoolIdx = u16;
 
@@ -316,8 +316,8 @@ mod tests {
 
   mod base {
     use super::super::*;
-    use generator::java::constructs::Signature;
-    use generator::java::constants::{Type, ArrayType, MethodAccess};
+    use java::constructs::Signature;
+    use java::constants::{Type, ArrayType, MethodAccess};
 
     #[test]
     fn test_set_class_name() {

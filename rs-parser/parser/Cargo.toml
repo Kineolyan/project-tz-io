@@ -1,0 +1,8 @@
+[package]
+name = "rs-parser"
+version = "0.2.0"
+authors = ["Kineolyan <kineolyan@protonmail.com>"]
+edition = "2018"
+
+[dependencies]
+nom = "6.0.0"

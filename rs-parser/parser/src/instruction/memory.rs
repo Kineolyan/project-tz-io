@@ -1,5 +1,5 @@
 use nom;
-use parser::instruction::{MemoryPointer, Operation};
+use instruction::{MemoryPointer, Operation};
 
 pub fn swp_operation(input: &[u8]) -> nom::IResult<&[u8], Operation> {
 	nom::combinator::value(
@@ -17,8 +17,8 @@ pub fn sav_operation(input: &[u8]) -> nom::IResult<&[u8], Operation> {
 mod tests {
 	use super::*;
 
-	use parser::common::to_input;
-	use parser::common::tests::*;
+	use common::to_input;
+	use common::tests::*;
 
 	#[test]
 	fn test_parse_swp_operation() {

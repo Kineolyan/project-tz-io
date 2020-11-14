@@ -1,8 +1,8 @@
 use nom::IResult;
 use nom::character::complete::space0;
 
-use parser::instruction::Operation;
-use parser::instruction::base::*;
+use instruction::Operation;
+use instruction::base::*;
 
 fn mov_from_in(input: &[u8]) -> IResult<&[u8], Operation> {
   todo!()
@@ -45,9 +45,9 @@ pub fn mov_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 mod tests {
   use super::*;
 
-	use parser::common::to_input;
-  use parser::common::tests::*;
-  use parser::instruction::ValuePointer;
+	use common::to_input;
+  use common::tests::*;
+  use instruction::ValuePointer;
 
   #[test]
   fn test_parse_mov_in_to_out() {

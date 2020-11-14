@@ -1,18 +1,20 @@
+#[macro_use]
+extern crate nom;
+
 pub mod address;
 pub mod common;
 pub mod instruction;
 pub mod syntax;
 pub mod test;
 
-use nom;
 use std::result::Result;
 
 use nom::character::complete::space0;
-use parser::common::{opt_eol, to_string};
-use parser::syntax::{node_list, NodeBlock};
-use parser::test::test_case;
+use common::{opt_eol, to_string};
+use syntax::{node_list, NodeBlock};
+use test::test_case;
 
-pub use parser::test::TestCase;
+pub use test::TestCase;
 pub struct ParsingTree {
   pub nodes: Vec<NodeBlock>,
   pub tests: Vec<TestCase>,
@@ -80,11 +82,11 @@ pub fn parse(input: &[u8]) -> ParsingResult {
 mod tests {
   use super::*;
 
-  use parser::address::{Node, Port};
-  use parser::common::tests::*;
-  use parser::instruction::Operation;
-  use parser::instruction::ValuePointer;
-  use parser::syntax::{InputMapping, OutputMapping};
+  use address::{Node, Port};
+  use common::tests::*;
+  use instruction::Operation;
+  use instruction::ValuePointer;
+  use syntax::{InputMapping, OutputMapping};
 
   #[test]
   fn test_program_without_tests() {
@@ -217,3 +219,4 @@ MOV <1,  >1
     assert_result(res, (nodes, first_tests, last_tests), b"   ");
   }
 }
+

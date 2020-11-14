@@ -1,7 +1,9 @@
-[package]
-name = "rs-parser"
-version = "0.2.0"
-authors = ["Kineolyan <kineolyan@protonmail.com>"]
+[workspace]
 
-[dependencies.nom]
-version = "6.0.0"
+members = [
+	"parser",
+	"postprocessor",
+	"checker",
+	"generator",
+	"app"
+]

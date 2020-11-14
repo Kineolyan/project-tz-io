@@ -1,14 +1,10 @@
-#[macro_use]
-extern crate nom;
-
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 
-mod parser;
-mod postprocessor;
-mod checker;
-mod generator;
+use postprocessor;
+use checker;
+use generator;
 
 use parser::{ParsingResult, ParsingTree, parse};
 

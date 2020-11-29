@@ -18,33 +18,33 @@ pub enum PoolElement {
   ClassInfo(PoolIdx),
   /// Integer constant
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Integer value
   /// ```
   Integer(u32),
   /// String constant
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Index to the UTF8 value
   /// ```
   String(PoolIdx),
   /// Info refering to a method
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Index to class info
   ///  2. INdex to a name & type info
   /// ```
   MethodRef(PoolIdx, PoolIdx),
   /// Info refering to a method of an interface
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Index to class info
   ///  2. INdex to a name & type info
   /// ```
   InterfaceMethodRef(PoolIdx, PoolIdx),
   /// Info about a function
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Index to the method name info
   ///  2. INdex to the descriptor info
   /// ```

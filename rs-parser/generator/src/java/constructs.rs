@@ -19,7 +19,7 @@ pub enum Operation {
   /// Loads a reference of a local variable into the stack
   ///
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Index of the local variable
   /// ```
   aload(u8),
@@ -28,14 +28,14 @@ pub enum Operation {
   /// Stores a reference into a local variable
   ///
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Index of the local variable
   /// ```
   astore(u8),
   /// Pushes a byte into the operand stack
   ///
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Value to push
   /// ```
   bipush(i8),
@@ -53,35 +53,35 @@ pub enum Operation {
   /// initialization method invocations
   ///
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Index of the method info for the method to call
   /// ```
   invokespecial(u16),
   /// Invoke an instance method, dispatching the call to the appropriate class.
   ///
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Index of the method info for the method to call
   /// ```
   invokevirtual(u16),
   /// Invoke a static method from a class
   ///
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Index of the method info for the method to call
   /// ```
   invokestatic(u16),
   /// Invoke a dynamic method from a class
   ///
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Index of the method info for the method to call
   /// ```
   invokedynamic(u16),
   /// Invoke interface method from a class
   ///
   /// Structure
-  /// ```
+  /// ```md
   ///  1. Index of the method info for the method to call
   ///  2. Arg count of the method
   /// ```
@@ -98,7 +98,7 @@ pub enum Operation {
 pub enum Attribute {
   /// Code attribute
   /// Structure
-  /// ```
+  /// ```md
   ///  - max_stack: max stack size
   ///  - operations: Operations
   ///  - locals: number of local vars

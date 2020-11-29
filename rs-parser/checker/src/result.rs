@@ -36,7 +36,7 @@ impl CheckResult {
 		self.print_report_into(|msg| println!("{}", msg));
 	}
 
-	fn print_report_into<F: FnMut(&str)>(&self, mut out: F) {
+	pub(crate) fn print_report_into<F: FnMut(&str)>(&self, mut out: F) {
 		out(&" == TZIO compiler == ");
 		if self.has_warnings() {
 			out(&format!("{} Warnings in your project", self.warning_count()));

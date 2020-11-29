@@ -43,14 +43,14 @@ pub enum Type {
   Integer,
   /// Array of primitives
   /// Signature:
-  /// ```
+  /// ```md
   ///  1. Number of dimensions
   ///  2. Primitive type
   /// ```
   PrimitiveArray(u8, ArrayType),
   /// Array of objects
   /// Signature:
-  /// ```
+  /// ```md
   ///  1. Number of dimensions
   ///  2. Class name of the array
   /// ```

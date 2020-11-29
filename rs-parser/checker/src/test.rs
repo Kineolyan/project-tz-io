@@ -56,8 +56,8 @@ pub fn check(tree: &Program, result: &mut CheckResult) -> bool {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::language::address::Port;
-  use crate::language::syntax::{InputMapping, OutputMapping};
+  use language::address::Port;
+  use language::syntax::{InputMapping, OutputMapping};
 
   fn create_nodes() -> Vec<NodeBlock> {
     let src = (

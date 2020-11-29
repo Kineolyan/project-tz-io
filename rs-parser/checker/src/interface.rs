@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use parser::ParsingTree;
 use parser::syntax::NodeBlock;
-use checker::CheckResult;
+use crate::CheckResult;
 
 /// Module checking that the ports referenced by inputs
 /// or outputs for duplicated port numbers.

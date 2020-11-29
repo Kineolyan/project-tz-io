@@ -1,5 +1,5 @@
 use nom::number::complete::be_u32;
-use instruction::{ValuePointer, MemoryPointer};
+use crate::instruction::{ValuePointer, MemoryPointer};
 
 named!(pub acc_pointer<&[u8], ValuePointer>,
 	value!(ValuePointer::ACC, tag!("ACC"))
@@ -36,8 +36,8 @@ named!(pub bak_pointer<&[u8], MemoryPointer>,
 #[cfg(test)]
 mod tests {
   use super::*;
-	use common::to_input;
-  use common::tests::*;
+	use crate::common::to_input;
+  use crate::common::tests::*;
 
   #[test]
   fn test_parse_acc_pointer() {

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use parser::ParsingTree;
 use parser::address::Node;
 use parser::syntax::NodeBlock;
-use checker::CheckResult;
+use crate::result::CheckResult;
 
 /// Module checking that the mappings between the various nodes
 /// are consistent.

@@ -7,10 +7,10 @@ mod mov;
 use nom;
 use std::fmt;
 
-use instruction::condition::*;
-use instruction::math::*;
-use instruction::memory::*;
-use instruction::mov::*;
+use crate::instruction::condition::*;
+use crate::instruction::math::*;
+use crate::instruction::memory::*;
+use crate::instruction::mov::*;
 
 #[derive(PartialEq, Clone)]
 pub enum ValuePointer {

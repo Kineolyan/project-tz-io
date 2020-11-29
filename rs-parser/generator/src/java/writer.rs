@@ -3,12 +3,12 @@ use std::io::Write;
 use std::path::Path;
 use std::io;
 
-use java::class::{
+use crate::java::class::{
   JavaClass,
   PoolElement
 };
-use java::constants;
-use java::constructs::{
+use crate::java::constants;
+use crate::java::constructs::{
   Attribute,
   Operation
 };

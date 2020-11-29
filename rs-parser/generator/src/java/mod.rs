@@ -12,7 +12,7 @@ use parser::ParsingTree;
 use parser::syntax::NodeBlock;
 use parser::address::Node;
 use parser::instruction::{Operation, MemoryPointer, ValuePointer};
-use java::dictionary::Dictionary;
+use crate::java::dictionary::Dictionary;
 
 const OBJECT_CLASS_NAME: &str = "java/lang/Object";
 const STRING_CLASS_NAME: &str = "java/lang/String";

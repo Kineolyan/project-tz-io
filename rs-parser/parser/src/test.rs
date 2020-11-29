@@ -1,5 +1,5 @@
 use nom::IResult;
-use nom::number::complete::be_i8;
+// use nom::number::complete::be_i8;
 use nom::character::complete::space0;
 
 pub fn values(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
@@ -48,8 +48,8 @@ named!(pub test_case<&[u8], TestCase>,
 #[cfg(test)]
 mod tests {
   use super::*;
-	use common::to_input;
-	use common::tests::*;
+	use crate::common::to_input;
+	use crate::common::tests::*;
 
   #[test]
   fn test_parse_values() {

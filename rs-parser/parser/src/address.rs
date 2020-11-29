@@ -3,7 +3,7 @@ use std::fmt;
 use nom::IResult;
 
 use nom::number::complete::be_u32;
-use common::to_string;
+// use common::to_string;
 
 #[derive(PartialEq)]
 pub enum Node {
@@ -118,8 +118,8 @@ pub fn node_header(input: &[u8]) -> IResult<&[u8], Node> {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use common::tests::*;
-	use common::to_input;
+	use crate::common::tests::*;
+	use crate::common::to_input;
 
 	#[test]
 	fn test_parse_input_node() {

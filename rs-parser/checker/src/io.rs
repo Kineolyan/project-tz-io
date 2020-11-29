@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use parser::address::Node;
 use parser::ParsingTree;
 use parser::syntax::NodeBlock;
-use checker::CheckResult;
+use crate::CheckResult;
 
 fn dups_to_str(duplicates: HashSet<u32>) -> String {
   duplicates.iter().fold(String::new(), |mut acc, value| {
@@ -15,7 +15,7 @@ fn dups_to_str(duplicates: HashSet<u32>) -> String {
 /// Checks that all ports from 1 to max are used,
 /// otherwise, we are having holes in our input/output array.
 /// This returns the list of ports not used.
-/// 
+///
 /// # Arguments
 /// * `ports` - set of used ports
 fn check_ranges(ports: &HashSet<u32>) -> Option<HashSet<u32>> {
@@ -93,7 +93,7 @@ pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
 #[cfg(test)]
 mod tests {
   use super::*;
-  
+
   use parser::address::Port;
   use parser::syntax::{InputMapping, OutputMapping};
 
@@ -294,7 +294,7 @@ mod tests {
         vec![]
       )
     ];
-    let tree = ParsingTree { nodes: nodes, tests: vec![] }; 
+    let tree = ParsingTree { nodes: nodes, tests: vec![] };
     check(&tree, &mut checks);
     assert_eq!(checks.has_errors(), true);
     assert_eq!(checks.error_count(), 2);

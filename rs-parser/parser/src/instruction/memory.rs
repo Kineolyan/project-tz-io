@@ -1,5 +1,5 @@
 use nom;
-use instruction::{MemoryPointer, Operation};
+use crate::instruction::{MemoryPointer, Operation};
 
 pub fn swp_operation(input: &[u8]) -> nom::IResult<&[u8], Operation> {
 	nom::combinator::value(
@@ -17,8 +17,8 @@ pub fn sav_operation(input: &[u8]) -> nom::IResult<&[u8], Operation> {
 mod tests {
 	use super::*;
 
-	use common::to_input;
-	use common::tests::*;
+	use crate::common::to_input;
+	use crate::common::tests::*;
 
 	#[test]
 	fn test_parse_swp_operation() {

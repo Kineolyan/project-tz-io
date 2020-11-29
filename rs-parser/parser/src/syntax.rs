@@ -5,10 +5,10 @@ use nom::character::complete::{space0, space1};
 use nom::IResult; //space;
 use nom::number::complete::be_u32;
 
-use address::{node_header, port_ref, Node, Port};
-use common::{eol, opt_eol};
-use instruction::condition::label_operation;
-use instruction::{parse_instruction, Operation};
+use crate::address::{node_header, port_ref, Node, Port};
+use crate::common::{eol, opt_eol};
+use crate::instruction::condition::label_operation;
+use crate::instruction::{parse_instruction, Operation};
 
 #[derive(Debug, PartialEq)]
 pub struct InputMapping {
@@ -150,9 +150,9 @@ pub fn node_list(input: &[u8]) -> IResult<&[u8], Vec<NodeBlock>> {
 mod tests {
 	use super::*;
 
-	use common::tests::*;
-	use common::to_input;
-	use instruction::{MemoryPointer, ValuePointer};
+	use crate::common::tests::*;
+	use crate::common::to_input;
+	use crate::instruction::{MemoryPointer, ValuePointer};
 
 	#[test]
 	fn test_parse_node_line() {

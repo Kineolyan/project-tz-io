@@ -1,5 +1,5 @@
 [package]
-name = "rs-parser"
+name = "parser"
 version = "0.2.0"
 authors = ["Kineolyan <kineolyan@protonmail.com>"]
 edition = "2018"

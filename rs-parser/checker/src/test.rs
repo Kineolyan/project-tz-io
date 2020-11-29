@@ -1,7 +1,7 @@
 use parser::{ParsingTree, TestCase};
 use parser::address::{Node, Port};
 use parser::syntax::{NodeBlock, InputMapping, OutputMapping};
-use checker::CheckResult;
+use crate::result::CheckResult;
 
 /// Module checking that the tests are correctly formed.
 /// There must be as many values as inputs and outputs
@@ -55,8 +55,8 @@ pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use parser::address::Port;
-  use parser::syntax::{InputMapping, OutputMapping};
+  use crate::parser::address::Port;
+  use crate::parser::syntax::{InputMapping, OutputMapping};
 
   fn create_nodes() -> Vec<NodeBlock> {
     let src = (
@@ -119,7 +119,7 @@ mod tests {
     ];
 
     let mut checks = CheckResult::new();
-    
+
     let result = check(&ParsingTree {nodes: create_nodes(), tests: tests}, &mut checks);
     assert_eq!(result, false);
     assert_eq!(checks.has_errors(), true);
@@ -135,7 +135,7 @@ mod tests {
     ];
 
     let mut checks = CheckResult::new();
-    
+
     let result = check(&ParsingTree {nodes: create_nodes(), tests: tests}, &mut checks);
     assert_eq!(result, false);
     assert_eq!(checks.has_errors(), true);
@@ -151,7 +151,7 @@ mod tests {
     ];
 
     let mut checks = CheckResult::new();
-    
+
     let result = check(&ParsingTree {nodes: create_nodes(), tests: tests}, &mut checks);
     assert_eq!(result, false);
     assert_eq!(checks.has_errors(), true);
@@ -167,7 +167,7 @@ mod tests {
     ];
 
     let mut checks = CheckResult::new();
-    
+
     let result = check(&ParsingTree {nodes: create_nodes(), tests: tests}, &mut checks);
     assert_eq!(result, false);
     assert_eq!(checks.has_errors(), true);

@@ -4,7 +4,7 @@ use parser::ParsingTree;
 use parser::address::Node;
 use parser::syntax::{NodeBlock, InputMapping, OutputMapping};
 use parser::instruction::{ValuePointer, Operation};
-use checker::CheckResult;
+use crate::CheckResult;
 
 /// Module checking that the ports referenced by instructions
 /// are defined in the inputs/outputs.

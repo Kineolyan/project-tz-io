@@ -1,14 +1,14 @@
 use std::cmp::Eq;
-use java::constructs::{
+use crate::java::constructs::{
   Attribute,
   Signature,
   Method
 };
-use java::constants::{
+use crate::java::constants::{
   ArrayType,
   Type
 };
-use java::dictionary::{Dictionary, DictionaryIter};
+use crate::java::dictionary::{Dictionary, DictionaryIter};
 
 pub type PoolIdx = u16;
 
@@ -316,8 +316,8 @@ mod tests {
 
   mod base {
     use super::super::*;
-    use java::constructs::Signature;
-    use java::constants::{Type, ArrayType, MethodAccess};
+    use crate::java::constructs::Signature;
+    use crate::java::constants::{Type, ArrayType, MethodAccess};
 
     #[test]
     fn test_set_class_name() {

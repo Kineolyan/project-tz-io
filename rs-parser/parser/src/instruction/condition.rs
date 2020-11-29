@@ -2,9 +2,9 @@ use nom;
 use nom::character::complete::space1;
 use nom::IResult;
 
-use common::to_string;
-use instruction::Operation;
-use instruction::base::{
+use crate::common::to_string;
+use crate::instruction::Operation;
+use crate::instruction::base::{
 	value_pointer,
 	input_pointer,
 	acc_pointer,
@@ -54,9 +54,9 @@ pub fn jro_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 mod tests {
 	use super::*;
 
-	use common::tests::*;
-	use common::to_input;
-	use instruction::ValuePointer;
+	use crate::common::tests::*;
+	use crate::common::to_input;
+	use crate::instruction::ValuePointer;
 
 	#[test]
 	fn test_parse_label_operation() {

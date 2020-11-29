@@ -2,8 +2,8 @@ use nom::IResult;
 use nom::bytes::complete::tag;
 use nom::branch::alt;
 
-use instruction::Operation;
-use instruction::base::{
+use crate::instruction::Operation;
+use crate::instruction::base::{
 	value_pointer,
 	input_pointer,
 	acc_pointer,
@@ -31,9 +31,9 @@ pub fn neg_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 mod tests {
 	use super::*;
 
-	use common::to_input;
-	use common::tests::*;
-	use instruction::ValuePointer;
+	use crate::common::to_input;
+	use crate::common::tests::*;
+	use crate::instruction::ValuePointer;
 
 	#[test]
 	fn test_parse_add_operation_with_value() {

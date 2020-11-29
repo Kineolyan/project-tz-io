@@ -6,6 +6,7 @@ version = "0.2.0"
 dependencies = [
  "checker",
  "generator",
+ "language",
  "parser",
  "postprocessor",
 ]
@@ -44,7 +45,7 @@ checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 name = "checker"
 version = "0.2.0"
 dependencies = [
- "parser",
+ "language",
 ]
 
 [[package]]
@@ -57,8 +58,12 @@ checksum = "0ba62103ce691c2fd80fbae2213dfdda9ce60804973ac6b6e97de818ea7f52c8"
 name = "generator"
 version = "0.1.0"
 dependencies = [
- "parser",
+ "language",
 ]
+
+[[package]]
+name = "language"
+version = "0.2.0"
 
 [[package]]
 name = "lexical-core"
@@ -95,6 +100,7 @@ dependencies = [
 name = "parser"
 version = "0.2.0"
 dependencies = [
+ "language",
  "nom",
 ]
 
@@ -102,7 +108,7 @@ dependencies = [
 name = "postprocessor"
 version = "0.1.0"
 dependencies = [
- "parser",
+ "language",
 ]
 
 [[package]]

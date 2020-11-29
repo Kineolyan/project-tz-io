@@ -1,7 +1,7 @@
 mod mapping;
 
-use parser::ParsingTree;
+use language::syntax::Program;
 
-pub fn process(tree: ParsingTree) -> ParsingTree {
+pub fn process(tree: Program) -> Program {
   mapping::complete_mappings(tree)
 }

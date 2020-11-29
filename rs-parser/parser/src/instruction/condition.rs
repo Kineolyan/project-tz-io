@@ -1,9 +1,9 @@
 use nom;
-use nom::character::complete::space1;
+// use nom::character::complete::space1;
 use nom::IResult;
 
 use crate::common::to_string;
-use crate::instruction::Operation;
+use language::instruction::Operation;
 use crate::instruction::base::{
 	value_pointer,
 	input_pointer,
@@ -56,7 +56,7 @@ mod tests {
 
 	use crate::common::tests::*;
 	use crate::common::to_input;
-	use crate::instruction::ValuePointer;
+	use language::instruction::ValuePointer;
 
 	#[test]
 	fn test_parse_label_operation() {

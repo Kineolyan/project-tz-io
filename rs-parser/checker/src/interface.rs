@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
-use parser::ParsingTree;
-use parser::syntax::NodeBlock;
+use language::syntax::Program;
+use language::syntax::NodeBlock;
 use crate::CheckResult;
 
 /// Module checking that the ports referenced by inputs
@@ -44,7 +44,7 @@ fn check_node(node: &NodeBlock, result: &mut CheckResult) {
   }
 }
 
-pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
+pub fn check(tree: &Program, result: &mut CheckResult) -> bool {
   let initial_count = result.error_count();
   for node in &tree.nodes {
     check_node(node, result);
@@ -57,8 +57,8 @@ pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
 mod tests {
   use super::*;
 
-  use parser::address::{Node, Port};
-  use parser::syntax::{InputMapping, OutputMapping};
+  use language::address::{Node, Port};
+  use language::syntax::{InputMapping, OutputMapping};
 
   fn fake_input(i: u32) -> InputMapping {
     InputMapping {

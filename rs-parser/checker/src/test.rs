@@ -1,6 +1,7 @@
-use parser::{ParsingTree, TestCase};
-use parser::address::{Node, Port};
-use parser::syntax::{NodeBlock, InputMapping, OutputMapping};
+use language::syntax::Program;
+use language::test::TestCase;
+use language::address::{Node, Port};
+use language::syntax::{NodeBlock, InputMapping, OutputMapping};
 use crate::result::CheckResult;
 
 /// Module checking that the tests are correctly formed.
@@ -41,7 +42,7 @@ fn check_test(test: &TestCase, result: &mut CheckResult, counts: &Counts) {
   }
 }
 
-pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
+pub fn check(tree: &Program, result: &mut CheckResult) -> bool {
   let counts = count_ios(&tree.nodes);
 
   let initial_count = result.error_count();
@@ -55,8 +56,8 @@ pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::parser::address::Port;
-  use crate::parser::syntax::{InputMapping, OutputMapping};
+  use crate::language::address::Port;
+  use crate::language::syntax::{InputMapping, OutputMapping};
 
   fn create_nodes() -> Vec<NodeBlock> {
     let src = (
@@ -105,7 +106,7 @@ mod tests {
       TestCase { ins: vec![1, 2], outs: vec![9]},
       TestCase { ins: vec![3, 4], outs: vec![8]}
     ];
-    let result = check(&ParsingTree {nodes: create_nodes(), tests: tests}, &mut check_result);
+    let result = check(&Program {nodes: create_nodes(), tests: tests}, &mut check_result);
     assert_eq!(result, true);
     assert_eq!(check_result.has_errors(), false);
   }
@@ -120,7 +121,7 @@ mod tests {
 
     let mut checks = CheckResult::new();
 
-    let result = check(&ParsingTree {nodes: create_nodes(), tests: tests}, &mut checks);
+    let result = check(&Program {nodes: create_nodes(), tests: tests}, &mut checks);
     assert_eq!(result, false);
     assert_eq!(checks.has_errors(), true);
     assert_eq!(checks.error_count(), 2);
@@ -136,7 +137,7 @@ mod tests {
 
     let mut checks = CheckResult::new();
 
-    let result = check(&ParsingTree {nodes: create_nodes(), tests: tests}, &mut checks);
+    let result = check(&Program {nodes: create_nodes(), tests: tests}, &mut checks);
     assert_eq!(result, false);
     assert_eq!(checks.has_errors(), true);
     assert_eq!(checks.error_count(), 2);
@@ -152,7 +153,7 @@ mod tests {
 
     let mut checks = CheckResult::new();
 
-    let result = check(&ParsingTree {nodes: create_nodes(), tests: tests}, &mut checks);
+    let result = check(&Program {nodes: create_nodes(), tests: tests}, &mut checks);
     assert_eq!(result, false);
     assert_eq!(checks.has_errors(), true);
     assert_eq!(checks.error_count(), 2);
@@ -168,7 +169,7 @@ mod tests {
 
     let mut checks = CheckResult::new();
 
-    let result = check(&ParsingTree {nodes: create_nodes(), tests: tests}, &mut checks);
+    let result = check(&Program {nodes: create_nodes(), tests: tests}, &mut checks);
     assert_eq!(result, false);
     assert_eq!(checks.has_errors(), true);
     assert_eq!(checks.error_count(), 2);

@@ -8,10 +8,10 @@ use std::cmp::Eq;
 use std::path::PathBuf;
 use std::collections::HashMap;
 
-use parser::ParsingTree;
-use parser::syntax::NodeBlock;
-use parser::address::Node;
-use parser::instruction::{Operation, MemoryPointer, ValuePointer};
+use language::syntax::Program;
+use language::syntax::NodeBlock;
+use language::address::Node;
+use language::instruction::{Operation, MemoryPointer, ValuePointer};
 use crate::java::dictionary::Dictionary;
 
 const OBJECT_CLASS_NAME: &str = "java/lang/Object";
@@ -111,7 +111,7 @@ fn create_reference_instructions(
   }
 }
 
-fn create_slot_indexes(tree: &ParsingTree) -> SlotStructure {
+fn create_slot_indexes(tree: &Program) -> SlotStructure {
   let mut s = SlotStructure {
     count: 0,
     node_inputs: HashMap::new(),
@@ -390,7 +390,7 @@ fn create_jro_operation(
 }
 
 pub fn create_main_file(
-    tree: &ParsingTree,
+    tree: &Program,
     package: &str,
     output_dir: &PathBuf) -> Result<(), String> {
   let slots = create_slot_indexes(tree);

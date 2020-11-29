@@ -9,17 +9,15 @@ pub mod test;
 
 use std::result::Result;
 
-use nom::character::complete::space0;
-use common::{opt_eol, to_string};
-use syntax::{node_list, NodeBlock};
+// use nom::character::complete::space0;
+use common::to_string;
+use language::syntax::NodeBlock;
+use syntax::node_list;
 use test::test_case;
+use language::syntax::Program;
+use language::test::TestCase;
 
-pub use test::TestCase;
-pub struct ParsingTree {
-  pub nodes: Vec<NodeBlock>,
-  pub tests: Vec<TestCase>,
-}
-pub type ParsingResult = Result<ParsingTree, ()>;
+pub type ParsingResult = Result<Program, ()>;
 
 pub fn program(
   input: &[u8],
@@ -45,7 +43,7 @@ pub fn parse(input: &[u8]) -> ParsingResult {
         // Move all results to one list
         start_cases.append(&mut end_cases);
 
-        let tree = ParsingTree {
+        let tree = Program {
           nodes: list,
           tests: start_cases,
         };
@@ -82,11 +80,10 @@ pub fn parse(input: &[u8]) -> ParsingResult {
 mod tests {
   use super::*;
 
-  use address::{Node, Port};
+  use language::address::{Node, Port};
   use common::tests::*;
-  use instruction::Operation;
-  use instruction::ValuePointer;
-  use syntax::{InputMapping, OutputMapping};
+  use language::instruction::{ValuePointer, Operation};
+  use language::syntax::{InputMapping, OutputMapping};
 
   #[test]
   fn test_program_without_tests() {

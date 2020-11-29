@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use parser::ParsingTree;
-use parser::address::Node;
-use parser::syntax::NodeBlock;
+use language::syntax::Program;
+use language::address::Node;
+use language::syntax::NodeBlock;
 use crate::result::CheckResult;
 
 /// Module checking that the mappings between the various nodes
@@ -99,7 +99,7 @@ fn check_node_outputs(
   }
 }
 
-pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
+pub fn check(tree: &Program, result: &mut CheckResult) -> bool {
   let mut index = HashMap::new();
   {
     map_node_to_idx(&tree.nodes, &mut index);
@@ -118,8 +118,8 @@ pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
 mod tests {
   use super::*;
 
-  use parser::address::Port;
-  use parser::syntax::{InputMapping, OutputMapping};
+  use language::address::Port;
+  use language::syntax::{InputMapping, OutputMapping};
 
   #[test]
   fn test_check_valid_mappings() {
@@ -154,7 +154,7 @@ mod tests {
       vec![]
     );
     let nodes = vec![src, dst];
-    let tree = ParsingTree { nodes: nodes, tests: vec![] };
+    let tree = Program { nodes: nodes, tests: vec![] };
     let result = check(&tree, &mut check_result);
     assert_eq!(result, true);
     assert_eq!(check_result.has_errors(), false);
@@ -189,7 +189,7 @@ mod tests {
       vec![]
     );
     let nodes = vec![src, dst];
-    let tree = ParsingTree { nodes: nodes, tests: vec![] };
+    let tree = Program { nodes: nodes, tests: vec![] };
     let result = check(&tree, &mut check_result);
     assert_eq!(result, true);
     assert_eq!(check_result.has_errors(), false);
@@ -257,7 +257,7 @@ mod tests {
       ],
       vec![]
     );
-    let tree = ParsingTree { nodes: vec![src, dst], tests: vec![] };
+    let tree = Program { nodes: vec![src, dst], tests: vec![] };
     let result = check(&tree, &mut check_result);
     assert_eq!(result, false);
     assert_eq!(check_result.error_count(), 4);

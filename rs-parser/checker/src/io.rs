@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 
-use parser::address::Node;
-use parser::ParsingTree;
-use parser::syntax::NodeBlock;
+use language::address::Node;
+use language::syntax::Program;
+use language::syntax::NodeBlock;
 use crate::CheckResult;
 
 fn dups_to_str(duplicates: HashSet<u32>) -> String {
@@ -82,7 +82,7 @@ fn check_outputs(nodes: &Vec<NodeBlock>, result: &mut CheckResult) {
   }
 }
 
-pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
+pub fn check(tree: &Program, result: &mut CheckResult) -> bool {
   let initial_count = result.error_count();
   check_inputs(&tree.nodes, result);
   check_outputs(&tree.nodes, result);
@@ -94,8 +94,8 @@ pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
 mod tests {
   use super::*;
 
-  use parser::address::Port;
-  use parser::syntax::{InputMapping, OutputMapping};
+  use language::address::Port;
+  use language::syntax::{InputMapping, OutputMapping};
 
   #[test]
   fn test_check_in_ok() {
@@ -294,7 +294,7 @@ mod tests {
         vec![]
       )
     ];
-    let tree = ParsingTree { nodes: nodes, tests: vec![] };
+    let tree = Program { nodes: nodes, tests: vec![] };
     check(&tree, &mut checks);
     assert_eq!(checks.has_errors(), true);
     assert_eq!(checks.error_count(), 2);
@@ -319,7 +319,7 @@ mod tests {
         vec![]
       )
     ];
-    let tree = ParsingTree { nodes: nodes, tests: vec![] };
+    let tree = Program { nodes: nodes, tests: vec![] };
     check(&tree, &mut checks);
     assert_eq!(checks.has_warnings(), true);
   }
@@ -343,7 +343,7 @@ mod tests {
         vec![]
       )
     ];
-    let tree = ParsingTree { nodes: nodes, tests: vec![] };
+    let tree = Program { nodes: nodes, tests: vec![] };
     check(&tree, &mut checks);
     assert_eq!(checks.has_warnings(), true);
   }

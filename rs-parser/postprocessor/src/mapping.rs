@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use parser::ParsingTree;
-use parser::address::{Node, Port};
-use parser::syntax::{NodeBlock, InputMapping, OutputMapping};
+use language::syntax::Program;
+use language::address::{Node, Port};
+use language::syntax::{NodeBlock, InputMapping, OutputMapping};
 
 type Index = HashMap<String, usize>;
-fn map_node_to_idx<'a>(tree: &ParsingTree) -> Index {
+fn map_node_to_idx<'a>(tree: &Program) -> Index {
   let mut index = HashMap::new();
   for (i, &(ref node, _, _, _)) in tree.nodes.iter().enumerate() {
     if let &Node::Node(ref node_id) = node {
@@ -16,7 +16,7 @@ fn map_node_to_idx<'a>(tree: &ParsingTree) -> Index {
 }
 
 /// Complete nodes inputs with the outputs referenced by nodes
-fn complete_inputs(mut tree: ParsingTree, index: &Index) -> ParsingTree {
+fn complete_inputs(mut tree: Program, index: &Index) -> Program {
   let mut additions = Vec::new();
   for node in tree.nodes.iter() {
     let this_id = &node.0.get_id();
@@ -63,7 +63,7 @@ fn complete_input(node: &NodeBlock, src_id: &String, from: u32, to: u32) -> Opti
 }
 
 /// Complete nodes outputs with the inputs referenced by nodes
-fn complete_outputs(mut tree: ParsingTree, index: &Index) -> ParsingTree{
+fn complete_outputs(mut tree: Program, index: &Index) -> Program{
   let mut additions = Vec::new();
   for node in tree.nodes.iter() {
     let this_id = &node.0.get_id();
@@ -108,7 +108,7 @@ fn complete_output(node: &NodeBlock, dst_id: &String, from: u32, to: u32) -> Opt
   }
 }
 
-pub fn complete_mappings(tree: ParsingTree) -> ParsingTree {
+pub fn complete_mappings(tree: Program) -> Program {
   let nodes = map_node_to_idx(&tree);
 
   let tree = complete_inputs(tree, &nodes);
@@ -121,8 +121,8 @@ pub fn complete_mappings(tree: ParsingTree) -> ParsingTree {
 mod tests {
   use super::*;
 
-  use parser::address::Port;
-  use parser::syntax::{InputMapping, OutputMapping};
+  use language::address::Port;
+  use language::syntax::{InputMapping, OutputMapping};
 
   #[test]
   fn test_complete_node_inputs() {
@@ -153,7 +153,7 @@ mod tests {
       vec![],
       vec![]
     );
-    let tree = complete_mappings(ParsingTree { nodes: vec![src, dst], tests: vec![] });
+    let tree = complete_mappings(Program { nodes: vec![src, dst], tests: vec![] });
     assert_eq!(tree.nodes[1].1, vec![
       InputMapping {
         from: Port {
@@ -194,7 +194,7 @@ mod tests {
       vec![],
       vec![]
     );
-    let tree = complete_mappings(ParsingTree { nodes: vec![src, dst], tests: vec![] });
+    let tree = complete_mappings(Program { nodes: vec![src, dst], tests: vec![] });
     assert_eq!(tree.nodes[0].2, vec![
       OutputMapping {
         from: 1,
@@ -236,7 +236,7 @@ mod tests {
       vec![],
       vec![]
     );
-    let tree = complete_mappings(ParsingTree { nodes: vec![src, dst], tests: vec![] });
+    let tree = complete_mappings(Program { nodes: vec![src, dst], tests: vec![] });
     assert_eq!(tree.nodes[0].2, vec![
       OutputMapping {
         from: 2,

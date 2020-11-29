@@ -1,5 +1,5 @@
 use nom::number::complete::be_u32;
-use crate::instruction::{ValuePointer, MemoryPointer};
+use language::instruction::{ValuePointer, MemoryPointer};
 
 named!(pub acc_pointer<&[u8], ValuePointer>,
 	value!(ValuePointer::ACC, tag!("ACC"))

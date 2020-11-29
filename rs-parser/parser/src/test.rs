@@ -1,6 +1,7 @@
 use nom::IResult;
 // use nom::number::complete::be_i8;
 use nom::character::complete::space0;
+use language::test::TestCase;
 
 pub fn values(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
   // separated_nonempty_list_complete!(
@@ -20,18 +21,6 @@ pub fn array(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
   //   values
   // )
   todo!()
-}
-
-#[derive(Debug, PartialEq)]
-pub struct TestCase {
-  pub ins: Vec<i8>,
-  pub outs: Vec<i8>
-}
-
-impl TestCase {
-  pub fn new(ins: Vec<i8>, outs: Vec<i8>) -> TestCase {
-    TestCase { ins: ins, outs: outs }
-  }
 }
 
 named!(pub test_case<&[u8], TestCase>,

@@ -2,7 +2,7 @@ use nom::IResult;
 use nom::bytes::complete::tag;
 use nom::branch::alt;
 
-use crate::instruction::Operation;
+use language::instruction::Operation;
 use crate::instruction::base::{
 	value_pointer,
 	input_pointer,
@@ -33,7 +33,7 @@ mod tests {
 
 	use crate::common::to_input;
 	use crate::common::tests::*;
-	use crate::instruction::ValuePointer;
+	use language::instruction::ValuePointer;
 
 	#[test]
 	fn test_parse_add_operation_with_value() {

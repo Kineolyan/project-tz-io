@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
-use parser::ParsingTree;
-use parser::address::Node;
-use parser::syntax::{NodeBlock, InputMapping, OutputMapping};
-use parser::instruction::{ValuePointer, Operation};
+use language::syntax::Program;
+use language::address::Node;
+use language::syntax::{NodeBlock, InputMapping, OutputMapping};
+use language::instruction::{ValuePointer, Operation};
 use crate::CheckResult;
 
 /// Module checking that the ports referenced by instructions
@@ -74,7 +74,7 @@ fn check_node(node: &NodeBlock, result: &mut CheckResult) {
   }
 }
 
-pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
+pub fn check(tree: &Program, result: &mut CheckResult) -> bool {
   let initial_count = result.error_count();
   for node in &tree.nodes {
     check_node(node, result);
@@ -87,7 +87,7 @@ pub fn check(tree: &ParsingTree, result: &mut CheckResult) -> bool {
 mod tests {
   use super::*;
 
-  use parser::address::Port;
+  use language::address::Port;
 
   #[test]
   fn test_check_node_on_jro() {

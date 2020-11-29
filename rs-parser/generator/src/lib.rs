@@ -1,6 +1,6 @@
 mod java;
 
-use parser::ParsingTree;
+use language::syntax::Program;
 use std::path::{Path, PathBuf};
 use std::fs;
 
@@ -27,12 +27,12 @@ fn prepare_output<'a>(filename: &'a str, target_dir: &'a str) -> Result<PathBuf,
   result.map(|_| output_dir_buffer)
 }
 
-fn generate_program(tree: &ParsingTree, output_dir: PathBuf) -> Result<(), String> {
+fn generate_program(tree: &Program, output_dir: PathBuf) -> Result<(), String> {
   let package = output_dir.file_stem().unwrap().to_str().unwrap();
   java::create_main_file(&tree, package, &output_dir)
 }
 
-pub fn generate(result: ParsingTree, filename: &str, target_dir: &str) -> Result<(), String> {
+pub fn generate(result: Program, filename: &str, target_dir: &str) -> Result<(), String> {
 	prepare_output(filename, target_dir)
     .and_then(|output_dir| generate_program(&result, output_dir))
 }

@@ -1,7 +1,7 @@
 use nom::IResult;
 // use nom::character::complete::space0;
 
-use crate::instruction::Operation;
+use language::instruction::Operation;
 // use crate::instruction::base::*;
 
 fn mov_from_in(input: &[u8]) -> IResult<&[u8], Operation> {
@@ -47,7 +47,7 @@ mod tests {
 
 	use crate::common::to_input;
   use crate::common::tests::*;
-  use crate::instruction::ValuePointer;
+  use language::instruction::ValuePointer;
 
   #[test]
   fn test_parse_mov_in_to_out() {

@@ -1,5 +1,5 @@
 use nom;
-use crate::instruction::{MemoryPointer, Operation};
+use language::instruction::{MemoryPointer, Operation};
 
 pub fn swp_operation(input: &[u8]) -> nom::IResult<&[u8], Operation> {
 	nom::combinator::value(

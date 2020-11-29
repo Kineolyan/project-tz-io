@@ -5,11 +5,11 @@ mod io;
 mod result;
 mod test;
 
-use parser::ParsingTree;
+use language::syntax::Program;
 use crate::result::CheckResult;
 
 
-pub fn check(tree: &ParsingTree) -> CheckResult {
+pub fn check(tree: &Program) -> CheckResult {
 	let mut checks = CheckResult::new();
 	// println!("{:?}", res);
 	if !mapping::check(tree, &mut checks) {
@@ -33,9 +33,9 @@ pub fn check(tree: &ParsingTree) -> CheckResult {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use parser::address::{Node, Port};
-	use parser::syntax::{InputMapping, OutputMapping};
-	use parser::instruction::{Operation, ValuePointer};
+	use language::address::{Node, Port};
+	use language::syntax::{InputMapping, OutputMapping};
+	use language::instruction::{Operation, ValuePointer};
 
 	#[test]
 	fn test_complete_check_stack() {
@@ -88,7 +88,7 @@ mod tests {
 			]
     );
     let tree = vec![src, dst];
-    let result = check(&ParsingTree { nodes: tree, tests: vec![] });
+    let result = check(&Program { nodes: tree, tests: vec![] });
     assert_eq!(result.has_errors(), false);
 	}
 

@@ -5,21 +5,12 @@ use nom::character::complete::{space0, space1};
 use nom::IResult; //space;
 use nom::number::complete::be_u32;
 
-use crate::address::{node_header, port_ref, Node, Port};
+use crate::address::{node_header, port_ref};
 use crate::common::{eol, opt_eol};
-use crate::instruction::condition::label_operation;
-use crate::instruction::{parse_instruction, Operation};
-
-#[derive(Debug, PartialEq)]
-pub struct InputMapping {
-	pub from: Port,
-	pub to: u32,
-}
-#[derive(Debug, PartialEq)]
-pub struct OutputMapping {
-	pub from: u32,
-	pub to: Port,
-}
+// use crate::instruction::condition::label_operation;
+// use crate::instruction::parse_instruction;
+use language::instruction::Operation;
+use language::syntax::{InputMapping, OutputMapping};
 
 /// A combinator that takes a parser `inner` and produces a parser that also consumes both leading and
 /// trailing whitespace, returning the output of `inner`.
@@ -114,8 +105,7 @@ pub fn instruction_list(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
 	todo!()
 }
 
-pub type NodeBlock = (Node, Vec<InputMapping>, Vec<OutputMapping>, Vec<Operation>);
-pub fn node_block(input: &[u8]) -> IResult<&[u8], NodeBlock> {
+pub fn node_block(input: &[u8]) -> IResult<&[u8], language::syntax::NodeBlock> {
 	todo!()
 	// do_parse!(
 	// 	space0 >>
@@ -142,7 +132,7 @@ pub fn node_block(input: &[u8]) -> IResult<&[u8], NodeBlock> {
 	// )
 }
 
-pub fn node_list(input: &[u8]) -> IResult<&[u8], Vec<NodeBlock>> {
+pub fn node_list(input: &[u8]) -> IResult<&[u8], Vec<language::syntax::NodeBlock>> {
 	nom::multi::separated_list1(opt_eol, node_block)(input)
 }
 
@@ -152,7 +142,8 @@ mod tests {
 
 	use crate::common::tests::*;
 	use crate::common::to_input;
-	use crate::instruction::{MemoryPointer, ValuePointer};
+	use language::instruction::{MemoryPointer, ValuePointer};
+use language::address::{Node, Port};
 
 	#[test]
 	fn test_parse_node_line() {

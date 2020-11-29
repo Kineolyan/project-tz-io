@@ -6,7 +6,8 @@ use postprocessor;
 use checker;
 use generator;
 
-use parser::{ParsingResult, ParsingTree, parse};
+use language::syntax::Program;
+use parser::{ParsingResult, parse};
 
 fn parse_file(filename: &str) -> ParsingResult {
 	println!("Compiling {}", filename);
@@ -23,7 +24,7 @@ fn parse_file(filename: &str) -> ParsingResult {
 	parse(contents.as_bytes())
 }
 
-fn check_file(result: ParsingTree) -> Result<ParsingTree, String> {
+fn check_file(result: Program) -> Result<Program, String> {
 	let check_result = checker::check(&result);
 	check_result.print_report();
 	if check_result.has_errors() {
@@ -33,14 +34,14 @@ fn check_file(result: ParsingTree) -> Result<ParsingTree, String> {
 	}
 }
 
-fn process_input(filename: &str) -> Result<ParsingTree, String> {
+fn process_input(filename: &str) -> Result<Program, String> {
 	parse_file(filename)
 		.map_err(|_| String::from("Failed parsing"))
 		.map(postprocessor::process)
 		.and_then(check_file)
 }
 
-fn create_output(result: ParsingTree, filename: &str, target_dir: &str) -> Result<(), String> {
+fn create_output(result: Program, filename: &str, target_dir: &str) -> Result<(), String> {
 	generator::generate(result, filename, target_dir)
 }
 

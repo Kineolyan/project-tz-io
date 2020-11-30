@@ -1,7 +1,7 @@
+use crate::common;
 use language::instruction::{MemoryPointer, ValuePointer};
 use nom::bytes::complete::tag;
 use nom::combinator as c;
-use nom::number::complete::be_u32;
 use nom::IResult;
 
 pub fn acc_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
@@ -13,9 +13,10 @@ pub fn nil_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
 }
 
 fn pointer<'a>(arrow: &'static str, input: &'a [u8]) -> IResult<&'a [u8], ValuePointer> {
-  c::map(nom::sequence::preceded(tag(arrow), be_u32), |port| {
-    ValuePointer::PORT(port)
-  })(input)
+  c::map(
+    nom::sequence::preceded(tag(arrow), common::be_uint),
+    |port| ValuePointer::PORT(port),
+  )(input)
 }
 
 pub fn input_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
@@ -27,7 +28,7 @@ pub fn output_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
 }
 
 pub fn value_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
-  c::map(be_u32, |value| ValuePointer::VALUE(value))(input)
+  c::map(common::be_uint, |value| ValuePointer::VALUE(value))(input)
 }
 
 pub fn bak_pointer(input: &[u8]) -> IResult<&[u8], MemoryPointer> {
@@ -54,7 +55,7 @@ mod tests {
 
   #[test]
   fn test_parse_input_pointer() {
-    let res = input_pointer(to_input(b"<12 "));
+    let res = input_pointer(to_input(b"<12"));
     assert_full_result(res, ValuePointer::PORT(12));
   }
 

@@ -1,43 +1,51 @@
+use nom::branch;
+use nom::bytes::complete::tag;
+use nom::character::complete::{space0, space1};
 use nom::IResult;
-// use nom::character::complete::space0;
 
+use crate::instruction::base as ptr;
 use language::instruction::Operation;
-// use crate::instruction::base::*;
+
+fn consume_mov(input: &[u8]) -> IResult<&[u8], ()> {
+  let (rest, _) = nom::sequence::tuple((tag("MOV"), space1))(input)?;
+  Ok((rest, ()))
+}
 
 fn mov_from_in(input: &[u8]) -> IResult<&[u8], Operation> {
-  todo!()
-  // do_parse!(
-  //   tag!("MOV") >> space >>
-  //   from: input_pointer >>
-  //   space0 >> tag!(",") >> space0 >>
-  //   to: alt!(acc_pointer | nil_pointer | output_pointer) >>
-  //   (Operation::MOV(from, to))
-  // )
+  let (rest, (from, _, _, _, to)) = nom::sequence::tuple((
+    ptr::input_pointer,
+    space0,
+    tag(","),
+    space0,
+    branch::alt((ptr::acc_pointer, ptr::nil_pointer, ptr::output_pointer)),
+  ))(input)?;
+  Ok((rest, Operation::MOV(from, to)))
 }
 
 fn mov_to_out(input: &[u8]) -> IResult<&[u8], Operation> {
-  // do_parse!(
-  //   tag!("MOV") >> space >>
-  //   from: alt!(acc_pointer | nil_pointer | value_pointer) >>
-  //   space0 >> tag!(",") >> space0 >>
-  //   to: output_pointer >>
-  //   (Operation::MOV(from, to))
-  // )
-  todo!()
+  let (rest, (from, _, _, _, to)) = nom::sequence::tuple((
+    branch::alt((ptr::acc_pointer, ptr::nil_pointer, ptr::value_pointer)),
+    space0,
+    tag(","),
+    space0,
+    ptr::output_pointer,
+  ))(input)?;
+  Ok((rest, Operation::MOV(from, to)))
 }
 
 fn mov_accs(input: &[u8]) -> IResult<&[u8], Operation> {
-  // do_parse!(
-  //   tag!("MOV") >> space >>
-  //   from: alt!(value_pointer | acc_pointer | nil_pointer ) >>
-  //   space0 >> tag!(",") >> space0 >>
-  //   to: acc_pointer >>
-  //   (Operation::MOV(from, to))
-  // )
-  todo!()
+  let (rest, (from, _, _, _, to)) = nom::sequence::tuple((
+    branch::alt((ptr::value_pointer, ptr::acc_pointer, ptr::nil_pointer)),
+    space0,
+    tag(","),
+    space0,
+    ptr::acc_pointer,
+  ))(input)?;
+  Ok((rest, Operation::MOV(from, to)))
 }
 
 pub fn mov_operation(input: &[u8]) -> IResult<&[u8], Operation> {
+  let (input, _) = consume_mov(input)?;
   nom::branch::alt((mov_from_in, mov_to_out, mov_accs))(input)
 }
 
@@ -45,8 +53,8 @@ pub fn mov_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 mod tests {
   use super::*;
 
-	use crate::common::to_input;
   use crate::common::tests::*;
+  use crate::common::to_input;
   use language::instruction::ValuePointer;
 
   #[test]
@@ -54,10 +62,7 @@ mod tests {
     let res = mov_operation(to_input(b"MOV <1, >2"));
     assert_full_result(
       res,
-      Operation::MOV(
-        ValuePointer::PORT(1),
-        ValuePointer::PORT(2)
-      )
+      Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(2)),
     );
   }
 
@@ -66,10 +71,7 @@ mod tests {
     let res = mov_operation(to_input(b"MOV <1, ACC"));
     assert_full_result(
       res,
-      Operation::MOV(
-        ValuePointer::PORT(1),
-        ValuePointer::ACC
-      )
+      Operation::MOV(ValuePointer::PORT(1), ValuePointer::ACC),
     );
   }
 
@@ -78,10 +80,7 @@ mod tests {
     let res = mov_operation(to_input(b"MOV 12, >3"));
     assert_full_result(
       res,
-      Operation::MOV(
-        ValuePointer::VALUE(12),
-        ValuePointer::PORT(3)
-      )
+      Operation::MOV(ValuePointer::VALUE(12), ValuePointer::PORT(3)),
     );
   }
 
@@ -90,10 +89,7 @@ mod tests {
     let res = mov_operation(to_input(b"MOV ACC, >4"));
     assert_full_result(
       res,
-      Operation::MOV(
-        ValuePointer::ACC,
-        ValuePointer::PORT(4)
-      )
+      Operation::MOV(ValuePointer::ACC, ValuePointer::PORT(4)),
     );
   }
 
@@ -102,10 +98,7 @@ mod tests {
     let res = mov_operation(to_input(b"MOV 45, ACC"));
     assert_full_result(
       res,
-      Operation::MOV(
-        ValuePointer::VALUE(45),
-        ValuePointer::ACC
-      )
+      Operation::MOV(ValuePointer::VALUE(45), ValuePointer::ACC),
     );
   }
 
@@ -114,35 +107,20 @@ mod tests {
     let res = mov_operation(to_input(b"MOV 76, ACC"));
     assert_full_result(
       res,
-      Operation::MOV(
-        ValuePointer::VALUE(76),
-        ValuePointer::ACC
-      )
+      Operation::MOV(ValuePointer::VALUE(76), ValuePointer::ACC),
     );
   }
 
   #[test]
   fn test_parse_mov_acc_to_acc() {
     let res = mov_operation(to_input(b"MOV ACC, ACC"));
-    assert_full_result(
-      res,
-      Operation::MOV(
-        ValuePointer::ACC,
-        ValuePointer::ACC
-      )
-    );
+    assert_full_result(res, Operation::MOV(ValuePointer::ACC, ValuePointer::ACC));
   }
 
   #[test]
   fn test_parse_mov_nil_to_acc() {
     let res = mov_operation(to_input(b"MOV NIL, ACC"));
-    assert_full_result(
-      res,
-      Operation::MOV(
-        ValuePointer::NIL,
-        ValuePointer::ACC
-      )
-    );
+    assert_full_result(res, Operation::MOV(ValuePointer::NIL, ValuePointer::ACC));
   }
 
   #[test]
@@ -150,10 +128,7 @@ mod tests {
     let res = mov_operation(to_input(b"MOV NIL, >12"));
     assert_full_result(
       res,
-      Operation::MOV(
-        ValuePointer::NIL,
-        ValuePointer::PORT(12)
-      )
+      Operation::MOV(ValuePointer::NIL, ValuePointer::PORT(12)),
     );
   }
 
@@ -162,10 +137,7 @@ mod tests {
     let res = mov_operation(to_input(b"MOV <1, NIL"));
     assert_full_result(
       res,
-      Operation::MOV(
-        ValuePointer::PORT(1),
-        ValuePointer::NIL
-      )
+      Operation::MOV(ValuePointer::PORT(1), ValuePointer::NIL),
     );
   }
 

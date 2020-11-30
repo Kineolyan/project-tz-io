@@ -1,43 +1,44 @@
+use language::instruction::{MemoryPointer, ValuePointer};
+use nom::bytes::complete::tag;
+use nom::combinator as c;
 use nom::number::complete::be_u32;
-use language::instruction::{ValuePointer, MemoryPointer};
+use nom::IResult;
 
-named!(pub acc_pointer<&[u8], ValuePointer>,
-	value!(ValuePointer::ACC, tag!("ACC"))
-);
+pub fn acc_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
+  c::value(ValuePointer::ACC, tag("ACC"))(input)
+}
 
-named!(pub nil_pointer<&[u8], ValuePointer>,
-	value!(ValuePointer::NIL, tag!("NIL"))
-);
+pub fn nil_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
+  c::value(ValuePointer::NIL, tag("NIL"))(input)
+}
 
-named!(pub input_pointer<&[u8], ValuePointer>,
-  do_parse!(
-    tag!("<") >>
-    port: be_u32 >>
-    (ValuePointer::PORT(port))
-  )
-);
+fn pointer<'a>(arrow: &'static str, input: &'a [u8]) -> IResult<&'a [u8], ValuePointer> {
+  c::map(nom::sequence::preceded(tag(arrow), be_u32), |port| {
+    ValuePointer::PORT(port)
+  })(input)
+}
 
-named!(pub output_pointer<&[u8], ValuePointer>,
-  do_parse!(
-    tag!(">") >>
-    port: be_u32 >>
-    (ValuePointer::PORT(port))
-  )
-);
+pub fn input_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
+  pointer("<", input)
+}
 
-named!(pub value_pointer<&[u8], ValuePointer>,
-  map!(be_u32, |value| ValuePointer::VALUE(value))
-);
+pub fn output_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
+  pointer(">", input)
+}
 
-named!(pub bak_pointer<&[u8], MemoryPointer>,
-	value!(MemoryPointer::BAK(1), tag!("BAK"))
-);
+pub fn value_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
+  c::map(be_u32, |value| ValuePointer::VALUE(value))(input)
+}
+
+pub fn bak_pointer(input: &[u8]) -> IResult<&[u8], MemoryPointer> {
+  c::value(MemoryPointer::BAK(1), tag("BAK"))(input)
+}
 
 #[cfg(test)]
 mod tests {
   use super::*;
-	use crate::common::to_input;
   use crate::common::tests::*;
+  use crate::common::to_input;
 
   #[test]
   fn test_parse_acc_pointer() {
@@ -53,7 +54,7 @@ mod tests {
 
   #[test]
   fn test_parse_input_pointer() {
-    let res = input_pointer(to_input(b"<12"));
+    let res = input_pointer(to_input(b"<12 "));
     assert_full_result(res, ValuePointer::PORT(12));
   }
 
@@ -69,9 +70,9 @@ mod tests {
     assert_full_result(res, ValuePointer::VALUE(37u32));
   }
 
-	#[test]
-	fn test_parse_bak_pointer() {
-		let res = bak_pointer(to_input(b"BAK"));
-		assert_full_result(res, MemoryPointer::BAK(1));
-	}
+  #[test]
+  fn test_parse_bak_pointer() {
+    let res = bak_pointer(to_input(b"BAK"));
+    assert_full_result(res, MemoryPointer::BAK(1));
+  }
 }

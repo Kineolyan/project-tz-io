@@ -1,23 +1,21 @@
-use nom::IResult;
-use nom::bytes::complete::tag;
 use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::character::complete::space1;
+use nom::IResult;
 
+use crate::instruction::base::{acc_pointer, input_pointer, nil_pointer, value_pointer};
 use language::instruction::Operation;
-use crate::instruction::base::{
-	value_pointer,
-	input_pointer,
-	acc_pointer,
-	nil_pointer
-};
 
 pub fn add_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 	let (input, _) = tag("ADD")(input)?;
+	let (input, _) = space1(input)?;
 	let (input, value) = alt((input_pointer, acc_pointer, nil_pointer, value_pointer))(input)?;
 	Ok((input, Operation::ADD(value)))
 }
 
 pub fn sub_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 	let (input, _) = tag("SUB")(input)?;
+	let (input, _) = space1(input)?;
 	let (input, value) = alt((input_pointer, acc_pointer, nil_pointer, value_pointer))(input)?;
 	Ok((input, Operation::SUB(value)))
 }
@@ -31,8 +29,8 @@ pub fn neg_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 mod tests {
 	use super::*;
 
-	use crate::common::to_input;
 	use crate::common::tests::*;
+	use crate::common::to_input;
 	use language::instruction::ValuePointer;
 
 	#[test]
@@ -100,5 +98,4 @@ mod tests {
 		let res = neg_operation(to_input(b"NEG"));
 		assert_full_result(res, Operation::NEG);
 	}
-
 }

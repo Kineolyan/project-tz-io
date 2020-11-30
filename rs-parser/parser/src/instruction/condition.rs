@@ -1,15 +1,9 @@
 use nom;
-// use nom::character::complete::space1;
 use nom::IResult;
 
 use crate::common::to_string;
+use crate::instruction::base::{acc_pointer, input_pointer, nil_pointer, value_pointer};
 use language::instruction::Operation;
-use crate::instruction::base::{
-	value_pointer,
-	input_pointer,
-	acc_pointer,
-	nil_pointer
-};
 
 fn label_name(input: &[u8]) -> IResult<&[u8], String> {
 	nom::combinator::map_res(nom::character::complete::alphanumeric1, to_string)(input)
@@ -28,12 +22,14 @@ pub fn label_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 macro_rules! jump_fn {
 	($name:ident, $pattern:expr, $cnstr:path) => {
 		pub fn $name(input: &[u8]) -> IResult<&[u8], Operation> {
-			// do_parse!(
-			// 	tag!($pattern) >> space1 >>
-			// 	label: label_name >>
-			// 	($cnstr(label))
-			// )
-			todo!()
+			// TODO once we see the operation, we can deduce that it must be followed by a label
+			// Using Failure would mark the issue in the parsing
+			let (rest, (_, _, label)) = nom::sequence::tuple((
+				nom::bytes::complete::tag($pattern),
+				nom::character::complete::space1,
+				label_name,
+			))(input)?;
+			Ok((rest, $cnstr(label)))
 		}
 	};
 }
@@ -45,6 +41,7 @@ jump_fn!(jgz_operation, "JGZ", Operation::JGZ);
 
 pub fn jro_operation(input: &[u8]) -> IResult<&[u8], Operation> {
 	let (input, _) = nom::bytes::complete::tag("JRO")(input)?;
+	let (input, _) = nom::character::complete::space1(input)?;
 	let (input, value) =
 		nom::branch::alt((acc_pointer, nil_pointer, input_pointer, value_pointer))(input)?;
 	Ok((input, Operation::JRO(value)))

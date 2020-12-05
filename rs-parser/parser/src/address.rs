@@ -1,8 +1,5 @@
-use nom::IResult;
 use language::address::{Node, Port};
-
-// use nom::number::complete::be_u32;
-// use common::to_string;
+use nom::IResult;
 
 fn input_node(input: &[u8]) -> IResult<&[u8], Node> {
 	let (remaining, _) = nom::bytes::complete::tag("IN")(input)?;
@@ -15,15 +12,12 @@ fn output_node(input: &[u8]) -> IResult<&[u8], Node> {
 }
 
 fn node_id(input: &[u8]) -> IResult<&[u8], Node> {
-	// do_parse!(
-	// 	tag!("#") >>
-	// 	id: map_res!(
-	// 		take_while!(is_alphanumeric),
-	// 		to_string
-	// 	) >>
-	// 	(Node::Node(id))
-	// )
-	todo!()
+	let (input, _) = nom::bytes::complete::tag("#")(input)?;
+	let (input, id) = nom::combinator::map_res(
+		nom::bytes::complete::take_while(nom::character::is_alphanumeric),
+		crate::common::to_string,
+	)(input)?;
+	Ok((input, Node::Node(id)))
 }
 
 pub fn node_ref(input: &[u8]) -> IResult<&[u8], Node> {
@@ -31,23 +25,16 @@ pub fn node_ref(input: &[u8]) -> IResult<&[u8], Node> {
 }
 
 pub fn port_ref(input: &[u8]) -> IResult<&[u8], Port> {
-	todo!()
-	// do_parse!(
-	// 	id: node_ref >>
-	// 	tag!(":") >>
-	// 	port: be_u32 >>
-	// 	(Port::new(id, port))
-	// )
+	let (input, id) = node_ref(input)?;
+	let (input, _) = nom::bytes::complete::tag(":")(input)?;
+	let (input, port) = crate::common::be_uint(input)?;
+	Ok((input, Port::new(id, port)))
 }
 
 pub fn node_header(input: &[u8]) -> IResult<&[u8], Node> {
-	todo!()
-	// do_parse!(
-	// 	tag!("Node") >>
-	// 	opt!(space) >>
-	// 	id: node_id >>
-	// 	(id)
-	// )
+	let (input, _) = nom::bytes::complete::tag("Node")(input)?;
+	let (input, _) = nom::character::complete::space0(input)?;
+	node_id(input)
 }
 
 #[cfg(test)]

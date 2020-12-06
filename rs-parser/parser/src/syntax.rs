@@ -41,32 +41,33 @@ fn instruction_line(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
 	todo!()
 }
 
-pub fn instruction_list(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
-	// fold_many1!(instruction_line, Vec::new(), |mut acc: Vec<_>, ops| {
-	// 	for op in ops {
-	// 		acc.push(op);
-	// 	}
-	// 	acc
-	// })
-	todo!()
+fn fail(input: &[u8]) -> nom::Err<nom::error::Error<&[u8]>> {
+	nom::Err::Failure(nom::error::Error::new(
+		input,
+		nom::error::ErrorKind::Satisfy,
+	))
 }
 
 pub fn node_block(input: &[u8]) -> IResult<&[u8], language::syntax::NodeBlock> {
-	// let (input, node) = crate::address::node_header(input)?;
-	todo!()
-
-	// do_parse!(
-	// 	space0 >>
-	// 	node: node_header >> eol >>
-	// 	node_line >> eol >>
-	// 	opt_eol >>
-	// 	inputs: opt!(
-	// 		do_parse!(
-	// 			space0 >> is: inputs >> eol >>
-	// 			code_line >> eol >>
-	// 			(is)
-	// 		)
-	// 	) >>
+	let (input, node) = crate::address::node_header(input)?;
+	// At this point, we must see the start of a block
+	let (input, _) = node_line(input).map_err(|_| fail(input))?;
+	let (input, _) = nom::character::complete::newline(input)?;
+	let (input, inputs) = if let Ok((some, inputs)) = crate::mapping::inputs(input) {
+		let (rest, _) = code_line(some).map_err(|_| fail(input))?;
+		(rest, inputs)
+	} else {
+		(input, vec![])
+	};
+	// FIXME consume some possible comments before any instruction
+	let mut instructions = vec![];
+	let mut remaining = input;
+	while let Ok((some, mut instruction)) = instruction_line(remaining) {
+		let (rest, _) = crate::common::eol(some).map_err(|_| fail(input))?;
+		instructions.append(&mut instruction);
+		remaining = rest;
+	}
+	// FIXME we must parse the output mapping
 	// 	ops: instruction_list >>
 	// 	outputs: opt!(
 	// 		do_parse!(
@@ -75,9 +76,7 @@ pub fn node_block(input: &[u8]) -> IResult<&[u8], language::syntax::NodeBlock> {
 	// 			(os)
 	// 		)
 	// 	) >>
-	// 	node_line >> eol >>
-	// 	(node, inputs.unwrap_or(vec![]), outputs.unwrap_or(vec![]), ops)
-	// )
+	Ok((input, (node, inputs, vec![], instructions)))
 }
 
 pub fn node_list(input: &[u8]) -> IResult<&[u8], Vec<language::syntax::NodeBlock>> {

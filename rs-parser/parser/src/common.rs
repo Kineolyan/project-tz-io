@@ -1,4 +1,5 @@
 use nom::character::complete::digit1;
+use nom::character::complete::space0;
 use nom::combinator as c;
 use nom::IResult;
 
@@ -11,7 +12,6 @@ pub fn ws<'a, F: 'a, O, E: nom::error::ParseError<&'a [u8]>>(
 where
 	F: Fn(&'a [u8]) -> IResult<&'a [u8], O, E>,
 {
-	use nom::character::complete::space0;
 	nom::sequence::delimited(space0, inner, space0)
 }
 
@@ -64,21 +64,21 @@ pub fn be_i8(input: &[u8]) -> IResult<&[u8], i8> {
 //   }
 // }
 
+/// Consume a one-line comment without consuming the new-line chars
 fn end_line_comment(input: &[u8]) -> IResult<&[u8], ()> {
-	// alt!(
-	// 	do_parse!(tag!("//\n") >> ()) |
-	// 	do_parse!(tag!("//") >> is_not!("/\n") >> take_until!("\n") >> ())
-	// )
-	todo!()
+	nom::combinator::value(
+		(),
+		nom::sequence::pair(
+			nom::bytes::complete::tag("//"),
+			nom::bytes::complete::is_not("\n\r"),
+		),
+	)(input)
 }
+
 pub fn eol(input: &[u8]) -> IResult<&[u8], ()> {
-	// do_parse!(
-	// 	ospace >>
-	// 	opt!(end_line_comment) >>
-	// 	tag!("\n") >>
-	// 	()
-	// )
-	todo!()
+	let (input, _) = space0(input)?;
+	let (input, _) = nom::combinator::opt(end_line_comment)(input)?;
+	nom::combinator::value((), nom::character::complete::newline)(input)
 }
 
 pub fn opt_eol(input: &[u8]) -> IResult<&[u8], Vec<()>> {

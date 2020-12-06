@@ -1,34 +1,18 @@
 use nom;
-use nom::bytes::complete::tag;
 use nom::bytes::complete::take_while;
-use nom::character::complete::{space0, space1};
-use nom::number::complete::be_u32;
-use nom::IResult; //space;
+use nom::IResult;
 
-use crate::address::{node_header, port_ref};
-use crate::common::{eol, opt_eol};
+use crate::common::opt_eol;
 // use crate::instruction::condition::label_operation;
 // use crate::instruction::parse_instruction;
 use language::instruction::Operation;
 use language::syntax::{InputMapping, OutputMapping};
 
-/// A combinator that takes a parser `inner` and produces a parser that also consumes both leading and
-/// trailing whitespace, returning the output of `inner`.
-// fn list_separator<T, Input, Error: nom::error::ParseError<&[u8]>>(sep: T) -> impl Fn(Input) -> IResult<&[u8], Input, Error>
-// where
-// 	Input: nom::&[u8]Take + nom::Compare<T>,
-// 	T: nom::&[u8]Length + Clone {
-//   nom::sequence::delimited(
-//     space0,
-//     tag(sep),
-//     space0
-//   )
-// }
-
-// Syntax lines
+/// Line marking the start/end of a node
 pub fn node_line(input: &[u8]) -> IResult<&[u8], &[u8]> {
 	take_while(|c| c == b'=')(input)
 }
+/// Line separating inputs/outputs from the node instructions
 pub fn code_line(input: &[u8]) -> IResult<&[u8], &[u8]> {
 	take_while(|c| c == b'-')(input)
 }
@@ -68,7 +52,9 @@ pub fn instruction_list(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
 }
 
 pub fn node_block(input: &[u8]) -> IResult<&[u8], language::syntax::NodeBlock> {
+	// let (input, node) = crate::address::node_header(input)?;
 	todo!()
+
 	// do_parse!(
 	// 	space0 >>
 	// 	node: node_header >> eol >>

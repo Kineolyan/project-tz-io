@@ -4,6 +4,17 @@ use nom::IResult;
 
 use std::str;
 
+/// Wrap a parser with space-consumers
+pub fn ws<'a, F: 'a, O, E: nom::error::ParseError<&'a [u8]>>(
+	inner: F,
+) -> impl FnMut(&'a [u8]) -> IResult<&'a [u8], O, E>
+where
+	F: Fn(&'a [u8]) -> IResult<&'a [u8], O, E>,
+{
+	use nom::character::complete::space0;
+	nom::sequence::delimited(space0, inner, space0)
+}
+
 pub fn to_input(v: &[u8]) -> &[u8] {
 	v
 }

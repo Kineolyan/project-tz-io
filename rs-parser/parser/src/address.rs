@@ -24,6 +24,8 @@ pub fn node_ref(input: &[u8]) -> IResult<&[u8], Node> {
 	nom::branch::alt((input_node, output_node, node_id))(input)
 }
 
+/// Reads the reference to a node and a port.
+/// This expects something like `<node-label>:<port-number>`.
 pub fn port_ref(input: &[u8]) -> IResult<&[u8], Port> {
 	let (input, id) = node_ref(input)?;
 	let (input, _) = nom::bytes::complete::tag(":")(input)?;

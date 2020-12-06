@@ -2,8 +2,8 @@ use nom;
 use nom::bytes::complete::tag;
 use nom::bytes::complete::take_while;
 use nom::character::complete::{space0, space1};
-use nom::IResult; //space;
 use nom::number::complete::be_u32;
+use nom::IResult; //space;
 
 use crate::address::{node_header, port_ref};
 use crate::common::{eol, opt_eol};
@@ -33,45 +33,7 @@ pub fn code_line(input: &[u8]) -> IResult<&[u8], &[u8]> {
 	take_while(|c| c == b'-')(input)
 }
 
-// List of inputs
-pub fn input_item(input: &[u8]) -> IResult<&[u8], InputMapping> {
-	let (remaining, (port, _, _, _, input)) =
-		nom::sequence::tuple((port_ref, space0, tag("->"), space0, be_u32))(input)?;
-	let mapping = InputMapping {
-		from: port,
-		to: input,
-	};
-	Ok((remaining, mapping))
-}
-
-fn input_separator(input: &[u8]) -> IResult<&[u8], ()> {
-	let (input, _) = space0(input)?;
-	let (input, _) = tag(",")(input)?;
-	let (input, _) = space1(input)?;
-
-	Ok((input, ()))
-}
-
-pub fn inputs(input: &[u8]) -> IResult<&[u8], Vec<InputMapping>> {
-	nom::multi::separated_list1(input_separator, input_item)(input)
-}
-
-// List of outputs
-pub fn output_item(input: &[u8]) -> IResult<&[u8], OutputMapping> {
-	let (remaining, (input, _, _, _, port)) =
-		nom::sequence::tuple((be_u32, space0, tag("->"), space0, port_ref))(input)?;
-	let mapping = OutputMapping {
-		from: input,
-		to: port,
-	};
-	Ok((remaining, mapping))
-}
-
-pub fn outputs(input: &[u8]) -> IResult<&[u8], Vec<OutputMapping>> {
-	nom::multi::separated_list1(input_separator, output_item)(input)
-}
-
-fn instruction_line(input: &[u8]) -> IResult<&[u8], Vec<Operation> > {
+fn instruction_line(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
 	// alt!(
 	// 	// Instruction only
 	// 	do_parse!(
@@ -142,8 +104,8 @@ mod tests {
 
 	use crate::common::tests::*;
 	use crate::common::to_input;
+	use language::address::{Node, Port};
 	use language::instruction::{MemoryPointer, ValuePointer};
-use language::address::{Node, Port};
 
 	#[test]
 	fn test_parse_node_line() {
@@ -159,102 +121,6 @@ use language::address::{Node, Port};
 
 		let res = code_line(content);
 		assert_result(res, to_input(b"----"), to_input(b"\nrest"));
-	}
-
-	#[test]
-	fn test_parse_input_item() {
-		let res_in = input_item(to_input(b"IN:1 -> 3"));
-		assert_full_result(
-			res_in,
-			InputMapping {
-				from: Port::new(Node::In, 1),
-				to: 3u32,
-			},
-		);
-
-		let res_node = input_item(to_input(b"#node:32 -> 1"));
-		assert_full_result(
-			res_node,
-			InputMapping {
-				from: Port::named_port(&"node", 32),
-				to: 1u32,
-			},
-		);
-	}
-
-	#[test]
-	fn test_parse_inputs() {
-		let res_one = inputs(to_input(b"#n:7 -> 14"));
-		assert_full_result(
-			res_one,
-			vec![InputMapping {
-				from: Port::named_port(&"n", 7),
-				to: 14u32,
-			}],
-		);
-
-		let res_many = inputs(to_input(b"OUT:1 -> 2, #abc:3 -> 4"));
-		assert_full_result(
-			res_many,
-			vec![
-				InputMapping {
-					from: Port::new(Node::Out, 1),
-					to: 2u32,
-				},
-				InputMapping {
-					from: Port::named_port(&"abc", 3),
-					to: 4u32,
-				},
-			],
-		);
-	}
-
-	#[test]
-	fn test_parse_output_item() {
-		let res_in = output_item(to_input(b"1 -> OUT:3"));
-		assert_full_result(
-			res_in,
-			OutputMapping {
-				from: 1u32,
-				to: Port::new(Node::Out, 3),
-			},
-		);
-
-		let res_node = output_item(to_input(b"1 -> #node:32"));
-		assert_full_result(
-			res_node,
-			OutputMapping {
-				from: 1u32,
-				to: Port::named_port(&"node", 32),
-			},
-		);
-	}
-
-	#[test]
-	fn test_parse_outputs() {
-		let res_one = outputs(to_input(b"3 -> #n:7"));
-		assert_full_result(
-			res_one,
-			vec![OutputMapping {
-				from: 3,
-				to: Port::named_port(&"n", 7),
-			}],
-		);
-
-		let res_many = outputs(to_input(b"1 -> OUT:2, 3 -> #abc:4"));
-		assert_full_result(
-			res_many,
-			vec![
-				OutputMapping {
-					from: 1u32,
-					to: Port::new(Node::Out, 2),
-				},
-				OutputMapping {
-					from: 3u32,
-					to: Port::named_port(&"abc", 4),
-				},
-			],
-		);
 	}
 
 	#[test]

@@ -1,21 +1,22 @@
 #[macro_use]
 extern crate nom;
 
-pub mod address;
-pub mod common;
-pub mod instruction;
-pub mod syntax;
-pub mod test;
+mod address;
+mod common;
+mod instruction;
+mod mapping;
+mod syntax;
+mod test;
 
 use std::result::Result;
 
 // use nom::character::complete::space0;
 use common::to_string;
 use language::syntax::NodeBlock;
-use syntax::node_list;
-use test::test_case;
 use language::syntax::Program;
 use language::test::TestCase;
+use syntax::node_list;
+use test::test_case;
 
 pub type ParsingResult = Result<Program, ()>;
 
@@ -80,9 +81,9 @@ pub fn parse(input: &[u8]) -> ParsingResult {
 mod tests {
   use super::*;
 
-  use language::address::{Node, Port};
   use common::tests::*;
-  use language::instruction::{ValuePointer, Operation};
+  use language::address::{Node, Port};
+  use language::instruction::{Operation, ValuePointer};
   use language::syntax::{InputMapping, OutputMapping};
 
   #[test]
@@ -216,4 +217,3 @@ MOV <1,  >1
     assert_result(res, (nodes, first_tests, last_tests), b"   ");
   }
 }
-

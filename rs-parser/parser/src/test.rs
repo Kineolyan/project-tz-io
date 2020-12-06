@@ -1,16 +1,8 @@
+use crate::common::ws;
 use language::test::TestCase;
 use nom::bytes::complete as bytes;
 use nom::character::complete::space0;
 use nom::IResult;
-
-fn ws<'a, F: 'a, O, E: nom::error::ParseError<&'a [u8]>>(
-  inner: F,
-) -> impl FnMut(&'a [u8]) -> IResult<&'a [u8], O, E>
-where
-  F: Fn(&'a [u8]) -> IResult<&'a [u8], O, E>,
-{
-  nom::sequence::delimited(space0, inner, space0)
-}
 
 pub fn values(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
   nom::multi::separated_list1(ws(bytes::tag(",")), crate::common::be_i8)(input)

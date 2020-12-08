@@ -17,30 +17,6 @@ pub fn code_line(input: &[u8]) -> IResult<&[u8], &[u8]> {
 	take_while(|c| c == b'-')(input)
 }
 
-fn instruction_line(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
-	// alt!(
-	// 	// Instruction only
-	// 	do_parse!(
-	// 		op: parse_instruction >> eol >>
-	// 		(vec![op])
-	// 	) |
-	// 	// Label only
-	// 	do_parse!(
-	// 		label: label_operation >> eol >>
-	// 		(vec![label])
-	// 	) |
-	// 	// Label then instruction
-	// 	do_parse!(
-	// 		label: label_operation >> space0 >>
-	// 		op: parse_instruction >> eol >>
-	// 		(vec![label, op])
-	// 	) |
-	// 	// Nothing but empty lines
-	// 	value!(vec![], eol)
-	// )
-	todo!()
-}
-
 fn fail(input: &[u8]) -> nom::Err<nom::error::Error<&[u8]>> {
 	nom::Err::Failure(nom::error::Error::new(
 		input,
@@ -48,35 +24,93 @@ fn fail(input: &[u8]) -> nom::Err<nom::error::Error<&[u8]>> {
 	))
 }
 
+fn instruction_line(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
+	use nom::character::complete::space0;
+	let (input, _) = space0(input)?; // Consume leading space
+	let (input, label) =
+		if let Ok((consumed, lbl)) = crate::instruction::condition::label_operation(input) {
+			let (consumed, _) = space0(consumed)?;
+			(consumed, Some(lbl))
+		} else {
+			(input, None)
+		};
+	let (input, instruction) =
+		if let Ok((consumed, instruction)) = crate::instruction::parse_instruction(input) {
+			(consumed, Some(instruction))
+		} else {
+			(input, None)
+		};
+
+	if label.is_some() || instruction.is_some() {
+		Ok((
+			input,
+			vec![label, instruction]
+				.into_iter()
+				.filter(|v| v.is_some())
+				.map(|v| v.unwrap())
+				.collect(),
+		))
+	} else {
+		Err(fail(input))
+	}
+}
+
+/// Consumes all blank lines, possibly containing comments
+fn consume_eols(input: &[u8]) -> IResult<&[u8], ()> {
+	let mut remaining = input;
+	while let Ok((more, _)) = crate::common::eol(remaining) {
+		remaining = more;
+	}
+	Ok((remaining, ()))
+}
+
+/// Collects all inputs if any
+/// If an input section is found, the section must be correctly defined.
+fn collect_inputs(input: &[u8]) -> IResult<&[u8], Vec<InputMapping>> {
+	if let Ok((some, ins)) = crate::mapping::inputs(input) {
+		let (rest, _) = code_line(some).map_err(|_| fail(input))?;
+		Ok((rest, ins))
+	} else {
+		Ok((input, vec![]))
+	}
+}
+
+/// Collects all outputs if any.
+/// If an output section is found, the section must be correctly defined.
+fn collect_outputs(input: &[u8]) -> IResult<&[u8], Vec<OutputMapping>> {
+	if let Ok((some, _)) = code_line(input) {
+		crate::mapping::outputs(some).map_err(|_| fail(input))
+	} else {
+		Ok((input, vec![]))
+	}
+}
+
+/// Collects all instructions of the node
+fn collect_instructions(input: &[u8]) -> IResult<&[u8], Vec<language::instruction::Operation>> {
+	let mut instructions = vec![];
+	let mut remaining = input;
+	while let Ok((rest, mut instruction)) = instruction_line(remaining) {
+		instructions.append(&mut instruction);
+		let (more, _) = consume_eols(rest)?;
+		remaining = more;
+	}
+	if (instructions.is_empty()) {
+		Err(fail(input))
+	} else {
+		Ok((remaining, instructions))
+	}
+}
+
 pub fn node_block(input: &[u8]) -> IResult<&[u8], language::syntax::NodeBlock> {
 	let (input, node) = crate::address::node_header(input)?;
 	// At this point, we must see the start of a block
 	let (input, _) = node_line(input).map_err(|_| fail(input))?;
 	let (input, _) = nom::character::complete::newline(input)?;
-	let (input, inputs) = if let Ok((some, inputs)) = crate::mapping::inputs(input) {
-		let (rest, _) = code_line(some).map_err(|_| fail(input))?;
-		(rest, inputs)
-	} else {
-		(input, vec![])
-	};
-	// FIXME consume some possible comments before any instruction
-	let mut instructions = vec![];
-	let mut remaining = input;
-	while let Ok((some, mut instruction)) = instruction_line(remaining) {
-		let (rest, _) = crate::common::eol(some).map_err(|_| fail(input))?;
-		instructions.append(&mut instruction);
-		remaining = rest;
-	}
-	// FIXME we must parse the output mapping
-	// 	ops: instruction_list >>
-	// 	outputs: opt!(
-	// 		do_parse!(
-	// 			code_line >> eol >>
-	// 			space0 >> os: outputs >> eol >>
-	// 			(os)
-	// 		)
-	// 	) >>
-	Ok((input, (node, inputs, vec![], instructions)))
+	let (input, inputs) = collect_inputs(input)?;
+	let (input, _) = consume_eols(input)?;
+	let (input, instructions) = collect_instructions(input)?;
+	let (input, outputs) = collect_outputs(input)?;
+	Ok((input, (node, inputs, outputs, instructions)))
 }
 
 pub fn node_list(input: &[u8]) -> IResult<&[u8], Vec<language::syntax::NodeBlock>> {
@@ -169,13 +203,13 @@ mod tests {
 	}
 
 	#[test]
-	fn test_parse_instruction_list() {
+	fn test_collect_instructions() {
 		let content = b"START:
 MOV <1, ACC
 F1:SWP
 MOV ACC, >1
 JEZ F1\n";
-		let res = instruction_list(to_input(content));
+		let res = collect_instructions(to_input(content));
 		assert_full_result(
 			res,
 			vec![

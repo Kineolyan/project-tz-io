@@ -88,15 +88,4 @@ mod tests {
     assert_cannot_parse(res);
   }
 
-  // #[test]
-  // fn test_parse_test_cases() {
-  // 	let res = test_cases(to_input(b"/// [1,2] -> [-1]  \n/// 3->3end"));
-  // 	assert_result(
-  //     res,
-  //     vec![
-  //       TestCase::new(vec![1, 2], vec![-1]),
-  //       TestCase::new(vec![3], vec![3])
-  //     ],
-  //     to_input(b"end"));
-  // }
 }

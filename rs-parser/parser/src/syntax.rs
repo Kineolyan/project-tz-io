@@ -1,20 +1,21 @@
-use nom;
-use nom::bytes::complete::take_while;
 use nom::IResult;
 
 use crate::common::opt_eol;
-// use crate::instruction::condition::label_operation;
-// use crate::instruction::parse_instruction;
 use language::instruction::Operation;
 use language::syntax::{InputMapping, OutputMapping};
 
+fn line_of<'a>(symbol: &'static str, input: &'a [u8]) -> IResult<&'a [u8], ()> {
+	nom::combinator::value(
+		(),
+	nom::multi::many_m_n(3, 10000, nom::bytes::complete::tag(symbol)))(input)
+}
 /// Line marking the start/end of a node
-pub fn node_line(input: &[u8]) -> IResult<&[u8], &[u8]> {
-	take_while(|c| c == b'=')(input)
+pub fn node_line(input: &[u8]) -> IResult<&[u8], ()> {
+	line_of("=", input)
 }
 /// Line separating inputs/outputs from the node instructions
-pub fn code_line(input: &[u8]) -> IResult<&[u8], &[u8]> {
-	take_while(|c| c == b'-')(input)
+pub fn code_line(input: &[u8]) -> IResult<&[u8], ()> {
+	line_of("-", input)
 }
 
 fn fail(input: &[u8]) -> nom::Err<nom::error::Error<&[u8]>> {
@@ -24,9 +25,9 @@ fn fail(input: &[u8]) -> nom::Err<nom::error::Error<&[u8]>> {
 	))
 }
 
-fn instruction_line(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
+fn instruction_line(initial_input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
 	use nom::character::complete::space0;
-	let (input, _) = space0(input)?; // Consume leading space
+	let (input, _) = space0(initial_input)?; // Consume leading space
 	let (input, label) =
 		if let Ok((consumed, lbl)) = crate::instruction::condition::label_operation(input) {
 			let (consumed, _) = space0(consumed)?;
@@ -40,6 +41,12 @@ fn instruction_line(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
 		} else {
 			(input, None)
 		};
+	// And a instruction must end with an empty line
+	let (input, _) = if let Ok((consumed, _)) = crate::common::eol(input) {
+		(consumed, ())
+	} else {
+		return Err(fail(initial_input))
+	};
 
 	if label.is_some() || instruction.is_some() {
 		Ok((
@@ -51,7 +58,7 @@ fn instruction_line(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
 				.collect(),
 		))
 	} else {
-		Err(fail(input))
+		Err(fail(initial_input))
 	}
 }
 
@@ -94,22 +101,32 @@ fn collect_instructions(input: &[u8]) -> IResult<&[u8], Vec<language::instructio
 		let (more, _) = consume_eols(rest)?;
 		remaining = more;
 	}
-	if (instructions.is_empty()) {
+	if instructions.is_empty() {
 		Err(fail(input))
 	} else {
 		Ok((remaining, instructions))
 	}
 }
 
-pub fn node_block(input: &[u8]) -> IResult<&[u8], language::syntax::NodeBlock> {
+pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], language::syntax::NodeBlock> {
+	use nom::character::complete::newline;
+
+	let (input, _) = nom::character::complete::space0(initial_input)?;
 	let (input, node) = crate::address::node_header(input)?;
+	let (input, _) = newline(input)?;
 	// At this point, we must see the start of a block
 	let (input, _) = node_line(input).map_err(|_| fail(input))?;
-	let (input, _) = nom::character::complete::newline(input)?;
+	let (input, _) = newline(input)?;
 	let (input, inputs) = collect_inputs(input)?;
 	let (input, _) = consume_eols(input)?;
 	let (input, instructions) = collect_instructions(input)?;
 	let (input, outputs) = collect_outputs(input)?;
+	// Closing node line and its new-line
+	let (input, _) = nom::sequence::tuple((
+		node_line,
+		newline
+	))(input)
+	.map_err(|_| fail(initial_input))?;
 	Ok((input, (node, inputs, outputs, instructions)))
 }
 
@@ -131,7 +148,7 @@ mod tests {
 		let content = to_input(b"===\nrest");
 
 		let res = node_line(content);
-		assert_result(res, to_input(b"==="), to_input(b"\nrest"));
+		assert_result(res, (), to_input(b"\nrest"));
 	}
 
 	#[test]
@@ -139,7 +156,7 @@ mod tests {
 		let content = to_input(b"----\nrest");
 
 		let res = code_line(content);
-		assert_result(res, to_input(b"----"), to_input(b"\nrest"));
+		assert_result(res, (), to_input(b"\nrest"));
 	}
 
 	#[test]
@@ -169,19 +186,13 @@ mod tests {
 	#[test]
 	fn test_parse_empty_instruction_line() {
 		let res = instruction_line(to_input(b" \n"));
-		assert_full_result(res, vec![]);
-	}
-
-	#[test]
-	fn test_parse_instruction_line_with_comment() {
-		let res = instruction_line(to_input(b" // only comment\n"));
-		assert_full_result(res, vec![]);
+		assert_cannot_parse(res);
 	}
 
 	#[test]
 	fn test_parse_with_consecutive_labels() {
 		let res = instruction_line(to_input(b"L1: L2:\n"));
-		assert!(res.is_err(), true);
+		assert_cannot_parse(res);
 	}
 
 	#[test]
@@ -228,7 +239,7 @@ JEZ F1\n";
 		let content = b"  Node #123
 ==========
 IN:1 -> 1
---
+-----
 MOV <1, ACC
 SWP
 MOV ACC, >1

@@ -93,18 +93,38 @@ pub mod tests {
 	use super::*;
 	use nom::{Err, IResult};
 
+	fn assert_remaining_content(value: &[u8], expected: &[u8]) {
+		if value != expected {
+			panic!(
+				"Unexpected remaining '{}' != '{}'",
+				str::from_utf8(value).unwrap(),
+				str::from_utf8(expected).unwrap()
+			);
+		}
+	}
 	pub fn assert_result<Result: PartialEq + Debug>(
 		res: IResult<&[u8], Result>,
 		value: Result,
 		remaining: &[u8],
 	) {
-		assert_eq!(res, Ok((remaining, value)));
+		match res {
+			Ok((parsed, result)) => {
+				assert_eq!(result, value);
+				assert_remaining_content(parsed, remaining);
+			},
+			Err(nom::Err::Failure(error)) => {
+				panic!(
+					"Cannot parse {}",
+				str::from_utf8(error.input).unwrap());
+			},
+			_ => assert_eq!(res, Ok((remaining, value)))
+		}
 	}
 
 	pub fn assert_full_result<Result: PartialEq + Debug>(res: IResult<&[u8], Result>, value: Result) {
-		if let &Ok((ref remaining, _)) = &res {
-			if remaining.len() > 0 {
-				println!(
+		if let Ok((ref remaining, _)) = &res {
+			if remaining.len() > 0 as usize {
+				panic!(
 					"Unexpected remaining {}",
 					str::from_utf8(remaining).unwrap()
 				);

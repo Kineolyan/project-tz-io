@@ -7,7 +7,10 @@ use language::syntax::{InputMapping, OutputMapping};
 fn line_of<'a>(symbol: &'static str, input: &'a [u8]) -> IResult<&'a [u8], ()> {
 	nom::combinator::value(
 		(),
-	nom::multi::many_m_n(3, 10000, nom::bytes::complete::tag(symbol)))(input)
+		nom::sequence::tuple((
+			nom::multi::many_m_n(3, 10000, nom::bytes::complete::tag(symbol)),
+			nom::character::complete::space0,
+			nom::character::complete::newline)))(input)
 }
 /// Line marking the start/end of a node
 pub fn node_line(input: &[u8]) -> IResult<&[u8], ()> {
@@ -74,8 +77,10 @@ fn consume_eols(input: &[u8]) -> IResult<&[u8], ()> {
 /// Collects all inputs if any
 /// If an input section is found, the section must be correctly defined.
 fn collect_inputs(input: &[u8]) -> IResult<&[u8], Vec<InputMapping>> {
+	use nom::character::complete::newline;
+
 	if let Ok((some, ins)) = crate::mapping::inputs(input) {
-		let (rest, _) = code_line(some).map_err(|_| fail(input))?;
+		let (rest, _) = nom::sequence::tuple((newline, node_line))(some).map_err(|_| fail(some))?;
 		Ok((rest, ins))
 	} else {
 		Ok((input, vec![]))
@@ -116,17 +121,12 @@ pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], language::syntax::Node
 	let (input, _) = newline(input)?;
 	// At this point, we must see the start of a block
 	let (input, _) = node_line(input).map_err(|_| fail(input))?;
-	let (input, _) = newline(input)?;
 	let (input, inputs) = collect_inputs(input)?;
 	let (input, _) = consume_eols(input)?;
 	let (input, instructions) = collect_instructions(input)?;
 	let (input, outputs) = collect_outputs(input)?;
 	// Closing node line and its new-line
-	let (input, _) = nom::sequence::tuple((
-		node_line,
-		newline
-	))(input)
-	.map_err(|_| fail(initial_input))?;
+	let (input, _) = node_line(input).map_err(|_| fail(initial_input))?;
 	Ok((input, (node, inputs, outputs, instructions)))
 }
 
@@ -148,7 +148,15 @@ mod tests {
 		let content = to_input(b"===\nrest");
 
 		let res = node_line(content);
-		assert_result(res, (), to_input(b"\nrest"));
+		assert_result(res, (), to_input(b"rest"));
+	}
+
+	#[test]
+	fn test_parse_node_line_with_extra_space() {
+		let content = to_input(b"===  \nrest");
+
+		let res = node_line(content);
+		assert_result(res, (), to_input(b"rest"));
 	}
 
 	#[test]
@@ -156,7 +164,15 @@ mod tests {
 		let content = to_input(b"----\nrest");
 
 		let res = code_line(content);
-		assert_result(res, (), to_input(b"\nrest"));
+		assert_result(res, (), to_input(b"rest"));
+	}
+
+	#[test]
+	fn test_parse_code_line_with_extra_space() {
+		let content = to_input(b"----  \nrest");
+
+		let res = code_line(content);
+		assert_result(res, (), to_input(b"rest"));
 	}
 
 	#[test]
@@ -395,7 +411,6 @@ SWP
 	fn test_parse_commented_node() {
 		let content = b"Node #1
 =======
-// Possible to repeat the same source (for readability)
 #1:1 -> 1, #2:1 -> 2
 ---------
 MOV <1, ACC
@@ -439,7 +454,7 @@ MOV ACC, >1
 		let content = b"Node #1
 ==========
 IN:1 -> 1
---
+------
 MOV <1,  >1
 ---------
 1 -> #2:2

@@ -96,7 +96,7 @@ pub mod tests {
 	fn assert_remaining_content(value: &[u8], expected: &[u8]) {
 		if value != expected {
 			panic!(
-				"Unexpected remaining '{}' != '{}'",
+				"Unexpected remaining ```{}``` != ```{}```",
 				str::from_utf8(value).unwrap(),
 				str::from_utf8(expected).unwrap()
 			);
@@ -114,7 +114,7 @@ pub mod tests {
 			},
 			Err(nom::Err::Failure(error)) => {
 				panic!(
-					"Cannot parse {}",
+					"Cannot parse ```{}```",
 				str::from_utf8(error.input).unwrap());
 			},
 			_ => assert_eq!(res, Ok((remaining, value)))

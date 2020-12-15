@@ -109,7 +109,7 @@ fn collect_inputs(input: &[u8]) -> IResult<&[u8], Vec<InputMapping>> {
 	use nom::character::complete::newline;
 
 	if let Ok((some, ins)) = crate::mapping::inputs(input) {
-		let (rest, _) = nom::sequence::tuple((newline, node_line))(some).map_err(|_| fail(some))?;
+		let (rest, _) = nom::sequence::tuple((newline, code_line))(some).map_err(|_| fail(some))?;
 		Ok((rest, ins))
 	} else {
 		Ok((input, vec![]))

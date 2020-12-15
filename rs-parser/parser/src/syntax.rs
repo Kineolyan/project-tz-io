@@ -1,6 +1,6 @@
 use nom::{IResult, InputLength};
 
-use crate::common::opt_eol;
+use crate::{common::opt_eol, instruction};
 use language::instruction::Operation;
 use language::syntax::{InputMapping, OutputMapping};
 
@@ -60,43 +60,31 @@ pub fn code_line(input: &[u8]) -> IResult<&[u8], ()> {
 // }
 fn find_start<'a, Input>(input: Input, needle: &'a str) -> Option<usize>
 where Input: nom::FindSubstring<&'a str> {
-	None
-}
-fn split_input<'a, Input>(input: Input, index: usize) -> (Input, Input)
-where Input: nom::InputTake {
-	input.take_split(index)
+	input.find_substring(needle)
 }
 
 /// Find the closing node-line and return the content of the block.
 /// If the final line cannot be found, it fails
-fn find_node_end_line<'b, Input>(
-	// start: T
-) -> impl Fn(&[u8]) -> IResult<&[u8], &[u8]>
-where
-	Input: nom::InputTake + nom::FindSubstring<&'b str>
-	// T: nom::InputLength + Clone
-{
-  move |full_input: &[u8]| {
-		let t = "\n==="; // At least 3 =
-		let mut input = full_input;
-		loop {
-			match find_start(input, t) {
-				None => return Err(fail(full_input)),
-				Some(index) => {
-					let (node_body, rest) = split_input(input, index + 1);
-					let end_result = match node_line(rest) {
-						Ok((remaining, _)) => Some(remaining),
-						_ => None
-					};
-					if let Some(next_input) = end_result {
-						return Ok((next_input, node_body));
-					} else {
-						input = split_input(input, index + t.len()).1;
-					}
+fn find_node_end_line(full_input: &[u8]) -> IResult<&[u8], &[u8]> {
+	let t = "\n==="; // At least 3 =
+	let mut input = full_input;
+	loop {
+		match find_start(input, t) {
+			None => return Err(fail(full_input)),
+			Some(index) => {
+				let (node_body, rest) = input.split_at(index + 1);
+				let end_result = match node_line(rest) {
+					Ok((remaining, _)) => Some(remaining),
+					_ => None
+				};
+				if let Some(next_input) = end_result {
+					return Ok((next_input, node_body));
+				} else {
+					input = input.split_at(index + t.len()).1;
 				}
 			}
 		}
-  }
+	}
 }
 
 fn instruction_line(initial_input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
@@ -184,6 +172,17 @@ fn collect_instructions(input: &[u8]) -> IResult<&[u8], Vec<language::instructio
 	}
 }
 
+fn parse_node(initial_input: &[u8]) -> IResult<&[u8], (Vec<InputMapping>,
+Vec<OutputMapping>,
+Vec<Operation>)> {
+	let (input, inputs) = collect_inputs(initial_input)?;
+	let (input, _) = consume_eols(input)?;
+	let (input, instructions) = collect_instructions(input)?;
+	let (input, outputs) = collect_outputs(input)?;
+	// Here we must check that there is no more data in the input
+
+	Ok((input, (inputs, outputs, instructions)))
+}
 
 pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], language::syntax::NodeBlock> {
 	use nom::character::complete::newline;
@@ -191,15 +190,15 @@ pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], language::syntax::Node
 	let (input, _) = nom::character::complete::space0(initial_input)?;
 	let (input, node) = crate::address::node_header(input)?;
 	let (input, _) = newline(input)?;
+
 	// At this point, we must see the start of a block
+	// Consume the opening node-line
 	let (input, _) = node_line(input).map_err(|_| fail(input))?;
-	let (input, inputs) = collect_inputs(input)?;
-	let (input, _) = consume_eols(input)?;
-	let (input, instructions) = collect_instructions(input)?;
-	let (input, outputs) = collect_outputs(input)?;
-	// Closing node line and its new-line
-	let (input, _) = node_line(input).map_err(|_| fail(initial_input))?;
-	Ok((input, (node, inputs, outputs, instructions)))
+	// Let's find the end of the node
+	let (post_node_input, node_body) = find_node_end_line(input)?;
+
+	let (_, (inputs, outputs, instructions)) = parse_node(node_body)?;
+	Ok((post_node_input, (node, inputs, outputs, instructions)))
 }
 
 pub fn node_list(input: &[u8]) -> IResult<&[u8], Vec<language::syntax::NodeBlock>> {

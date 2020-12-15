@@ -28,36 +28,6 @@ pub fn code_line(input: &[u8]) -> IResult<&[u8], ()> {
 	line_of("-", input)
 }
 
-// fn find_node_end_line(input: &[u8]) -> IResult<&[u8], &[u8]> {
-
-// }
-// fn find_node_end_line<'b, Input, Error: nom::error::ParseError<Input>>(
-// 	// start: T
-// ) -> impl Fn(Input) -> IResult<Input, Input, Error>
-// where
-// 	Input: nom::InputTake + nom::FindSubstring<&'b str>,
-// 	// T: nom::InputLength + Clone
-// {
-//   move |i: Input| {
-// 		let t = "\n==="; // At least 3 =
-// 		let res: IResult<_, _, Error> = match i.find_substring(t) {
-//       None => return Err(nom::Err::Error(Error::from_error_kind(i, nom::error::ErrorKind::TakeUntil))),
-//       Some(index) => {
-// 				let (node_body, rest) = i.take_split(index + 1);
-// 				let end_result = match node_line(rest) {
-// 					Ok((remaining, _)) => Some(remaining),
-// 					_ => None
-// 				};
-// 				if end_result.is_none() {
-// 					todo!()
-// 				} else {
-// 					Ok((end_result.unwrap(), node_body))
-// 				}
-// 			}
-//     };
-//     res
-//   }
-// }
 fn find_start<'a, Input>(input: Input, needle: &'a str) -> Option<usize>
 where Input: nom::FindSubstring<&'a str> {
 	input.find_substring(needle)

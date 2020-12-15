@@ -1,8 +1,15 @@
-use nom::IResult;
+use nom::{IResult, InputLength};
 
 use crate::common::opt_eol;
 use language::instruction::Operation;
 use language::syntax::{InputMapping, OutputMapping};
+
+fn fail(input: &[u8]) -> nom::Err<nom::error::Error<&[u8]>> {
+	nom::Err::Failure(nom::error::Error::new(
+		input,
+		nom::error::ErrorKind::Satisfy,
+	))
+}
 
 fn line_of<'a>(symbol: &'static str, input: &'a [u8]) -> IResult<&'a [u8], ()> {
 	nom::combinator::value(
@@ -21,11 +28,75 @@ pub fn code_line(input: &[u8]) -> IResult<&[u8], ()> {
 	line_of("-", input)
 }
 
-fn fail(input: &[u8]) -> nom::Err<nom::error::Error<&[u8]>> {
-	nom::Err::Failure(nom::error::Error::new(
-		input,
-		nom::error::ErrorKind::Satisfy,
-	))
+// fn find_node_end_line(input: &[u8]) -> IResult<&[u8], &[u8]> {
+
+// }
+// fn find_node_end_line<'b, Input, Error: nom::error::ParseError<Input>>(
+// 	// start: T
+// ) -> impl Fn(Input) -> IResult<Input, Input, Error>
+// where
+// 	Input: nom::InputTake + nom::FindSubstring<&'b str>,
+// 	// T: nom::InputLength + Clone
+// {
+//   move |i: Input| {
+// 		let t = "\n==="; // At least 3 =
+// 		let res: IResult<_, _, Error> = match i.find_substring(t) {
+//       None => return Err(nom::Err::Error(Error::from_error_kind(i, nom::error::ErrorKind::TakeUntil))),
+//       Some(index) => {
+// 				let (node_body, rest) = i.take_split(index + 1);
+// 				let end_result = match node_line(rest) {
+// 					Ok((remaining, _)) => Some(remaining),
+// 					_ => None
+// 				};
+// 				if end_result.is_none() {
+// 					todo!()
+// 				} else {
+// 					Ok((end_result.unwrap(), node_body))
+// 				}
+// 			}
+//     };
+//     res
+//   }
+// }
+fn find_start<'a, Input>(input: Input, needle: &'a str) -> Option<usize>
+where Input: nom::FindSubstring<&'a str> {
+	None
+}
+fn split_input<'a, Input>(input: Input, index: usize) -> (Input, Input)
+where Input: nom::InputTake {
+	input.take_split(index)
+}
+
+/// Find the closing node-line and return the content of the block.
+/// If the final line cannot be found, it fails
+fn find_node_end_line<'b, Input>(
+	// start: T
+) -> impl Fn(&[u8]) -> IResult<&[u8], &[u8]>
+where
+	Input: nom::InputTake + nom::FindSubstring<&'b str>
+	// T: nom::InputLength + Clone
+{
+  move |full_input: &[u8]| {
+		let t = "\n==="; // At least 3 =
+		let mut input = full_input;
+		loop {
+			match find_start(input, t) {
+				None => return Err(fail(full_input)),
+				Some(index) => {
+					let (node_body, rest) = split_input(input, index + 1);
+					let end_result = match node_line(rest) {
+						Ok((remaining, _)) => Some(remaining),
+						_ => None
+					};
+					if let Some(next_input) = end_result {
+						return Ok((next_input, node_body));
+					} else {
+						input = split_input(input, index + t.len()).1;
+					}
+				}
+			}
+		}
+  }
 }
 
 fn instruction_line(initial_input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
@@ -112,6 +183,7 @@ fn collect_instructions(input: &[u8]) -> IResult<&[u8], Vec<language::instructio
 		Ok((remaining, instructions))
 	}
 }
+
 
 pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], language::syntax::NodeBlock> {
 	use nom::character::complete::newline;

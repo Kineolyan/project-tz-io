@@ -17,7 +17,7 @@ use language::test::TestCase;
 
 pub type ParsingResult = Result<Program, ()>;
 
-pub fn program(input: &[u8]) -> nom::IResult<&[u8], (Vec<NodeBlock>, Vec<TestCase>)> {
+fn program(input: &[u8]) -> nom::IResult<&[u8], (Vec<NodeBlock>, Vec<TestCase>)> {
     use crate::common::opt_eol;
 
     let (input, _) = opt_eol(input)?;
@@ -36,6 +36,14 @@ pub fn program(input: &[u8]) -> nom::IResult<&[u8], (Vec<NodeBlock>, Vec<TestCas
     };
 
     Ok((input, (nodes, test_cases)))
+}
+
+fn print_error(e: &nom::error::Error<&[u8]>) {
+    println!(
+        "Error = {:#?}\n{:#?}",
+        e.code,
+        crate::common::to_string(e.input).expect("Cannot display content")
+    )
 }
 
 pub fn parse(input: &[u8]) -> ParsingResult {
@@ -57,8 +65,8 @@ pub fn parse(input: &[u8]) -> ParsingResult {
             }
         }
         Err(nom::Err::Error(e)) | Err(nom::Err::Failure(e)) => {
-            let report = e; //nom::error::convert_error(input, e);
-            println!("Error:\n{:#?}", report);
+            //nom::error::convert_error(input, e);
+            print_error(&e);
             Result::Err(())
         }
         Err(nom::Err::Incomplete(needed)) => {

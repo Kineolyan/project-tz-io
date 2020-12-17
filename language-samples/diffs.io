@@ -1,7 +1,7 @@
 // Computes the differences between two input values
 // X, Y -> X - Y, Y - X
-/// [1, 2] -> [-1, 1]
-/// [3, -4] -> [7, -7]
+/>> [1, 2] -> [-1, 1]
+/>> [3, -4] -> [7, -7]
 
 Node #double
 ===========

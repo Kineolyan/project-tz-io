@@ -13,7 +13,7 @@ pub fn array(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
 }
 
 pub fn test_case(input: &[u8]) -> IResult<&[u8], TestCase> {
-    let (input, _) = bytes::tag("///")(input)?;
+    let (input, _) = bytes::tag("/>> ")(input)?;
     let (input, _) = space0(input)?;
 
     // TODO at this point, we are in a test comment, the syntax must be correct
@@ -60,31 +60,31 @@ mod tests {
 
     #[test]
     fn test_parse_test_case() {
-        let res = test_case(to_input(b"/// [1,2] -> [-1]  \nnext"));
+        let res = test_case(to_input(b"/>> [1,2] -> [-1]  \nnext"));
         assert_result(res, TestCase::new(vec![1, 2], vec![-1]), to_input(b"next"));
     }
 
     #[test]
     fn test_parse_unclosed_test_case() {
-        let res = test_case(to_input(b"/// [1,2 -> -1]  \nnext"));
+        let res = test_case(to_input(b"/>> [1,2 -> -1]  \nnext"));
         assert_cannot_parse(res);
     }
 
     #[test]
     fn test_parse_opposite_test_case() {
-        let res = test_case(to_input(b"/// 1,2] -> [-1  \nnext"));
+        let res = test_case(to_input(b"/>> 1,2] -> [-1  \nnext"));
         assert_cannot_parse(res);
     }
 
     #[test]
     fn test_parse_opening_test_case() {
-        let res = test_case(to_input(b"/// [1,2 -> [-1  \nnext"));
+        let res = test_case(to_input(b"/>> [1,2 -> [-1  \nnext"));
         assert_cannot_parse(res);
     }
 
     #[test]
     fn test_parse_ending_test_case() {
-        let res = test_case(to_input(b"/// 1,2] -> -1]  \nnext"));
+        let res = test_case(to_input(b"/>> 1,2] -> -1]  \nnext"));
         assert_cannot_parse(res);
     }
 }

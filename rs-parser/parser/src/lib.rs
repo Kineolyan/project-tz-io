@@ -1,4 +1,5 @@
-#[macro_use]
+// #![cfg(feature = "alloc")]
+
 extern crate nom;
 
 mod address;
@@ -10,64 +11,54 @@ mod test;
 
 use std::result::Result;
 
-// use nom::character::complete::space0;
-use common::to_string;
 use language::syntax::NodeBlock;
 use language::syntax::Program;
 use language::test::TestCase;
-use syntax::node_list;
-use test::test_case;
 
 pub type ParsingResult = Result<Program, ()>;
 
-pub fn program(
-    input: &[u8],
-) -> nom::IResult<&[u8], (Vec<NodeBlock>, Vec<TestCase>, Vec<TestCase>)> {
-    // do_parse!(
-    // 	opt_eol >>
-    // 	start_cases: many0!(test_case) >>
-    // 	many0!(do_parse!(space0 >> tag!("\n") >> ())) >>
-    // 	list: node_list >>
-    // 	opt_eol >>
-    // 	end_cases: many0!(test_case) >>
-    // 	opt_eol >>
-    // 	(list, start_cases, end_cases)
-    // )
-    todo!("Migration in progress")
+pub fn program(input: &[u8]) -> nom::IResult<&[u8], (Vec<NodeBlock>, Vec<TestCase>)> {
+    use crate::common::opt_eol;
+
+    let (input, _) = opt_eol(input)?;
+    let (input, mut start_cases) = nom::multi::many0(crate::test::test_case)(input)?;
+    let (input, _) = opt_eol(input)?;
+    let (input, nodes) = crate::syntax::node_list(input)?;
+    let (input, _) = opt_eol(input)?;
+    let (input, mut end_cases) = nom::multi::many0(crate::test::test_case)(input)?;
+    let (input, _) = opt_eol(input)?;
+
+    let test_cases = {
+        let mut all = vec![];
+        all.append(&mut start_cases);
+        all.append(&mut end_cases);
+        all
+    };
+
+    Ok((input, (nodes, test_cases)))
 }
 
 pub fn parse(input: &[u8]) -> ParsingResult {
     let res = program(input);
     match res {
-        Ok((i, (list, mut start_cases, mut end_cases))) => {
+        Ok((i, (list, test_cases))) => {
             if i.len() == 0 {
-                // Move all results to one list
-                start_cases.append(&mut end_cases);
-
                 let tree = Program {
                     nodes: list,
-                    tests: start_cases,
+                    tests: test_cases,
                 };
                 Result::Ok(tree)
             } else {
-                println!("Remaining unparsed content {}", to_string(i).unwrap());
+                println!(
+                    "Remaining unparsed content {}",
+                    crate::common::to_string(i).unwrap()
+                );
                 Result::Err(())
             }
         }
-        Err(nom::Err::Error(ctx)) | Err(nom::Err::Failure(ctx)) => {
-            let mut first = true;
-            println!("{:?}", ctx);
-            // FIXME
-            // let errors = error_to_list(&ctx);
-            // for error in &errors {
-            //   if first {
-            //     println!("Error while parsing: {:?}", error);
-            //     first = false;
-            //   } else {
-            //     println!("  caused by: {:?}", error);
-            //   }
-            // }
-            // println!("{:?}", e);
+        Err(nom::Err::Error(e)) | Err(nom::Err::Failure(e)) => {
+            let report = e; //nom::error::convert_error(input, e);
+            println!("Error:\n{:#?}", report);
             Result::Err(())
         }
         Err(nom::Err::Incomplete(needed)) => {
@@ -94,7 +85,7 @@ mod tests {
 Node #1
 ==========
 IN:1 -> 1
---
+-------
 MOV <1,  >1
 ---------
 1 -> #2:2
@@ -140,15 +131,15 @@ MOV <2, >2
             ),
         ];
 
-        assert_full_result(res, (nodes, vec![], vec![]));
+        assert_full_result(res, (nodes, vec![]));
     }
 
     #[test]
     fn test_program_with_tests() {
         let content = b"// Start of the program
 // Another comment
-/// [1, 2] -> [3]
-/// [1, 2, 4] -> -8
+/>> [1, 2] -> [3]
+/>> [1, 2, 4] -> [-8]
 
 Node #1
 ==========
@@ -159,7 +150,7 @@ MOV <1,  >1
 1 -> #2:2
 =======
 
-/// 1 -> [-1, 1]
+/>> [1] -> [-1, 1]
 // End comment, to conclude
 ";
 
@@ -176,28 +167,28 @@ MOV <1,  >1
             }],
             vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
         )];
-        let first_tests = vec![
+        let test_cases = vec![
             TestCase::new(vec![1, 2], vec![3]),
             TestCase::new(vec![1, 2, 4], vec![-8]),
+            TestCase::new(vec![1], vec![-1, 1]),
         ];
-        let last_tests = vec![TestCase::new(vec![1], vec![-1, 1])];
 
-        assert_full_result(res, (nodes, first_tests, last_tests));
+        assert_full_result(res, (nodes, test_cases));
     }
 
     #[test]
     fn test_program_with_trailing_spaces() {
         let content = b"// Start of the program
 // Another comment
-/// [1, 2] -> [3]
-/// [1, 2, 4] -> -8
+/>> [1, 2] -> [3]
+/>> [1, 2, 4] -> [-8]
 
 Node #1
 ==========
 MOV <1,  >1
 =======
 
-/// 1 -> [-1, 1]
+/>> [1] -> [-1, 1]
 // End comment, to conclude
    ";
 
@@ -208,12 +199,12 @@ MOV <1,  >1
             vec![],
             vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
         )];
-        let first_tests = vec![
+        let test_cases = vec![
             TestCase::new(vec![1, 2], vec![3]),
             TestCase::new(vec![1, 2, 4], vec![-8]),
+            TestCase::new(vec![1], vec![-1, 1]),
         ];
-        let last_tests = vec![TestCase::new(vec![1], vec![-1, 1])];
 
-        assert_result(res, (nodes, first_tests, last_tests), b"   ");
+        assert_result(res, (nodes, test_cases), b"   ");
     }
 }

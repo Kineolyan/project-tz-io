@@ -1,6 +1,5 @@
-use nom::{IResult, InputLength};
+use nom::IResult;
 
-use crate::{common::opt_eol, instruction};
 use language::instruction::Operation;
 use language::syntax::{InputMapping, OutputMapping};
 
@@ -11,6 +10,7 @@ fn fail(input: &[u8]) -> nom::Err<nom::error::Error<&[u8]>> {
 	))
 }
 
+/// Parses a line of a given symbol, ending with optional spaces before a new-line char
 fn line_of<'a>(symbol: &'static str, input: &'a [u8]) -> IResult<&'a [u8], ()> {
 	nom::combinator::value(
 		(),
@@ -20,10 +20,12 @@ fn line_of<'a>(symbol: &'static str, input: &'a [u8]) -> IResult<&'a [u8], ()> {
 			nom::character::complete::newline)))(input)
 }
 /// Line marking the start/end of a node
+/// This consumes the chars AND the terminating new-line
 pub fn node_line(input: &[u8]) -> IResult<&[u8], ()> {
 	line_of("=", input)
 }
 /// Line separating inputs/outputs from the node instructions
+/// This consumes the chars AND the terminating new-line
 pub fn code_line(input: &[u8]) -> IResult<&[u8], ()> {
 	line_of("-", input)
 }
@@ -127,7 +129,7 @@ fn collect_outputs(input: &[u8]) -> IResult<&[u8], Vec<OutputMapping>> {
 }
 
 /// Collects all instructions of the node
-fn collect_instructions(input: &[u8]) -> IResult<&[u8], Vec<language::instruction::Operation>> {
+fn collect_instructions(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
 	let mut instructions = vec![];
 	let mut remaining = input;
 	while let Ok((rest, mut instruction)) = instruction_line(remaining) {
@@ -172,7 +174,7 @@ pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], language::syntax::Node
 }
 
 pub fn node_list(input: &[u8]) -> IResult<&[u8], Vec<language::syntax::NodeBlock>> {
-	nom::multi::separated_list1(opt_eol, node_block)(input)
+	nom::multi::separated_list1(nom::multi::many1(crate::common::eol), node_block)(input)
 }
 
 #[cfg(test)]

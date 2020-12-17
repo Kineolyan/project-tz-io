@@ -75,6 +75,7 @@ fn end_line_comment(input: &[u8]) -> IResult<&[u8], ()> {
 	)(input)
 }
 
+/// Parses all spaces until the new-line, including an optional single-line comment
 pub fn eol(input: &[u8]) -> IResult<&[u8], ()> {
 	let (input, _) = space0(input)?;
 	let (input, _) = nom::combinator::opt(end_line_comment)(input)?;

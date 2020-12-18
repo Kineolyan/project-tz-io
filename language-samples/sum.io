@@ -1,7 +1,7 @@
 // Doubles the first input, inc the second and sums both values
-/// [1, 2] -> [5]
-/// [2, 3] -> [8]
-/// [-2, 3] -> [0]
+/>> [1, 2] -> [5]
+/>> [2, 3] -> [8]
+/>> [-2, 3] -> [0]
 
 Node #1
 ===========
@@ -27,9 +27,9 @@ MOV ACC, >1
 1 -> #3:2
 ===========
 
+// Possible to repeat the same source (for readability)
 Node #3
 =======
-// Possible to repeat the same source (for readability)
 #1:1 -> 1, #2:1 -> 2
 ---------
 MOV <1, ACC

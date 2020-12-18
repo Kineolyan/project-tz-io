@@ -1,8 +1,10 @@
-[package]
-name = "rs-parser"
-version = "0.1.0"
-authors = ["Kineolyan <kineolyan@gmail.com>"]
+[workspace]
 
-[dependencies.nom]
-version = "^4.1.1"
-features = ["verbose-errors"]
+members = [
+	"language",
+	"parser",
+	"postprocessor",
+	"checker",
+	"generator",
+	"app"
+]

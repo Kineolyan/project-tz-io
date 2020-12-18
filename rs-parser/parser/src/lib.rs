@@ -65,7 +65,9 @@ pub fn parse(input: &[u8]) -> ParsingResult {
             }
         }
         Err(nom::Err::Error(e)) | Err(nom::Err::Failure(e)) => {
-            //nom::error::convert_error(input, e);
+            // if cfg!(feature = "alloc") {
+            //     nom::error::convert_error(input, e);
+            // }
             print_error(&e);
             Result::Err(())
         }

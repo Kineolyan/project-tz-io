@@ -6,4 +6,7 @@ edition = "2018"
 
 [dependencies]
 language = { path = "../language" }
-nom = "6.0.0"
+
+[dependencies.nom]
+version = "6.0.1"
+features = ["alloc"]

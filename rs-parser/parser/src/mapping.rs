@@ -1,4 +1,3 @@
-use nom;
 use nom::bytes::complete::tag;
 use nom::IResult; //space;
 
@@ -41,7 +40,6 @@ mod tests {
     use crate::common::tests::*;
     use crate::common::to_input;
     use language::address::{Node, Port};
-    use language::instruction::{MemoryPointer, ValuePointer};
 
     #[test]
     fn test_parse_input_item() {

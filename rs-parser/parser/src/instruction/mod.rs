@@ -4,8 +4,6 @@ mod math;
 mod memory;
 mod mov;
 
-use nom;
-
 use crate::instruction::condition::*;
 use crate::instruction::math::*;
 use crate::instruction::memory::*;

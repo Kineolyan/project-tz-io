@@ -15,6 +15,7 @@ where
     nom::sequence::delimited(space0, inner, space0)
 }
 
+#[cfg(test)]
 pub fn to_input(v: &[u8]) -> &[u8] {
     v
 }
@@ -33,10 +34,6 @@ pub fn be_uint(input: &[u8]) -> IResult<&[u8], u32> {
     c::map_res(digit1, to::<u32>)(input)
 }
 
-pub fn be_u8(input: &[u8]) -> IResult<&[u8], u8> {
-    c::map_res(digit1, to::<u8>)(input)
-}
-
 pub fn be_i8(input: &[u8]) -> IResult<&[u8], i8> {
     let (input, sign) = nom::combinator::opt(nom::bytes::complete::tag("-"))(input)?;
     let (input, number) = c::map_res(digit1, to::<i8>)(input)?;
@@ -46,23 +43,6 @@ pub fn be_i8(input: &[u8]) -> IResult<&[u8], i8> {
     };
     Ok((input, value))
 }
-
-// pub fn be_u32<I, E: ParseError<I>>(input: I) -> IResult<I, u32, E>
-// where
-//   I: Slice<RangeFrom<usize>> + InputIter<Item = u8> + InputLength,
-// {
-//   let bound: usize = 4;
-//   if input.input_len() < bound {
-//     Err(Err::Error(make_error(input, ErrorKind::Eof)))
-//   } else {
-//     let mut res = 0u32;
-//     for byte in input.iter_elements().take(bound) {
-//       res = (res << 8) + byte as u32;
-//     }
-
-//     Ok((input.slice(bound..), res))
-//   }
-// }
 
 /// Consume a one-line comment without consuming the new-line chars
 fn end_line_comment(input: &[u8]) -> IResult<&[u8], ()> {
@@ -153,35 +133,6 @@ pub mod tests {
                 // Ok, nothing to do
             }
         }
-    }
-
-    pub fn assert_incomplete<Result: PartialEq + Debug>(res: IResult<&[u8], Result>) {
-        match res {
-            Ok((i, o)) => {
-                panic!(
-                    "Unexpected successful parsing. Res {:?}, remaining {:?}",
-                    o, i
-                );
-            }
-            Err(Err::Incomplete(_)) => {
-                // Ok, nothing to do
-            }
-            Err(Err::Error(e)) | Err(Err::Failure(e)) => {
-                panic!("Unexpected error while parsing: {:?}", e);
-            }
-        }
-    }
-
-    #[test]
-    fn test_parse_be_u8() {
-        let res = be_u8(b"42");
-        assert_full_result(res, 42);
-    }
-
-    #[test]
-    fn test_parse_be_u8_zero() {
-        let res = be_u8(b"0");
-        assert_full_result(res, 0);
     }
 
     #[test]

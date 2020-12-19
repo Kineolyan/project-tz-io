@@ -50,7 +50,7 @@ pub fn parse(input: &[u8]) -> ParsingResult {
     let res = program(input);
     match res {
         Ok((i, (list, test_cases))) => {
-            if i.len() == 0 {
+            if i.is_empty() {
                 let tree = Program {
                     nodes: list,
                     tests: test_cases,

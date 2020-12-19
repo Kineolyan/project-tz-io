@@ -1,6 +1,7 @@
 use nom::IResult;
 
 use language::instruction::Operation;
+use language::syntax::NodeBlock;
 use language::syntax::{InputMapping, OutputMapping};
 
 fn fail(input: &[u8]) -> nom::Err<nom::error::Error<&[u8]>> {
@@ -148,23 +149,25 @@ fn collect_instructions(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
     }
 }
 
-fn parse_node(
-    initial_input: &[u8],
-) -> IResult<&[u8], (Vec<InputMapping>, Vec<OutputMapping>, Vec<Operation>)> {
+fn parse_node(initial_input: &[u8]) -> IResult<&[u8], NodeBlock> {
     let (input, inputs) = collect_inputs(initial_input)?;
     let (input, _) = consume_eols(input)?;
     let (input, instructions) = collect_instructions(input)?;
     let (input, outputs) = collect_outputs(input)?;
     // Here we must check that there is no more data in the input
 
-    Ok((input, (inputs, outputs, instructions)))
+    Ok((
+        input,
+        // Using a
+        (language::address::Node::In, inputs, outputs, instructions),
+    ))
 }
 
-pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], language::syntax::NodeBlock> {
+pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], NodeBlock> {
     use nom::character::complete::newline;
 
     let (input, _) = nom::character::complete::space0(initial_input)?;
-    let (input, node) = crate::address::node_header(input)?;
+    let (input, node_id) = crate::address::node_header(input)?;
     let (input, _) = newline(input)?;
 
     // At this point, we must see the start of a block
@@ -173,11 +176,12 @@ pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], language::syntax::Node
     // Let's find the end of the node
     let (post_node_input, node_body) = find_node_end_line(input)?;
 
-    let (_, (inputs, outputs, instructions)) = parse_node(node_body)?;
-    Ok((post_node_input, (node, inputs, outputs, instructions)))
+    let (_, mut node) = parse_node(node_body)?;
+    node.0 = node_id;
+    Ok((post_node_input, node))
 }
 
-pub fn node_list(input: &[u8]) -> IResult<&[u8], Vec<language::syntax::NodeBlock>> {
+pub fn node_list(input: &[u8]) -> IResult<&[u8], Vec<NodeBlock>> {
     nom::multi::separated_list1(nom::multi::many1(crate::common::eol), node_block)(input)
 }
 

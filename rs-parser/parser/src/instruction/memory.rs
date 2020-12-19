@@ -1,5 +1,4 @@
 use language::instruction::{MemoryPointer, Operation};
-use nom;
 
 pub fn swp_operation(input: &[u8]) -> nom::IResult<&[u8], Operation> {
     nom::combinator::value(

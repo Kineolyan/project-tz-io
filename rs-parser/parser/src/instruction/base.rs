@@ -15,7 +15,7 @@ pub fn nil_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
 fn pointer<'a>(arrow: &'static str, input: &'a [u8]) -> IResult<&'a [u8], ValuePointer> {
     c::map(
         nom::sequence::preceded(tag(arrow), common::be_uint),
-        |port| ValuePointer::PORT(port),
+        ValuePointer::PORT,
     )(input)
 }
 
@@ -28,9 +28,10 @@ pub fn output_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
 }
 
 pub fn value_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
-    c::map(common::be_uint, |value| ValuePointer::VALUE(value))(input)
+    c::map(common::be_uint, ValuePointer::VALUE)(input)
 }
 
+#[allow(dead_code)]
 pub fn bak_pointer(input: &[u8]) -> IResult<&[u8], MemoryPointer> {
     c::value(MemoryPointer::BAK(1), tag("BAK"))(input)
 }

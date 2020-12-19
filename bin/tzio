@@ -4,8 +4,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/_resolve.sh"
 readonly THIS_FILE=$(resolve_file ${BASH_SOURCE[0]})
 readonly DIR=$(dirname "$THIS_FILE")
 
-readonly RUST_COMPILER=$DIR/rs-parser/target/debug/rs-parser
-
 function print_help() {
 	cat <<HELP
 Usage:

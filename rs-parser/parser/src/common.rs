@@ -15,6 +15,9 @@ where
     nom::sequence::delimited(space0, inner, space0)
 }
 
+pub(crate) type TzRes<T, U, E = nom::error::ParseError<T> + nom::error::ContextError<T>> =
+    IResult<T, U, E>;
+
 #[cfg(test)]
 pub fn to_input(v: &[u8]) -> &[u8] {
     v

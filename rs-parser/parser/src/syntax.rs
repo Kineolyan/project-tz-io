@@ -137,7 +137,9 @@ fn collect_outputs(input: &[u8]) -> IResult<&[u8], Vec<OutputMapping>> {
 fn collect_instructions(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
     let mut instructions = vec![];
     let mut remaining = input;
-    while let Ok((rest, mut instruction)) = instruction_line(remaining) {
+    while let Ok((rest, mut instruction)) =
+        nom::error::context("instruction", instruction_line)(remaining)
+    {
         instructions.append(&mut instruction);
         let (more, _) = consume_eols(rest)?;
         remaining = more;
@@ -163,11 +165,11 @@ fn parse_node(initial_input: &[u8]) -> IResult<&[u8], NodeBlock> {
     ))
 }
 
-pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], NodeBlock> {
+pub fn node_block(initial_input: &[u8]) -> crate::common::TzRes<&[u8], NodeBlock> {
     use nom::character::complete::newline;
 
     let (input, _) = nom::character::complete::space0(initial_input)?;
-    let (input, node_id) = crate::address::node_header(input)?;
+    let (input, node_id) = nom::error::context("node id", crate::address::node_header)(input)?;
     let (input, _) = newline(input)?;
 
     // At this point, we must see the start of a block
@@ -176,13 +178,19 @@ pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], NodeBlock> {
     // Let's find the end of the node
     let (post_node_input, node_body) = find_node_end_line(input)?;
 
-    let (_, mut node) = parse_node(node_body)?;
+    let (_, mut node) = nom::error::context("inner node", parse_node)(node_body)?;
     node.0 = node_id;
     Ok((post_node_input, node))
 }
 
 pub fn node_list(input: &[u8]) -> IResult<&[u8], Vec<NodeBlock>> {
-    nom::multi::separated_list1(nom::multi::many1(crate::common::eol), node_block)(input)
+    nom::multi::separated_list1(
+        nom::error::context(
+            "lines between blocks",
+            nom::multi::many1(crate::common::eol),
+        ),
+        nom::error::context("node block", node_block),
+    )(input)
 }
 
 #[cfg(test)]

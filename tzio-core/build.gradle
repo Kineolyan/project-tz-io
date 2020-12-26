@@ -7,10 +7,10 @@ buildscript {
     }
 }
 
-ext.junitVintageVersion  = '5.1.0'
-ext.junitPlatformVersion = '1.1.0'
-ext.junitJupiterVersion  = '5.1.0'
-ext.assertjVersion = '3.6.2'
+ext.junitVintageVersion  = '5.7.0'
+ext.junitPlatformVersion = '1.7.0'
+ext.junitJupiterVersion  = '5.7.0'
+ext.assertjVersion = '3.18.1'
 
 allprojects {
     repositories {
@@ -18,11 +18,11 @@ allprojects {
     }
 
     group 'com.kineolyan'
-    version '1.0-SNAPSHOT'
+    version '1.1-SNAPSHOT'
 }
 
 // Config for java projects
-ext.javaVersion = 1.9
+ext.javaVersion = 15
 def javaProjects = ['tzio-spec', 'tzio-tck', 'tzio-java']
 configure(subprojects.findAll {javaProjects.contains(it.name)}) {
     apply plugin: 'java'

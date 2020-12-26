@@ -1,8 +1,8 @@
 package com.kineolyan.tzio.v1.scala.slot
 
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 
-class TestFilledSlot extends FlatSpec {
+class TestFilledSlot extends AnyFlatSpec {
 
   behavior of "A filled node"
 

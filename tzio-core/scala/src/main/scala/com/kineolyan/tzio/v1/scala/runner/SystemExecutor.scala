@@ -11,7 +11,7 @@ import com.kineolyan.tzio.v1.scala.env.ScalaTzEnv
  */
 class SystemExecutor(in: InputStream, out: PrintStream) {
 
-	def run(env: ScalaTzEnv) {
+	def run(env: ScalaTzEnv): Unit = {
 		val inputs = new LinkedBlockingDeque[Array[Int]]()
 		val errors = new LinkedBlockingDeque[Throwable]()
 		val inputThread = new Thread(

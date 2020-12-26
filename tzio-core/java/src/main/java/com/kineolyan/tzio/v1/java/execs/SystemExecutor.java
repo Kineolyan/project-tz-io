@@ -43,11 +43,9 @@ public class SystemExecutor implements TzExecutor {
 
 	@Override
 	public void run(final JavaTzEnv env) {
-		env.produceInto(outputs -> {
-			this.out.println(Stream.of(outputs)
-				.map(o -> o.isPresent() ? String.valueOf(o.getAsInt()) : "")
-				.collect(Collectors.joining(SPLIT_CHAR, "> ", "")));
-		});
+		env.produceInto(outputs -> this.out.println(Stream.of(outputs)
+			.map(o -> o.isPresent() ? String.valueOf(o.getAsInt()) : "")
+			.collect(Collectors.joining(SPLIT_CHAR, "> ", ""))));
 
 		final BlockingDeque<int[]> inputs = new LinkedBlockingDeque<>();
 		final BlockingDeque<Throwable> errors = new LinkedBlockingDeque<>();

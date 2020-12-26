@@ -7,10 +7,10 @@ buildscript {
     }
 }
 
-ext.junitVintageVersion  = '5.1.0'
-ext.junitPlatformVersion = '1.1.0'
-ext.junitJupiterVersion  = '5.1.0'
-ext.assertjVersion = '3.6.2'
+ext.junitVintageVersion  = '5.7.0'
+ext.junitPlatformVersion = '1.7.0'
+ext.junitJupiterVersion  = '5.7.0'
+ext.assertjVersion = '3.18.1'
 
 allprojects {
     repositories {

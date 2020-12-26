@@ -1,6 +1,7 @@
 dependencies {
-  compile project(':tzio-spec')
-  testCompile project(':tzio-tck')
+  implementation project(':tzio-spec')
+  testImplementation project(':tzio-tck')
+    testImplementation("org.assertj:assertj-core:${assertjVersion}")
 }
 
 task fullJar(type: Jar) {
@@ -17,7 +18,7 @@ build.dependsOn fullJar
 test {
     useJUnitPlatform {
         excludeTags 'slow'
-        includeEngines 'junit-jupiter', 'junit-vintage'
+        includeEngines 'junit-jupiter'//, 'junit-vintage'
     }
 
     failFast = false

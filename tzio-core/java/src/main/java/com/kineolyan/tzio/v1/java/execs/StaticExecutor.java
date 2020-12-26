@@ -76,7 +76,7 @@ public class StaticExecutor implements TzExecutor {
 		private int remaining;
 		private OptionalInt[] next;
 
-		public ExecutorIterator(JavaTzEnv env) {
+		public ExecutorIterator(final JavaTzEnv env) {
 			this.env = env;
 			this.remaining = StaticExecutor.this.cycles;
 			this.env.produceInto(result -> this.next = result);
@@ -101,7 +101,7 @@ public class StaticExecutor implements TzExecutor {
 		private void moveToNext() {
 			this.next = null;
 			while (this.remaining > 0 && this.next == null) {
-				env.tick();
+				this.env.tick();
 				this.remaining -= 1;
 			}
 		}

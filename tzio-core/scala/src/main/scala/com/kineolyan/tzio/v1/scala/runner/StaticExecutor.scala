@@ -9,13 +9,13 @@ import com.kineolyan.tzio.v1.scala.env.ScalaTzEnv
   * @param inputs input values
   * @param cycles maximal number of cycles to execute
   */
-class StaticExecutor(inputs: Stream[Array[Int]], cycles: Int) {
+class StaticExecutor(inputs: LazyList[Array[Int]], cycles: Int) {
 
-  def run(initialEnv: ScalaTzEnv): Stream[Array[OptionalInt]] = {
+  def run(initialEnv: ScalaTzEnv): LazyList[Array[OptionalInt]] = {
     val filledEnv = inputs.foldLeft(initialEnv)((result, inputs) => result.consume(inputs))
     val initialState: (ScalaTzEnv, Option[Array[OptionalInt]]) = (filledEnv, None)
 
-    Stream.from(0).take(cycles)
+    LazyList.from(0).take(cycles)
       .scanLeft(initialState)((acc, iteration) => {
         val (env, _) = acc
         env.tick().collect()
@@ -30,7 +30,7 @@ class StaticExecutor(inputs: Stream[Array[Int]], cycles: Int) {
 
 object StaticExecutor {
 
-  def on(inputs: Stream[Array[Int]], cycles: Int): StaticExecutor =
+  def on(inputs: LazyList[Array[Int]], cycles: Int): StaticExecutor =
     new StaticExecutor(inputs, cycles)
 
 }

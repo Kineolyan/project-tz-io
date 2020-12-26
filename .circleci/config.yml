@@ -1,13 +1,8 @@
-# Java Gradle CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-java/ for more details
-#
 version: 2
 jobs:
   build-core:
     docker:
-      # specify the version you desire here
-      - image: circleci/openjdk:9-jdk
+      - image: cimg/openjdk:15.0.1
 
     working_directory: ~/repo
 
@@ -19,7 +14,6 @@ jobs:
     steps:
       - checkout
 
-      # Download and cache dependencies
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "tzio-core/build.gradle" }}
@@ -46,8 +40,7 @@ jobs:
 
   build-rs-parser:
     docker:
-      # specify the version you desire here
-      - image: circleci/rust
+      - image: cimg/rust:1.48.0
 
     working_directory: ~/repo
 
@@ -60,7 +53,6 @@ jobs:
 
   build-java-reader:
     docker:
-      # specify the version you desire here
       - image: circleci/rust:1.26.2-stretch
 
     working_directory: ~/repo

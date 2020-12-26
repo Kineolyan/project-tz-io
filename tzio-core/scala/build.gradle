@@ -1,15 +1,15 @@
 apply plugin: 'scala'
 
 dependencies {
-    compile project(':tzio-spec')
-    testCompile project(':tzio-tck')
+    implementation project(':tzio-spec')
+    testImplementation project(':tzio-tck')
 
-    compile 'org.scala-lang:scala-library:2.12.6'
-    testCompile group: 'org.scalatest', name: 'scalatest_2.12', version: '3.0.5'
-    testCompile 'junit:junit:4.12'
+    implementation 'org.scala-lang:scala-library:2.13.4'
+    testImplementation group: 'org.scalatest', name: 'scalatest_2.13', version: '3.2.2'
+//     testCompile 'junit:junit:4.12'
 }
 
-def javaForScalaVersion = '1.8'
+def javaForScalaVersion = '15'
 tasks.withType(ScalaCompile) {
     sourceCompatibility = javaForScalaVersion
     targetCompatibility = javaForScalaVersion
@@ -29,7 +29,7 @@ build.dependsOn fullJar
 test {
     useJUnitPlatform {
         excludeTags 'slow'
-        includeEngines 'junit-jupiter', 'junit-vintage'
+        includeEngines 'junit-jupiter'//, 'junit-vintage'
     }
 
     failFast = false

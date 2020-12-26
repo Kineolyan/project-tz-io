@@ -14,7 +14,7 @@ import com.kineolyan.tzio.v1.scala.operations.OperationAdapter
 import com.kineolyan.tzio.v1.scala.runner.{StaticExecutor, SystemExecutor}
 import com.kineolyan.tzio.v1.scala.slot.{EmptySlot, InputSlot, QueueSlot}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
   * TZ environment for the Scala core
@@ -119,7 +119,7 @@ class ScalaTzEnv(
       ScalaTzEnv.logger.fine(s"Consuming [${input.mkString(",")}]")
     }
 
-    val filledSlot$ = slots.inputs.toStream
+    val filledSlot$ = slots.inputs.to(LazyList)
       .zipWithIndex
       .map(entry => {
         val (inputIdx, orderIdx) = entry
@@ -186,12 +186,12 @@ class ScalaTzEnv(
 
   override def runOn(inputs: Stream[Array[Int]], cycles: Int): Stream[Array[OptionalInt]] = {
     val executor = StaticExecutor.on(
-      inputs.iterator().asScala.toStream,
+      inputs.iterator().asScala.to(LazyList),
       cycles)
     val result = executor.run(this)
     StreamSupport.stream(
       Spliterators.spliteratorUnknownSize(
-        result.toIterator.asJava,
+        result.iterator.asJava,
         Spliterator.ORDERED),
       false)
   }

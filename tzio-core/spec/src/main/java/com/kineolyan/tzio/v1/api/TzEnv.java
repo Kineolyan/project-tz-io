@@ -1,8 +1,10 @@
 package com.kineolyan.tzio.v1.api;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.kineolyan.tzio.v1.api.ops.OperationType;
@@ -50,6 +52,33 @@ public interface TzEnv {
 	 */
 	void runFromSystem(final String[] args);
 
+	/**
+	 * Runs this environment for the provided inputs.
+	 * @param inputs
+	 * @param cycles
+	 * @return
+	 */
 	Stream<OptionalInt[]> runOn(Stream<int[]> inputs, int cycles);
+
+	/**
+	 * Tests that the environment correctly produces a series of values from a given set
+	 * of imput values.
+	 * @param inputs input series, indexed by the input position (1-based)
+	 * @param outputs expected output series, indexed by the output position (1-based)
+	 * @param cycles maximal number of cycles to run produce the output
+	 */
+	default void testOn(
+			final int[][] inputs,
+			final int[][] outputs,
+			final int cycles) {
+		// TODO. we should change runOn to consume values per input
+		final Stream<int[]> inputStreams = Stream.of(inputs);
+		final List<List<Integer>> outputLists = runOn(inputStreams, cycles)
+				.map(values -> Stream.of(values)
+						.map(OptionalInt::getAsInt)
+						.collect(Collectors.toList()))
+				.collect(Collectors.toList());
+		System.out.println("Expecting " + Arrays.deepToString(outputs) + " and got " + outputLists);
+	}
 
 }

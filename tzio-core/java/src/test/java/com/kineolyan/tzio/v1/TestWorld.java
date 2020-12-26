@@ -5,7 +5,6 @@ import com.kineolyan.tzio.v1.java.ops.Operations;
 import com.kineolyan.tzio.v1.java.ref.References;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;

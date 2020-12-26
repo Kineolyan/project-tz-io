@@ -1,8 +1,8 @@
 package com.kineolyan.tzio.v1.scala
 
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 
-class TestNode extends FlatSpec {
+class TestNode extends AnyFlatSpec {
 
   behavior of "A Node"
 

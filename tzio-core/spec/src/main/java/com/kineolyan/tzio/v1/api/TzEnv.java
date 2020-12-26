@@ -50,6 +50,26 @@ public interface TzEnv {
 	 */
 	void runFromSystem(final String[] args);
 
+	/**
+	 * Runs this environment for the provided inputs.
+	 * @param inputs
+	 * @param cycles
+	 * @return
+	 */
 	Stream<OptionalInt[]> runOn(Stream<int[]> inputs, int cycles);
+
+	/**
+	 * Tests that the environment correctly produces a series of values from a given set
+	 * of imput values.
+	 * @param inputs input series, indexed by the input position (1-based)
+	 * @param outputs expected output series, indexed by the output position (1-based)
+	 * @param cycles maximal number of cycles to run produce the output
+	 */
+	default void testOn(
+			int[][] inputs,
+			int[][] outputs,
+			int cycles) {
+		throw new UnsupportedOperationException("TODO");
+	}
 
 }

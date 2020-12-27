@@ -276,7 +276,7 @@ mod tests {
         ];
         let tree = Program {
             nodes,
-            tests: vec![],
+            tests: None,
         };
         check(&tree, &mut checks);
         assert_eq!(checks.has_errors(), true);
@@ -300,7 +300,7 @@ mod tests {
         )];
         let tree = Program {
             nodes,
-            tests: vec![],
+            tests: None,
         };
         check(&tree, &mut checks);
         assert_eq!(checks.has_warnings(), true);
@@ -323,7 +323,7 @@ mod tests {
         )];
         let tree = Program {
             nodes,
-            tests: vec![],
+            tests: None,
         };
         check(&tree, &mut checks);
         assert_eq!(checks.has_warnings(), true);

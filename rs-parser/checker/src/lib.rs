@@ -77,7 +77,7 @@ mod tests {
         let tree = vec![src, dst];
         let result = check(&Program {
             nodes: tree,
-            tests: vec![],
+            tests: None,
         });
         assert_eq!(result.has_errors(), false);
     }

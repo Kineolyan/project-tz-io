@@ -153,7 +153,7 @@ mod tests {
         let dst = (Node::new_node(&"b"), vec![], vec![], vec![]);
         let tree = complete_mappings(Program {
             nodes: vec![src, dst],
-            tests: vec![],
+            tests: None,
         });
         assert_eq!(
             tree.nodes[1].1,
@@ -193,7 +193,7 @@ mod tests {
         );
         let tree = complete_mappings(Program {
             nodes: vec![src, dst],
-            tests: vec![],
+            tests: None,
         });
         assert_eq!(
             tree.nodes[0].2,
@@ -235,7 +235,7 @@ mod tests {
         );
         let tree = complete_mappings(Program {
             nodes: vec![src, dst],
-            tests: vec![],
+            tests: None,
         });
         assert_eq!(
             tree.nodes[0].2,

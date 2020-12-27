@@ -154,7 +154,7 @@ mod tests {
         let nodes = vec![src, dst];
         let tree = Program {
             nodes,
-            tests: vec![],
+            tests: None,
         };
         let result = check(&tree, &mut check_result);
         assert_eq!(result, true);
@@ -188,7 +188,7 @@ mod tests {
         let nodes = vec![src, dst];
         let tree = Program {
             nodes,
-            tests: vec![],
+            tests: None,
         };
         let result = check(&tree, &mut check_result);
         assert_eq!(result, true);
@@ -253,7 +253,7 @@ mod tests {
         );
         let tree = Program {
             nodes: vec![src, dst],
-            tests: vec![],
+            tests: None,
         };
         let result = check(&tree, &mut check_result);
         assert_eq!(result, false);

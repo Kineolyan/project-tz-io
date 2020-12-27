@@ -40,20 +40,72 @@ fn count_ios(nodes: &[NodeBlock]) -> Counts {
     (ins, outs)
 }
 
+fn check_test_inputs(test: &TestCase, result: &mut CheckResult, input_count: usize) {
+    for input_slot in test.ins.keys() {
+        if *input_slot == 0u32 || *input_slot > input_count as _ {
+            result.add_error(format!(
+                "Test case {:?} has values for input {} that does not exist",
+                test, *input_slot,
+            ));
+        }
+    }
+
+    match test.ins.len().cmp(&input_count) {
+        std::cmp::Ordering::Greater => {
+            result.add_error(format!(
+                "Test case {:?} has too many inputs ({} / {})",
+                test,
+                test.ins.len(),
+                input_count
+            ));
+        }
+        std::cmp::Ordering::Less => {
+            result.add_error(format!(
+                "Test case {:?} does not have enough inputs ({} / {}).",
+                test,
+                test.ins.len(),
+                input_count
+            ));
+        }
+        _ => {}
+    };
+}
+
+fn check_test_outputs(test: &TestCase, result: &mut CheckResult, output_count: usize) {
+    for output_slot in test.outs.keys() {
+        if *output_slot == 0u32 || *output_slot > output_count as _ {
+            result.add_error(format!(
+                "Test case {:?} has values for output {} that does not exist",
+                test, *output_slot,
+            ));
+        }
+    }
+
+    match test.outs.len().cmp(&output_count) {
+        std::cmp::Ordering::Greater => {
+            result.add_error(format!(
+                "Test case {:?} has too many outputs ({} / {})",
+                test,
+                test.ins.len(),
+                output_count
+            ));
+        }
+        std::cmp::Ordering::Less => {
+            result.add_error(format!(
+                "Test case {:?} does not have enough outputs ({} / {}).",
+                test,
+                test.ins.len(),
+                output_count
+            ));
+        }
+        _ => {}
+    }
+}
+
 fn check_test(test: &TestCase, result: &mut CheckResult, counts: &Counts) {
     let (ins, outs) = counts;
-    if test.ins.len() != *ins {
-        result.add_error(format!(
-            "Test case {:?} has not the correct number of inputs. Expecting {}",
-            test, ins
-        ));
-    }
-    if test.outs.len() != *outs {
-        result.add_error(format!(
-            "Test case {:?} has not the correct number of outputs. Expecting {}",
-            test, outs
-        ));
-    }
+    check_test_inputs(test, result, *ins);
+    check_test_outputs(test, result, *outs);
 }
 
 pub fn check(tree: &Program, result: &mut CheckResult) -> bool {
@@ -110,20 +162,32 @@ mod tests {
     #[test]
     fn test_check_valid_tests() {
         let mut check_result = Default::default();
-        let tests = vec![
-            TestCase {
-                ins: vec![1, 2],
-                outs: vec![9],
-            },
-            TestCase {
-                ins: vec![3, 4],
-                outs: vec![8],
-            },
-        ];
+        let tests = TestCase::default()
+            .inputInto(1, vec![1, 3])
+            .inputInto(2, vec![2, 4])
+            .outputFrom(1, vec![9, 8]);
         let result = check(
             &Program {
                 nodes: create_nodes(),
-                tests,
+                tests: Some(tests),
+            },
+            &mut check_result,
+        );
+        assert_eq!(result, true);
+        assert_eq!(check_result.has_errors(), false);
+    }
+
+    #[test]
+    fn test_check_test_inputs_and_outputs_of_different_size() {
+        let mut check_result = Default::default();
+        let tests = TestCase::default()
+            .inputInto(1, vec![1, 3])
+            .inputInto(2, vec![2, 4, 6, 8, 10])
+            .outputFrom(1, vec![9]);
+        let result = check(
+            &Program {
+                nodes: create_nodes(),
+                tests: Some(tests),
             },
             &mut check_result,
         );
@@ -133,20 +197,11 @@ mod tests {
 
     #[test]
     fn test_check_missing_inputs() {
-        let tests = vec![
-            TestCase {
-                ins: vec![1],
-                outs: vec![9],
-            },
-            TestCase {
-                ins: vec![1, 2],
-                outs: vec![9],
-            },
-            TestCase {
-                ins: vec![],
-                outs: vec![9],
-            },
-        ];
+        let tests = Some(
+            TestCase::default()
+                .inputInto(1, vec![1, 2, 3])
+                .outputFrom(1, vec![9]),
+        );
 
         let mut checks = Default::default();
 
@@ -159,25 +214,18 @@ mod tests {
         );
         assert_eq!(result, false);
         assert_eq!(checks.has_errors(), true);
-        assert_eq!(checks.error_count(), 2);
+        assert_eq!(checks.error_count(), 1);
     }
 
     #[test]
     fn test_check_too_many_inputs() {
-        let tests = vec![
-            TestCase {
-                ins: vec![1, 2, 3],
-                outs: vec![9],
-            },
-            TestCase {
-                ins: vec![1, 2],
-                outs: vec![9],
-            },
-            TestCase {
-                ins: vec![1, 2, 3, 4],
-                outs: vec![9],
-            },
-        ];
+        let tests = Some(
+            TestCase::default()
+                .inputInto(1, vec![1, 2])
+                .inputInto(2, vec![3])
+                .inputInto(3, vec![5, 6])
+                .outputFrom(1, vec![4]),
+        );
 
         let mut checks = Default::default();
 
@@ -195,20 +243,11 @@ mod tests {
 
     #[test]
     fn test_check_missing_outputs() {
-        let tests = vec![
-            TestCase {
-                ins: vec![1, 2],
-                outs: vec![],
-            },
-            TestCase {
-                ins: vec![1, 2],
-                outs: vec![9],
-            },
-            TestCase {
-                ins: vec![1, 2],
-                outs: vec![],
-            },
-        ];
+        let tests = Some(
+            TestCase::default()
+                .inputInto(1, vec![1])
+                .inputInto(2, vec![2]),
+        );
 
         let mut checks = Default::default();
 
@@ -221,25 +260,18 @@ mod tests {
         );
         assert_eq!(result, false);
         assert_eq!(checks.has_errors(), true);
-        assert_eq!(checks.error_count(), 2);
+        assert_eq!(checks.error_count(), 1);
     }
 
     #[test]
     fn test_check_too_many_outputs() {
-        let tests = vec![
-            TestCase {
-                ins: vec![1, 2],
-                outs: vec![9, 8, 7],
-            },
-            TestCase {
-                ins: vec![1, 2],
-                outs: vec![9],
-            },
-            TestCase {
-                ins: vec![1, 2],
-                outs: vec![9, 8],
-            },
-        ];
+        let tests = Some(
+            TestCase::default()
+                .inputInto(1, vec![1])
+                .inputInto(2, vec![2])
+                .outputFrom(1, vec![3])
+                .outputFrom(4, vec![4]),
+        );
 
         let mut checks = Default::default();
 

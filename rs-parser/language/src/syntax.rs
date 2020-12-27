@@ -18,5 +18,5 @@ pub type NodeBlock = (
 
 pub struct Program {
   pub nodes: Vec<NodeBlock>,
-  pub tests: Vec<crate::test::TestCase>,
+  pub tests: Option<crate::test::TestCase>,
 }

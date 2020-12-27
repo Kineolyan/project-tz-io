@@ -3,6 +3,7 @@ package com.kineolyan.tzio.v1;
 import com.kineolyan.tzio.v1.java.JavaTzEnv;
 import com.kineolyan.tzio.v1.java.ops.Operations;
 import com.kineolyan.tzio.v1.java.ref.References;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -36,9 +37,7 @@ public class TestWorld {
 								Operations.MOV(References.inSlot(1), References.outSlot(1))
 						));
 
-		final Stream<int[]> inputs = Stream.of(
-			new int[]{1},
-			new int[]{2});
+		final var inputs = new IntStream[] {IntStream.of(1, 2)};
 		final List<List<Integer>> outputs = env.runOn(inputs, 100)
 			.map(values -> Stream.of(values)
 				.map(OptionalInt::getAsInt)

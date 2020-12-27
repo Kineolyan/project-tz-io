@@ -27,7 +27,7 @@ public class SampleHelper {
 	 * @return the collect results
 	 * @see #strictCollect(Stream) for strict collections
 	 */
-	public static List<List<Integer>> batchCollect(Stream<OptionalInt[]> results) {
+	public static List<List<Integer>> batchCollect(final Stream<OptionalInt[]> results) {
 		final Map<Integer, List<Integer>> outputs = results.sequential()
 				.reduce(
 						new HashMap<>(),

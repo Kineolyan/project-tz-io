@@ -1,6 +1,6 @@
 dependencies {
-  implementation project(':tzio-spec')
-  testImplementation project(':tzio-tck')
+    implementation project(':tzio-spec')
+    testImplementation project(':tzio-tck')
     testImplementation("org.assertj:assertj-core:${assertjVersion}")
 }
 

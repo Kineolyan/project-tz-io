@@ -3,9 +3,7 @@ rootProject.name = 'tzio-core'
 include 'spec'
 include 'tck'
 include 'java'
-include 'scala'
 
 project(":spec").name = "tzio-spec"
 project(":tck").name = "tzio-tck"
 project(":java").name = "tzio-java"
-project(":scala").name = "tzio-scala"

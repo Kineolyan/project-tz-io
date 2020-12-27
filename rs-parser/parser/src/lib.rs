@@ -17,25 +17,16 @@ use language::test::TestCase;
 
 pub type ParsingResult = Result<Program, ()>;
 
-fn program(input: &[u8]) -> nom::IResult<&[u8], (Vec<NodeBlock>, Vec<TestCase>)> {
+fn program(input: &[u8]) -> nom::IResult<&[u8], (Vec<NodeBlock>, Option<TestCase>)> {
     use crate::common::opt_eol;
 
     let (input, _) = opt_eol(input)?;
-    let (input, mut start_cases) = nom::multi::many0(crate::test::test_case)(input)?;
+    let (input, test_case) = nom::combinator::opt(crate::test::test_case)(input)?;
     let (input, _) = opt_eol(input)?;
     let (input, nodes) = crate::syntax::node_list(input)?;
     let (input, _) = opt_eol(input)?;
-    let (input, mut end_cases) = nom::multi::many0(crate::test::test_case)(input)?;
-    let (input, _) = opt_eol(input)?;
 
-    let test_cases = {
-        let mut all = vec![];
-        all.append(&mut start_cases);
-        all.append(&mut end_cases);
-        all
-    };
-
-    Ok((input, (nodes, test_cases)))
+    Ok((input, (nodes, test_case)))
 }
 
 fn print_error(e: &nom::error::Error<&[u8]>) {

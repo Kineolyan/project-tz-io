@@ -10,7 +10,7 @@ pub fn ws<'a, F: 'a, O, E: nom::error::ParseError<&'a [u8]>>(
     inner: F,
 ) -> impl FnMut(&'a [u8]) -> IResult<&'a [u8], O, E>
 where
-    F: Fn(&'a [u8]) -> IResult<&'a [u8], O, E>,
+    F: FnMut(&'a [u8]) -> IResult<&'a [u8], O, E>,
 {
     nom::sequence::delimited(space0, inner, space0)
 }

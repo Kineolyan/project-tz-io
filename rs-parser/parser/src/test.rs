@@ -5,23 +5,35 @@ use nom::character::complete::space0;
 use nom::IResult;
 
 pub fn values(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
-    nom::multi::separated_list1(ws(bytes::tag(",")), crate::common::be_i8)(input)
+    nom::multi::separated_list1(nom::character::complete::space1, crate::common::be_i8)(input)
 }
 
 pub fn array(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
     nom::sequence::delimited(bytes::tag("["), values, bytes::tag("]"))(input)
 }
 
-pub fn test_case(input: &[u8]) -> IResult<&[u8], TestCase> {
-    let (input, _) = bytes::tag("/>> ")(input)?;
-    let (input, _) = space0(input)?;
-
+fn test_values(tag: &str, input: &[u8]) -> IResult<&[u8], (u32, Vec<i8>)> {
+    let (input, _) = bytes::tag(tag)(input)?;
     // TODO at this point, we are in a test comment, the syntax must be correct
-    let (input, inputs) = array(input)?;
-    let (input, _) = ws(bytes::tag("->"))(input)?;
-    let (input, outputs) = array(input)?;
+    let (input, (slot, _)) = ws(nom::sequence::tuple((
+        crate::common::be_uint,
+        bytes::tag(":"),
+    )))(input)?;
+    let (input, values) = ws(array)(input)?;
     let (rest, _) = nom::sequence::tuple((space0, bytes::tag("\n")))(input)?;
-    Ok((rest, (TestCase::new(inputs, outputs))))
+    Ok((rest, (slot, values)))
+}
+
+fn test_input_values(input: &[u8]) -> IResult<&[u8], (u32, Vec<i8>)> {
+    test_values("/>> ", input)
+}
+
+fn test_output_values(input: &[u8]) -> IResult<&[u8], (u32, Vec<i8>)> {
+    test_values("/<< ", input)
+}
+
+pub fn test_case(input: &[u8]) -> IResult<&[u8], TestCase> {
+    Ok((input, TestCase::default()))
 }
 
 #[cfg(test)]
@@ -32,29 +44,29 @@ mod tests {
 
     #[test]
     fn test_parse_values() {
-        let res = values(to_input(b"-1,2,  3  ,4"));
+        let res = values(to_input(b"-1 2  3 4"));
         assert_full_result(res, vec![-1, 2, 3, 4]);
     }
 
     #[test]
     fn test_parse_array_squares() {
-        let res = array(to_input(b"[1, -2, 3]"));
+        let res = array(to_input(b"[1 -2 3]"));
         assert_full_result(res, vec![1, -2, 3]);
     }
 
     #[test]
     fn test_parse_array_simple() {
-        let res = array(to_input(b"10,5,2"));
+        let res = array(to_input(b"10 5 2"));
         assert_cannot_parse(res);
     }
 
     #[test]
     fn test_parse_array_mixed() {
-        let open_res = array(to_input(b"[10,5,2"));
+        let open_res = array(to_input(b"[10 5 2"));
         assert_cannot_parse(open_res);
 
         // Valid as an array with trailing ]
-        let close_res = array(to_input(b"10,5,2]"));
+        let close_res = array(to_input(b"10 5 2]"));
         assert_cannot_parse(close_res);
     }
 

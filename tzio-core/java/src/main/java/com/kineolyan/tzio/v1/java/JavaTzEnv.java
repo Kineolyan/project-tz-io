@@ -170,13 +170,16 @@ public class JavaTzEnv implements TzEnv {
 	 * Feeds this environment with data.
 	 * @param input input values to feed to the input slots.
 	 */
-	public void consume(final int[] input) {
+	public void consume(final OptionalInt[] input) {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("Consuming " + Arrays.toString(input));
 		}
 
 		for (int i = 0, end_ = Math.max(input.length, inputs.length); i < end_; i += 1) {
-			this.inputs[i].enqueue(input[i]);
+			final var inputValue = input[i];
+			if (inputValue.isPresent()) {
+				this.inputs[i].enqueue(inputValue.getAsInt());
+			}
 		}
 	}
 
@@ -213,7 +216,7 @@ public class JavaTzEnv implements TzEnv {
 	}
 
 	@Override
-	public Stream<OptionalInt[]> runOn(final Stream<int[]> inputs, int cycles) {
+	public Stream<OptionalInt[]> runOn(final IntStream[] inputs, int cycles) {
 		final StaticExecutor executor = StaticExecutor.on(inputs, cycles);
 		executor.run(this);
 		return executor.getResult();

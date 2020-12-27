@@ -1,13 +1,19 @@
 package com.kineolyan.tzio.v1.java.execs;
 
+import static java.util.stream.Collectors.toUnmodifiableList;
+
+import com.kineolyan.tzio.v1.api.TzEnv;
+import com.kineolyan.tzio.v1.java.JavaTzEnv;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.PrimitiveIterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import com.kineolyan.tzio.v1.java.JavaTzEnv;
 
 /**
  * Executor from static input.
@@ -18,7 +24,7 @@ import com.kineolyan.tzio.v1.java.JavaTzEnv;
 public class StaticExecutor implements TzExecutor {
 
 	/** Stream of inputs */
-	private final Stream<int[]> input;
+	private final IntStream[] inputs;
 	/** Maximal number of cycles of the executor */
 	private final int cycles;
 	/** Stream of outputs */
@@ -26,11 +32,11 @@ public class StaticExecutor implements TzExecutor {
 
 	/**
 	 * Constructor.
-	 * @param input input stream
+	 * @param inputs input stream
 	 * @param cycles maximal number of cycles to run
 	 */
-	private StaticExecutor(final Stream<int[]> input, final int cycles) {
-		this.input = input;
+	private StaticExecutor(final IntStream[] inputs, final int cycles) {
+		this.inputs = inputs;
 		this.cycles = cycles;
 	}
 
@@ -41,20 +47,36 @@ public class StaticExecutor implements TzExecutor {
 	 * @return the created executor
 	 */
 	public static StaticExecutor on(
-			final Stream<int[]> input,
+			final IntStream[] input,
 			final int cycles) {
 		return new StaticExecutor(input, cycles);
 	}
 
 	@Override
 	public void run(final JavaTzEnv env) {
-		this.input.forEach(env::consume);
+		feedInputs(env);
 		this.result = StreamSupport.stream(
 				Spliterators.spliteratorUnknownSize(
 					new ExecutorIterator(env),
 					Spliterator.ORDERED
 				),
 				false);
+	}
+
+	private void feedInputs(final JavaTzEnv env) {
+		final var inputIterators = Stream.of(this.inputs)
+				.map(IntStream::iterator)
+				.collect(toUnmodifiableList());
+		while (inputIterators.stream().anyMatch(Iterator::hasNext)) {
+			final var inputValues = collectNextInputs(inputIterators);
+			env.consume(inputValues);
+		}
+	}
+
+	private OptionalInt[] collectNextInputs(final List<PrimitiveIterator.OfInt> inputIterators) {
+		return inputIterators.stream()
+				.map(it -> it.hasNext() ? OptionalInt.of(it.next()) : OptionalInt.empty())
+				.toArray(OptionalInt[]::new);
 	}
 
 	/**

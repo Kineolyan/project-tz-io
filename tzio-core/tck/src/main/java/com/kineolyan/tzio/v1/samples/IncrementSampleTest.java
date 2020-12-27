@@ -1,6 +1,7 @@
 package com.kineolyan.tzio.v1.samples;
 
 import java.util.List;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.kineolyan.tzio.v1.api.TzEnv;
@@ -34,12 +35,9 @@ public class IncrementSampleTest {
 	@Test
 	@DisplayName("Increment program")
 	protected void testProgram() {
-		final Stream<int[]> input = Stream.of(
-			new int[] {0},
-			new int[] {12},
-			new int[] {-43});
+		final var inputs = new IntStream[] {IntStream.of(0, 12, -43)};
 		final List<List<Integer>> output = SampleHelper.batchCollect(
-			create().runOn(input, 100));
+			create().runOn(inputs, 100));
 		assertThat(output).containsExactly(
 			List.of(1),
 			List.of(13),

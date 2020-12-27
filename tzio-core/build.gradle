@@ -11,6 +11,7 @@ ext.junitVintageVersion  = '5.7.0'
 ext.junitPlatformVersion = '1.7.0'
 ext.junitJupiterVersion  = '5.7.0'
 ext.assertjVersion = '3.18.1'
+ext.lombokVersion = '1.18.16'
 
 allprojects {
     repositories {
@@ -27,6 +28,14 @@ def javaProjects = ['tzio-spec', 'tzio-tck', 'tzio-java']
 configure(subprojects.findAll {javaProjects.contains(it.name)}) {
     apply plugin: 'java'
     apply plugin: 'maven'
+
+    dependencies {
+        compileOnly "org.projectlombok:lombok:${lombokVersion}"
+        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    }
 
     sourceCompatibility = javaVersion
 

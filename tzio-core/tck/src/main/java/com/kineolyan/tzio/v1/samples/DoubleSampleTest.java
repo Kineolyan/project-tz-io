@@ -1,16 +1,15 @@
 package com.kineolyan.tzio.v1.samples;
 
-import java.util.List;
-import java.util.stream.Stream;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.kineolyan.tzio.v1.api.TzEnv;
 import com.kineolyan.tzio.v1.api.arch.TzSystem;
 import com.kineolyan.tzio.v1.api.ops.Operations;
 import com.kineolyan.tzio.v1.api.ref.References;
+import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests class implementing an node increment the input by one.
@@ -39,12 +38,9 @@ public class DoubleSampleTest {
 	@Test
 	@DisplayName("Double program")
 	protected void testProgram() {
-		final Stream<int[]> input = Stream.of(
-				new int[]{1},
-				new int[]{3},
-				new int[]{-4});
+		final var inputs = new IntStream[] {IntStream.of(1, 3, -4)};
 		final List<List<Integer>> output = SampleHelper.batchCollect(
-				create().runOn(input, 100));
+				create().runOn(inputs, 100));
 		assertThat(output).containsExactly(
 				List.of(2),
 				List.of(6),

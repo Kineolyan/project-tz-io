@@ -2,7 +2,7 @@ package com.kineolyan.tzio.v1.scala.env
 
 import java.util
 import java.util.function.Consumer
-import java.util.stream.{Stream, StreamSupport}
+import java.util.stream.{IntStream, Stream, StreamSupport}
 import java.util.{OptionalInt, Spliterator, Spliterators}
 import java.util.logging.{Level, Logger}
 
@@ -184,7 +184,7 @@ class ScalaTzEnv(
     SystemExecutor.fromSystem().run(this)
   }
 
-  override def runOn(inputs: Stream[Array[Int]], cycles: Int): Stream[Array[OptionalInt]] = {
+  override def runOn(inputs: Array[IntStream], cycles: Int): Stream[Array[OptionalInt]] = {
     val executor = StaticExecutor.on(
       inputs.iterator().asScala.to(LazyList),
       cycles)

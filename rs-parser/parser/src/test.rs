@@ -12,7 +12,7 @@ pub fn array(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
     nom::sequence::delimited(bytes::tag("["), values, bytes::tag("]"))(input)
 }
 
-fn test_values(tag: &str, input: &[u8]) -> IResult<&[u8], (u32, Vec<i8>)> {
+fn test_values<'a>(tag: &'static str, input: &'a [u8]) -> IResult<&'a [u8], (u32, Vec<i8>)> {
     let (input, _) = bytes::tag(tag)(input)?;
     // TODO at this point, we are in a test comment, the syntax must be correct
     let (input, (slot, _)) = ws(nom::sequence::tuple((
@@ -33,7 +33,34 @@ fn test_output_values(input: &[u8]) -> IResult<&[u8], (u32, Vec<i8>)> {
 }
 
 pub fn test_case(input: &[u8]) -> IResult<&[u8], TestCase> {
-    Ok((input, TestCase::default()))
+    let mut test: Option<TestCase> = None;
+    let mut remaining = input;
+    loop {
+        if let Ok((rest, (input_slot, input_values))) = test_input_values(remaining) {
+            test = test
+                .or_else(|| Some(Default::default()))
+                .map(|t| t.inputInto(input_slot, input_values));
+            remaining = rest;
+            continue;
+        }
+        if let Ok((rest, (output_slot, output_values))) = test_output_values(remaining) {
+            test = test
+                .or_else(|| Some(Default::default()))
+                .map(|t| t.outputFrom(output_slot, output_values));
+            remaining = rest;
+            continue;
+        }
+
+        return test.map_or_else(
+            || {
+                Err(nom::Err::Error(nom::error::Error::new(
+                    input,
+                    nom::error::ErrorKind::Satisfy,
+                )))
+            },
+            |t| Ok((remaining, t)),
+        );
+    }
 }
 
 #[cfg(test)]
@@ -71,32 +98,66 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_test_case() {
-        let res = test_case(to_input(b"/>> [1,2] -> [-1]  \nnext"));
-        assert_result(res, TestCase::new(vec![1, 2], vec![-1]), to_input(b"next"));
+    fn test_parse_input_test_case() {
+        let res = test_case(to_input(b"/>> 4: [1 2]  \nnext"));
+        assert_result(
+            res,
+            TestCase::default().inputInto(4, vec![1, 2]),
+            to_input(b"next"),
+        );
     }
 
     #[test]
-    fn test_parse_unclosed_test_case() {
-        let res = test_case(to_input(b"/>> [1,2 -> -1]  \nnext"));
+    fn test_parse_unclosed_input_test_case() {
+        let res = test_case(to_input(b"/>> 1: [1 2  \nnext"));
         assert_cannot_parse(res);
     }
 
     #[test]
-    fn test_parse_opposite_test_case() {
-        let res = test_case(to_input(b"/>> 1,2] -> [-1  \nnext"));
+    fn test_parse_opposite_input_test_case() {
+        let res = test_case(to_input(b"/>> 3: 1,2]\nnext"));
         assert_cannot_parse(res);
     }
 
     #[test]
-    fn test_parse_opening_test_case() {
-        let res = test_case(to_input(b"/>> [1,2 -> [-1  \nnext"));
+    fn test_parse_output_test_case() {
+        let res = test_case(to_input(b"/<< 4: [1 2]  \nnext"));
+        assert_result(
+            res,
+            TestCase::default().outputFrom(4, vec![1, 2]),
+            to_input(b"next"),
+        );
+    }
+
+    #[test]
+    fn test_parse_unclosed_output_test_case() {
+        let res = test_case(to_input(b"/<< 1: [1 2  \nnext"));
         assert_cannot_parse(res);
     }
 
     #[test]
-    fn test_parse_ending_test_case() {
-        let res = test_case(to_input(b"/>> 1,2] -> -1]  \nnext"));
+    fn test_parse_opposite_output_test_case() {
+        let res = test_case(to_input(b"/<< 3: 1,2]\nnext"));
         assert_cannot_parse(res);
+    }
+
+    #[test]
+    fn test_parse_input_and_output_test_cases() {
+        let res = test_case(
+            b"/<< 1: [101 102]
+/>> 1: [11 12 13]
+/>> 3: [31 32 33]
+/<< 2: [127]
+// after",
+        );
+        assert_result(
+            res,
+            TestCase::default()
+                .inputInto(1, vec![11, 12, 13])
+                .inputInto(3, vec![31, 32, 33])
+                .outputFrom(1, vec![101, 102])
+                .outputFrom(2, vec![127]),
+            b"// after",
+        );
     }
 }

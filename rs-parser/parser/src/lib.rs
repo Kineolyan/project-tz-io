@@ -132,15 +132,16 @@ MOV <2, >2
             ),
         ];
 
-        assert_full_result(res, (nodes, vec![]));
+        assert_full_result(res, (nodes, None));
     }
 
     #[test]
     fn test_program_with_tests() {
         let content = b"// Start of the program
 // Another comment
-/>> [1, 2] -> [3]
-/>> [1, 2, 4] -> [-8]
+/>> 1: [1 2]
+/>> 2: [2 4]
+/<< 1: [-1 -2]
 
 Node #1
 ==========
@@ -151,7 +152,6 @@ MOV <1,  >1
 1 -> #2:2
 =======
 
-/>> [1] -> [-1, 1]
 // End comment, to conclude
 ";
 
@@ -168,11 +168,12 @@ MOV <1,  >1
             }],
             vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
         )];
-        let test_cases = vec![
-            TestCase::new(vec![1, 2], vec![3]),
-            TestCase::new(vec![1, 2, 4], vec![-8]),
-            TestCase::new(vec![1], vec![-1, 1]),
-        ];
+        let test_cases = Some(
+            TestCase::default()
+                .inputInto(1, vec![1, 2])
+                .inputInto(2, vec![2, 4])
+                .outputFrom(1, vec![-1, -2]),
+        );
 
         assert_full_result(res, (nodes, test_cases));
     }
@@ -180,16 +181,10 @@ MOV <1,  >1
     #[test]
     fn test_program_with_trailing_spaces() {
         let content = b"// Start of the program
-// Another comment
-/>> [1, 2] -> [3]
-/>> [1, 2, 4] -> [-8]
-
 Node #1
 ==========
 MOV <1,  >1
 =======
-
-/>> [1] -> [-1, 1]
 // End comment, to conclude
    ";
 
@@ -200,12 +195,6 @@ MOV <1,  >1
             vec![],
             vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
         )];
-        let test_cases = vec![
-            TestCase::new(vec![1, 2], vec![3]),
-            TestCase::new(vec![1, 2, 4], vec![-8]),
-            TestCase::new(vec![1], vec![-1, 1]),
-        ];
-
-        assert_result(res, (nodes, test_cases), b"   ");
+        assert_result(res, (nodes, None), b"   ");
     }
 }

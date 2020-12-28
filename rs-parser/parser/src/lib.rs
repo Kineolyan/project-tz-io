@@ -170,9 +170,9 @@ MOV <1,  >1
         )];
         let test_cases = Some(
             TestCase::default()
-                .inputInto(1, vec![1, 2])
-                .inputInto(2, vec![2, 4])
-                .outputFrom(1, vec![-1, -2]),
+                .input_into(1, vec![1, 2])
+                .input_into(2, vec![2, 4])
+                .output_from(1, vec![-1, -2]),
         );
 
         assert_full_result(res, (nodes, test_cases));

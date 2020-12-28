@@ -39,14 +39,14 @@ pub fn test_case(input: &[u8]) -> IResult<&[u8], TestCase> {
         if let Ok((rest, (input_slot, input_values))) = test_input_values(remaining) {
             test = test
                 .or_else(|| Some(Default::default()))
-                .map(|t| t.inputInto(input_slot, input_values));
+                .map(|t| t.input_into(input_slot, input_values));
             remaining = rest;
             continue;
         }
         if let Ok((rest, (output_slot, output_values))) = test_output_values(remaining) {
             test = test
                 .or_else(|| Some(Default::default()))
-                .map(|t| t.outputFrom(output_slot, output_values));
+                .map(|t| t.output_from(output_slot, output_values));
             remaining = rest;
             continue;
         }
@@ -102,7 +102,7 @@ mod tests {
         let res = test_case(to_input(b"/>> 4: [1 2]  \nnext"));
         assert_result(
             res,
-            TestCase::default().inputInto(4, vec![1, 2]),
+            TestCase::default().input_into(4, vec![1, 2]),
             to_input(b"next"),
         );
     }
@@ -124,7 +124,7 @@ mod tests {
         let res = test_case(to_input(b"/<< 4: [1 2]  \nnext"));
         assert_result(
             res,
-            TestCase::default().outputFrom(4, vec![1, 2]),
+            TestCase::default().output_from(4, vec![1, 2]),
             to_input(b"next"),
         );
     }
@@ -153,10 +153,10 @@ mod tests {
         assert_result(
             res,
             TestCase::default()
-                .inputInto(1, vec![11, 12, 13])
-                .inputInto(3, vec![31, 32, 33])
-                .outputFrom(1, vec![101, 102])
-                .outputFrom(2, vec![127]),
+                .input_into(1, vec![11, 12, 13])
+                .input_into(3, vec![31, 32, 33])
+                .output_from(1, vec![101, 102])
+                .output_from(2, vec![127]),
             b"// after",
         );
     }

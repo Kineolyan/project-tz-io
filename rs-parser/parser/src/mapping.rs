@@ -2,12 +2,12 @@ use nom::bytes::complete::tag;
 use nom::IResult; //space;
 
 use crate::address::port_ref;
-use crate::common::{be_uint, ws};
+use crate::common::{be_u8, be_uint, ws};
 use language::syntax::{InputMapping, OutputMapping};
 
 pub fn input_item(input: &[u8]) -> IResult<&[u8], InputMapping> {
     let (remaining, (port, _, input_ref)) =
-        nom::sequence::tuple((port_ref, ws(tag("->")), be_uint))(input)?;
+        nom::sequence::tuple((port_ref, ws(tag("->")), be_u8))(input)?;
     let mapping = InputMapping {
         from: port,
         to: input_ref,

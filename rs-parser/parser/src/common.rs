@@ -34,6 +34,11 @@ pub fn be_uint(input: &[u8]) -> IResult<&[u8], u32> {
     c::map_res(digit1, to::<u32>)(input)
 }
 
+pub fn be_u8(input: &[u8]) -> IResult<&[u8], u8> {
+    let (input, number) = c::map_res(digit1, to::<u8>)(input)?;
+    Ok((input, number))
+}
+
 pub fn be_i8(input: &[u8]) -> IResult<&[u8], i8> {
     let (input, sign) = nom::combinator::opt(nom::bytes::complete::tag("-"))(input)?;
     let (input, number) = c::map_res(digit1, to::<i8>)(input)?;

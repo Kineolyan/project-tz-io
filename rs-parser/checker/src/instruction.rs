@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::CheckResult;
-use language::address::Node;
+use language::address::{InputSlot, Node, OutputSlot};
 use language::instruction::{Operation, ValuePointer};
 use language::syntax::Program;
 use language::syntax::{InputMapping, NodeBlock, OutputMapping};
@@ -10,28 +10,28 @@ use language::syntax::{InputMapping, NodeBlock, OutputMapping};
 /// are defined in the inputs/outputs.
 /// This only generate warnings.
 
-fn collect_input_ports(inputs: &[InputMapping]) -> HashSet<u32> {
+fn collect_input_ports(inputs: &[InputMapping]) -> HashSet<InputSlot> {
     inputs
         .iter()
         .map(|ref input| input.to)
-        .collect::<HashSet<u32>>()
+        .collect::<HashSet<InputSlot>>()
 }
 
-fn collect_output_ports(outputs: &[OutputMapping]) -> HashSet<u32> {
+fn collect_output_ports(outputs: &[OutputMapping]) -> HashSet<OutputSlot> {
     outputs
         .iter()
         .map(|ref output| output.from)
-        .collect::<HashSet<u32>>()
+        .collect::<HashSet<OutputSlot>>()
 }
 
 fn test_input(
     result: &mut CheckResult,
-    inputs: &HashSet<u32>,
+    inputs: &HashSet<InputSlot>,
     node: &Node,
     op: &Operation,
     pointer: &ValuePointer,
 ) {
-    if let ValuePointer::PORT(ref port) = pointer {
+    if let ValuePointer::INPUT(ref port) = pointer {
         if !inputs.contains(port) {
             result.add_error(format!(
                 "Port {} from {} is not defined in node {} inputs",
@@ -43,12 +43,12 @@ fn test_input(
 
 fn test_output(
     result: &mut CheckResult,
-    outputs: &HashSet<u32>,
+    outputs: &HashSet<OutputSlot>,
     node: &Node,
     op: &Operation,
     pointer: &ValuePointer,
 ) {
-    if let ValuePointer::PORT(ref port) = pointer {
+    if let ValuePointer::OUTPUT(ref port) = pointer {
         if !outputs.contains(port) {
             result.add_error(format!(
                 "Port {} from {} is not defined in node {} outputs",

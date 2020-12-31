@@ -69,13 +69,13 @@ fn check_node(node: &NodeBlock, result: &mut CheckResult) {
                 test_output(result, &outputs, &node.0, op, to);
             }
             Operation::ADD(ref value) => {
-                test_output(result, &inputs, &node.0, op, value);
+                test_input(result, &inputs, &node.0, op, value);
             }
             Operation::SUB(ref value) => {
-                test_output(result, &inputs, &node.0, op, value);
+                test_input(result, &inputs, &node.0, op, value);
             }
             Operation::JRO(ref value) => {
-                test_output(result, &inputs, &node.0, op, value);
+                test_input(result, &inputs, &node.0, op, value);
             }
             _ => {}
         }
@@ -104,12 +104,12 @@ mod tests {
         let node_ok = (
             Node::new_node(&"a"),
             vec![InputMapping {
-                from: Port::new(Node::In, 3),
-                to: 1,
+                from: Port::new(Node::In, 3.into()),
+                to: 1.into(),
             }],
             vec![],
             vec![
-                Operation::JRO(ValuePointer::PORT(1)),
+                Operation::JRO(ValuePointer::INPUT(1.into())),
                 Operation::JRO(ValuePointer::ACC),
                 Operation::JRO(ValuePointer::VALUE(2)),
             ],
@@ -120,14 +120,14 @@ mod tests {
         let node_ko = (
             Node::new_node(&"a"),
             vec![InputMapping {
-                from: Port::new(Node::In, 3),
-                to: 1,
+                from: Port::new(Node::In, 3.into()),
+                to: 1.into(),
             }],
             vec![OutputMapping {
-                from: 2,
-                to: Port::new(Node::Out, 3),
+                from: 2.into(),
+                to: Port::new(Node::Out, 3.into()),
             }],
-            vec![Operation::JRO(ValuePointer::PORT(2))],
+            vec![Operation::JRO(ValuePointer::INPUT(2.into()))],
         );
         check_node(&node_ko, &mut check);
         assert_eq!(check.has_errors(), true);
@@ -140,12 +140,12 @@ mod tests {
         let node_ok = (
             Node::new_node(&"a"),
             vec![InputMapping {
-                from: Port::new(Node::In, 3),
-                to: 1,
+                from: Port::new(Node::In, 3.into()),
+                to: 1.into(),
             }],
             vec![],
             vec![
-                Operation::ADD(ValuePointer::PORT(1)),
+                Operation::ADD(ValuePointer::INPUT(1.into())),
                 Operation::ADD(ValuePointer::ACC),
                 Operation::ADD(ValuePointer::VALUE(2)),
             ],
@@ -156,14 +156,14 @@ mod tests {
         let node_ko = (
             Node::new_node(&"a"),
             vec![InputMapping {
-                from: Port::new(Node::In, 3),
-                to: 1,
+                from: Port::new(Node::In, 3.into()),
+                to: 1.into(),
             }],
             vec![OutputMapping {
-                from: 2,
-                to: Port::new(Node::Out, 3),
+                from: 2.into(),
+                to: Port::new(Node::Out, 3.into()),
             }],
-            vec![Operation::ADD(ValuePointer::PORT(2))],
+            vec![Operation::ADD(ValuePointer::INPUT(2.into()))],
         );
         check_node(&node_ko, &mut check);
         assert_eq!(check.has_errors(), true);
@@ -176,12 +176,12 @@ mod tests {
         let node_ok = (
             Node::new_node(&"a"),
             vec![InputMapping {
-                from: Port::new(Node::In, 3),
-                to: 1,
+                from: Port::new(Node::In, 3.into()),
+                to: 1.into(),
             }],
             vec![],
             vec![
-                Operation::SUB(ValuePointer::PORT(1)),
+                Operation::SUB(ValuePointer::INPUT(1.into())),
                 Operation::SUB(ValuePointer::ACC),
                 Operation::SUB(ValuePointer::VALUE(2)),
             ],
@@ -192,14 +192,14 @@ mod tests {
         let node_ko = (
             Node::new_node(&"a"),
             vec![InputMapping {
-                from: Port::new(Node::In, 3),
-                to: 1,
+                from: Port::new(Node::In, 3.into()),
+                to: 1.into(),
             }],
             vec![OutputMapping {
-                from: 2,
-                to: Port::new(Node::Out, 3),
+                from: 2.into(),
+                to: Port::new(Node::Out, 3.into()),
             }],
-            vec![Operation::SUB(ValuePointer::PORT(2))],
+            vec![Operation::SUB(ValuePointer::INPUT(2.into()))],
         );
         check_node(&node_ko, &mut check);
         assert_eq!(check.has_errors(), true);
@@ -212,16 +212,19 @@ mod tests {
         let node_ok = (
             Node::new_node(&"a"),
             vec![InputMapping {
-                from: Port::new(Node::In, 3),
-                to: 1,
+                from: Port::new(Node::In, 3.into()),
+                to: 1.into(),
             }],
             vec![OutputMapping {
-                from: 2,
-                to: Port::new(Node::Out, 3),
+                from: 2.into(),
+                to: Port::new(Node::Out, 3.into()),
             }],
             vec![
-                Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(2)),
-                Operation::MOV(ValuePointer::PORT(1), ValuePointer::ACC),
+                Operation::MOV(
+                    ValuePointer::INPUT(1.into()),
+                    ValuePointer::OUTPUT(2.into()),
+                ),
+                Operation::MOV(ValuePointer::INPUT(1.into()), ValuePointer::ACC),
                 Operation::MOV(ValuePointer::ACC, ValuePointer::VALUE(2)),
             ],
         );
@@ -231,16 +234,16 @@ mod tests {
         let node_ko = (
             Node::new_node(&"a"),
             vec![InputMapping {
-                from: Port::new(Node::In, 1),
-                to: 1,
+                from: Port::new(Node::In, 1.into()),
+                to: 1.into(),
             }],
             vec![OutputMapping {
-                from: 2,
-                to: Port::new(Node::Out, 1),
+                from: 2.into(),
+                to: Port::new(Node::Out, 1.into()),
             }],
             vec![
-                Operation::MOV(ValuePointer::PORT(2), ValuePointer::ACC),
-                Operation::MOV(ValuePointer::ACC, ValuePointer::PORT(1)),
+                Operation::MOV(ValuePointer::INPUT(2.into()), ValuePointer::ACC),
+                Operation::MOV(ValuePointer::ACC, ValuePointer::OUTPUT(1.into())),
             ],
         );
         check_node(&node_ko, &mut check);

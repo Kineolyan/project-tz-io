@@ -115,7 +115,7 @@ mod tests {
     #[test]
     fn test_parse_jro_operation_with_input() {
         let res = jro_operation(to_input(b"JRO <32"));
-        assert_full_result(res, Operation::JRO(ValuePointer::PORT(32)));
+        assert_full_result(res, Operation::JRO(ValuePointer::INPUT(32.into())));
     }
 
     #[test]

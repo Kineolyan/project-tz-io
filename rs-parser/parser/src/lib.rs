@@ -109,26 +109,32 @@ MOV <2, >2
             (
                 Node::new_node("1"),
                 vec![InputMapping {
-                    from: Port::new(Node::In, 1),
-                    to: 1,
+                    from: Port::new(Node::In, 1.into()),
+                    to: 1.into(),
                 }],
                 vec![OutputMapping {
-                    from: 1,
-                    to: Port::named_port(&"2", 2),
+                    from: 1.into(),
+                    to: Port::named_port(&"2", 2.into()),
                 }],
-                vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
+                vec![Operation::MOV(
+                    ValuePointer::INPUT(1.into()),
+                    ValuePointer::OUTPUT(1.into()),
+                )],
             ),
             (
                 Node::new_node("2"),
                 vec![InputMapping {
-                    from: Port::named_port(&"1", 1),
-                    to: 2,
+                    from: Port::named_port(&"1", 1.into()),
+                    to: 2.into(),
                 }],
                 vec![OutputMapping {
-                    from: 2,
-                    to: Port::named_port(&"3", 3),
+                    from: 2.into(),
+                    to: Port::named_port(&"3", 3.into()),
                 }],
-                vec![Operation::MOV(ValuePointer::PORT(2), ValuePointer::PORT(2))],
+                vec![Operation::MOV(
+                    ValuePointer::INPUT(2.into()),
+                    ValuePointer::OUTPUT(2.into()),
+                )],
             ),
         ];
 
@@ -159,20 +165,23 @@ MOV <1,  >1
         let nodes = vec![(
             Node::new_node("1"),
             vec![InputMapping {
-                from: Port::new(Node::In, 1),
-                to: 1,
+                from: Port::new(Node::In, 1.into()),
+                to: 1.into(),
             }],
             vec![OutputMapping {
-                from: 1,
-                to: Port::named_port(&"2", 2),
+                from: 1.into(),
+                to: Port::named_port(&"2", 2.into()),
             }],
-            vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
+            vec![Operation::MOV(
+                ValuePointer::INPUT(1.into()),
+                ValuePointer::OUTPUT(1.into()),
+            )],
         )];
         let test_cases = Some(
             TestCase::default()
-                .input_into(1, vec![1, 2])
-                .input_into(2, vec![2, 4])
-                .output_from(1, vec![-1, -2]),
+                .input_into(1.into(), vec![1, 2])
+                .input_into(2.into(), vec![2, 4])
+                .output_from(1.into(), vec![-1, -2]),
         );
 
         assert_full_result(res, (nodes, test_cases));
@@ -193,7 +202,10 @@ MOV <1,  >1
             Node::new_node("1"),
             vec![],
             vec![],
-            vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
+            vec![Operation::MOV(
+                ValuePointer::INPUT(1.into()),
+                ValuePointer::OUTPUT(1.into()),
+            )],
         )];
         assert_result(res, (nodes, None), b"   ");
     }

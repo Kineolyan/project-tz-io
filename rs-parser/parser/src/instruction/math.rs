@@ -42,7 +42,7 @@ mod tests {
     #[test]
     fn test_parse_add_operation_with_input() {
         let res = add_operation(to_input(b"ADD <17"));
-        assert_full_result(res, Operation::ADD(ValuePointer::PORT(17)));
+        assert_full_result(res, Operation::ADD(ValuePointer::INPUT(17.into())));
     }
 
     #[test]
@@ -72,7 +72,7 @@ mod tests {
     #[test]
     fn test_parse_sub_operation_with_input() {
         let res = sub_operation(to_input(b"SUB <17"));
-        assert_full_result(res, Operation::SUB(ValuePointer::PORT(17)));
+        assert_full_result(res, Operation::SUB(ValuePointer::INPUT(17.into())));
     }
 
     #[test]

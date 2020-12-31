@@ -2,7 +2,7 @@ use nom::bytes::complete::tag;
 use nom::IResult; //space;
 
 use crate::address::port_ref;
-use crate::common::{be_u8, be_uint, ws};
+use crate::common::{be_u8, ws};
 use language::syntax::{InputMapping, OutputMapping};
 
 pub fn input_item(input: &[u8]) -> IResult<&[u8], InputMapping> {
@@ -10,7 +10,7 @@ pub fn input_item(input: &[u8]) -> IResult<&[u8], InputMapping> {
         nom::sequence::tuple((port_ref, ws(tag("->")), be_u8))(input)?;
     let mapping = InputMapping {
         from: port,
-        to: input_ref,
+        to: input_ref.into(),
     };
     Ok((remaining, mapping))
 }
@@ -21,9 +21,9 @@ pub fn inputs(input: &[u8]) -> IResult<&[u8], Vec<InputMapping>> {
 
 pub fn output_item(input: &[u8]) -> IResult<&[u8], OutputMapping> {
     let (remaining, (input_ref, _, port)) =
-        nom::sequence::tuple((be_uint, ws(tag("->")), port_ref))(input)?;
+        nom::sequence::tuple((be_u8, ws(tag("->")), port_ref))(input)?;
     let mapping = OutputMapping {
-        from: input_ref,
+        from: input_ref.into(),
         to: port,
     };
     Ok((remaining, mapping))
@@ -47,8 +47,8 @@ mod tests {
         assert_full_result(
             res_in,
             InputMapping {
-                from: Port::new(Node::In, 1),
-                to: 3u32,
+                from: Port::new(Node::In, 1.into()),
+                to: 3.into(),
             },
         );
 
@@ -56,8 +56,8 @@ mod tests {
         assert_full_result(
             res_node,
             InputMapping {
-                from: Port::named_port(&"node", 32),
-                to: 1u32,
+                from: Port::named_port(&"node", 32.into()),
+                to: 1.into(),
             },
         );
     }
@@ -68,8 +68,8 @@ mod tests {
         assert_full_result(
             res_one,
             vec![InputMapping {
-                from: Port::named_port(&"n", 7),
-                to: 14u32,
+                from: Port::named_port(&"n", 7.into()),
+                to: 14.into(),
             }],
         );
 
@@ -78,12 +78,12 @@ mod tests {
             res_many,
             vec![
                 InputMapping {
-                    from: Port::new(Node::Out, 1),
-                    to: 2u32,
+                    from: Port::new(Node::Out, 1.into()),
+                    to: 2.into(),
                 },
                 InputMapping {
-                    from: Port::named_port(&"abc", 3),
-                    to: 4u32,
+                    from: Port::named_port(&"abc", 3.into()),
+                    to: 4.into(),
                 },
             ],
         );
@@ -95,8 +95,8 @@ mod tests {
         assert_full_result(
             res_in,
             OutputMapping {
-                from: 1u32,
-                to: Port::new(Node::Out, 3),
+                from: 1.into(),
+                to: Port::new(Node::Out, 3.into()),
             },
         );
 
@@ -104,8 +104,8 @@ mod tests {
         assert_full_result(
             res_node,
             OutputMapping {
-                from: 1u32,
-                to: Port::named_port(&"node", 32),
+                from: 1.into(),
+                to: Port::named_port(&"node", 32.into()),
             },
         );
     }
@@ -116,8 +116,8 @@ mod tests {
         assert_full_result(
             res_one,
             vec![OutputMapping {
-                from: 3,
-                to: Port::named_port(&"n", 7),
+                from: 3.into(),
+                to: Port::named_port(&"n", 7.into()),
             }],
         );
 
@@ -126,12 +126,12 @@ mod tests {
             res_many,
             vec![
                 OutputMapping {
-                    from: 1u32,
-                    to: Port::new(Node::Out, 2),
+                    from: 1.into(),
+                    to: Port::new(Node::Out, 2.into()),
                 },
                 OutputMapping {
-                    from: 3u32,
-                    to: Port::named_port(&"abc", 4),
+                    from: 3.into(),
+                    to: Port::named_port(&"abc", 4.into()),
                 },
             ],
         );

@@ -43,36 +43,42 @@ mod tests {
             vec![InputMapping {
                 from: Port {
                     node: Node::In,
-                    port: 1,
+                    port: 1.into(),
                 },
-                to: 1,
+                to: 1.into(),
             }],
             vec![OutputMapping {
-                from: 1,
+                from: 1.into(),
                 to: Port {
                     node: Node::new_node(&"b"),
-                    port: 2,
+                    port: 2.into(),
                 },
             }],
-            vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
+            vec![Operation::MOV(
+                ValuePointer::INPUT(1.into()),
+                ValuePointer::OUTPUT(1.into()),
+            )],
         );
         let dst = (
             Node::new_node(&"b"),
             vec![InputMapping {
                 from: Port {
                     node: Node::new_node(&"a"),
-                    port: 1,
+                    port: 1.into(),
                 },
-                to: 2,
+                to: 2.into(),
             }],
             vec![OutputMapping {
-                from: 2,
+                from: 2.into(),
                 to: Port {
                     node: Node::Out,
-                    port: 3,
+                    port: 3.into(),
                 },
             }],
-            vec![Operation::MOV(ValuePointer::PORT(2), ValuePointer::PORT(2))],
+            vec![Operation::MOV(
+                ValuePointer::INPUT(2.into()),
+                ValuePointer::OUTPUT(2.into()),
+            )],
         );
         let tree = vec![src, dst];
         let result = check(&Program {

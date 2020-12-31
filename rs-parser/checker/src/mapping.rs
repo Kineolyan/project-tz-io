@@ -131,10 +131,10 @@ mod tests {
             Node::new_node(&"a"),
             vec![],
             vec![OutputMapping {
-                from: 1,
+                from: 1.into(),
                 to: Port {
                     node: Node::new_node(&"b"),
-                    port: 2,
+                    port: 2.into(),
                 },
             }],
             vec![],
@@ -144,18 +144,15 @@ mod tests {
             vec![InputMapping {
                 from: Port {
                     node: Node::new_node(&"a"),
-                    port: 1,
+                    port: 1.into(),
                 },
-                to: 2,
+                to: 2.into(),
             }],
             vec![],
             vec![],
         );
         let nodes = vec![src, dst];
-        let tree = Program {
-            nodes,
-            tests: None,
-        };
+        let tree = Program { nodes, tests: None };
         let result = check(&tree, &mut check_result);
         assert_eq!(result, true);
         assert_eq!(check_result.has_errors(), false);
@@ -165,10 +162,10 @@ mod tests {
             Node::new_node(&"a"),
             vec![],
             vec![OutputMapping {
-                from: 1,
+                from: 1.into(),
                 to: Port {
                     node: Node::new_node(&"b"),
-                    port: 2,
+                    port: 2.into(),
                 },
             }],
             vec![],
@@ -178,18 +175,15 @@ mod tests {
             vec![InputMapping {
                 from: Port {
                     node: Node::new_node(&"a"),
-                    port: 1,
+                    port: 1.into(),
                 },
-                to: 2,
+                to: 2.into(),
             }],
             vec![],
             vec![],
         );
         let nodes = vec![src, dst];
-        let tree = Program {
-            nodes,
-            tests: None,
-        };
+        let tree = Program { nodes, tests: None };
         let result = check(&tree, &mut check_result);
         assert_eq!(result, true);
         assert_eq!(check_result.has_errors(), false);
@@ -204,30 +198,30 @@ mod tests {
             vec![InputMapping {
                 from: Port {
                     node: Node::In,
-                    port: 1,
+                    port: 1.into(),
                 },
-                to: 1,
+                to: 1.into(),
             }],
             vec![
                 OutputMapping {
-                    from: 1,
+                    from: 1.into(),
                     to: Port {
                         node: Node::new_node(&"b"),
-                        port: 3, // Incorrect port
+                        port: 3.into(), // Incorrect port
                     },
                 },
                 OutputMapping {
-                    from: 4, // Incorrect port
+                    from: 4.into(), // Incorrect port
                     to: Port {
                         node: Node::new_node(&"b"),
-                        port: 2,
+                        port: 2.into(),
                     },
                 },
                 OutputMapping {
-                    from: 1,
+                    from: 1.into(),
                     to: Port {
                         node: Node::new_node(&"c"), // Incorrect name
-                        port: 2,
+                        port: 2.into(),
                     },
                 },
             ],
@@ -238,15 +232,15 @@ mod tests {
             vec![InputMapping {
                 from: Port {
                     node: Node::new_node(&"a"),
-                    port: 1,
+                    port: 1.into(),
                 },
-                to: 2,
+                to: 2.into(),
             }],
             vec![OutputMapping {
-                from: 1,
+                from: 1.into(),
                 to: Port {
                     node: Node::Out,
-                    port: 1,
+                    port: 1.into(),
                 },
             }],
             vec![],

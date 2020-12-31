@@ -1,5 +1,8 @@
 use crate::common::ws;
-use language::test::TestCase;
+use language::{
+    address::{InputSlot, OutputSlot},
+    test::TestCase,
+};
 use nom::bytes::complete as bytes;
 use nom::character::complete::space0;
 use nom::IResult;
@@ -12,24 +15,31 @@ pub fn array(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
     nom::sequence::delimited(bytes::tag("["), values, bytes::tag("]"))(input)
 }
 
-fn test_values<'a>(tag: &'static str, input: &'a [u8]) -> IResult<&'a [u8], (u32, Vec<i8>)> {
-    let (input, _) = bytes::tag(tag)(input)?;
-    // TODO at this point, we are in a test comment, the syntax must be correct
-    let (input, (slot, _)) = ws(nom::sequence::tuple((
-        crate::common::be_uint,
-        bytes::tag(":"),
-    )))(input)?;
-    let (input, values) = ws(array)(input)?;
-    let (rest, _) = nom::sequence::tuple((space0, bytes::tag("\n")))(input)?;
-    Ok((rest, (slot, values)))
+fn test_values<'a, Slot>(
+    tag: &'static str,
+) -> impl Fn(&'a [u8]) -> IResult<&'a [u8], (Slot, Vec<i8>)>
+where
+    Slot: From<u8>,
+{
+    move |input| {
+        let (input, _) = bytes::tag(tag)(input)?;
+        // TODO at this point, we are in a test comment, the syntax must be correct
+        let (input, (slot, _)) = ws(nom::sequence::tuple((
+            crate::common::be_u8,
+            bytes::tag(":"),
+        )))(input)?;
+        let (input, values) = ws(array)(input)?;
+        let (rest, _) = nom::sequence::tuple((space0, bytes::tag("\n")))(input)?;
+        Ok((rest, (slot.into(), values)))
+    }
 }
 
-fn test_input_values(input: &[u8]) -> IResult<&[u8], (u32, Vec<i8>)> {
-    test_values("/>> ", input)
+fn test_input_values(input: &[u8]) -> IResult<&[u8], (OutputSlot, Vec<i8>)> {
+    test_values("/>> ")(input)
 }
 
-fn test_output_values(input: &[u8]) -> IResult<&[u8], (u32, Vec<i8>)> {
-    test_values("/<< ", input)
+fn test_output_values(input: &[u8]) -> IResult<&[u8], (InputSlot, Vec<i8>)> {
+    test_values("/<< ")(input)
 }
 
 pub fn test_case(input: &[u8]) -> IResult<&[u8], TestCase> {
@@ -102,7 +112,7 @@ mod tests {
         let res = test_case(to_input(b"/>> 4: [1 2]  \nnext"));
         assert_result(
             res,
-            TestCase::default().input_into(4, vec![1, 2]),
+            TestCase::default().input_into(4.into(), vec![1, 2]),
             to_input(b"next"),
         );
     }
@@ -124,7 +134,7 @@ mod tests {
         let res = test_case(to_input(b"/<< 4: [1 2]  \nnext"));
         assert_result(
             res,
-            TestCase::default().output_from(4, vec![1, 2]),
+            TestCase::default().output_from(4.into(), vec![1, 2]),
             to_input(b"next"),
         );
     }
@@ -153,10 +163,10 @@ mod tests {
         assert_result(
             res,
             TestCase::default()
-                .input_into(1, vec![11, 12, 13])
-                .input_into(3, vec![31, 32, 33])
-                .output_from(1, vec![101, 102])
-                .output_from(2, vec![127]),
+                .input_into(1.into(), vec![11, 12, 13])
+                .input_into(3.into(), vec![31, 32, 33])
+                .output_from(1.into(), vec![101, 102])
+                .output_from(2.into(), vec![127]),
             b"// after",
         );
     }

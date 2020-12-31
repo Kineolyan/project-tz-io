@@ -42,7 +42,7 @@ fn count_ios(nodes: &[NodeBlock]) -> Counts {
 
 fn check_test_inputs(test: &TestCase, result: &mut CheckResult, input_count: usize) {
     for input_slot in test.ins.keys() {
-        if *input_slot == 0u32 || *input_slot > input_count as _ {
+        if *input_slot == 0.into() || *input_slot > (input_count as u8).into() {
             result.add_error(format!(
                 "Test case {:?} has values for input {} that does not exist",
                 test, *input_slot,
@@ -73,7 +73,7 @@ fn check_test_inputs(test: &TestCase, result: &mut CheckResult, input_count: usi
 
 fn check_test_outputs(test: &TestCase, result: &mut CheckResult, output_count: usize) {
     for output_slot in test.outs.keys() {
-        if *output_slot == 0u32 || *output_slot > output_count as _ {
+        if *output_slot == 0.into() || *output_slot > (output_count as u8).into() {
             result.add_error(format!(
                 "Test case {:?} has values for output {} that does not exist",
                 test, *output_slot,
@@ -131,15 +131,15 @@ mod tests {
             vec![InputMapping {
                 from: Port {
                     node: Node::In,
-                    port: 1,
+                    port: 1.into(),
                 },
-                to: 2,
+                to: 2.into(),
             }],
             vec![OutputMapping {
-                from: 1,
+                from: 1.into(),
                 to: Port {
                     node: Node::Out,
-                    port: 2,
+                    port: 2.into(),
                 },
             }],
             vec![],
@@ -149,9 +149,9 @@ mod tests {
             vec![InputMapping {
                 from: Port {
                     node: Node::In,
-                    port: 1,
+                    port: 1.into(),
                 },
-                to: 2,
+                to: 2.into(),
             }],
             vec![],
             vec![],
@@ -163,9 +163,9 @@ mod tests {
     fn test_check_valid_tests() {
         let mut check_result = Default::default();
         let tests = TestCase::default()
-            .input_into(1, vec![1, 3])
-            .input_into(2, vec![2, 4])
-            .output_from(1, vec![9, 8]);
+            .input_into(1.into(), vec![1, 3])
+            .input_into(2.into(), vec![2, 4])
+            .output_from(1.into(), vec![9, 8]);
         let result = check(
             &Program {
                 nodes: create_nodes(),
@@ -181,9 +181,9 @@ mod tests {
     fn test_check_test_inputs_and_outputs_of_different_size() {
         let mut check_result = Default::default();
         let tests = TestCase::default()
-            .input_into(1, vec![1, 3])
-            .input_into(2, vec![2, 4, 6, 8, 10])
-            .output_from(1, vec![9]);
+            .input_into(1.into(), vec![1, 3])
+            .input_into(2.into(), vec![2, 4, 6, 8, 10])
+            .output_from(1.into(), vec![9]);
         let result = check(
             &Program {
                 nodes: create_nodes(),
@@ -199,8 +199,8 @@ mod tests {
     fn test_check_missing_inputs() {
         let tests = Some(
             TestCase::default()
-                .input_into(1, vec![1, 2, 3])
-                .output_from(1, vec![9]),
+                .input_into(1.into(), vec![1, 2, 3])
+                .output_from(1.into(), vec![9]),
         );
 
         let mut checks = Default::default();
@@ -221,10 +221,10 @@ mod tests {
     fn test_check_too_many_inputs() {
         let tests = Some(
             TestCase::default()
-                .input_into(1, vec![1, 2])
-                .input_into(2, vec![3])
-                .input_into(3, vec![5, 6])
-                .output_from(1, vec![4]),
+                .input_into(1.into(), vec![1, 2])
+                .input_into(2.into(), vec![3])
+                .input_into(3.into(), vec![5, 6])
+                .output_from(1.into(), vec![4]),
         );
 
         let mut checks = Default::default();
@@ -245,8 +245,8 @@ mod tests {
     fn test_check_missing_outputs() {
         let tests = Some(
             TestCase::default()
-                .input_into(1, vec![1])
-                .input_into(2, vec![2]),
+                .input_into(1.into(), vec![1])
+                .input_into(2.into(), vec![2]),
         );
 
         let mut checks = Default::default();
@@ -267,10 +267,10 @@ mod tests {
     fn test_check_too_many_outputs() {
         let tests = Some(
             TestCase::default()
-                .input_into(1, vec![1])
-                .input_into(2, vec![2])
-                .output_from(1, vec![3])
-                .output_from(4, vec![4]),
+                .input_into(1.into(), vec![1])
+                .input_into(2.into(), vec![2])
+                .output_from(1.into(), vec![3])
+                .output_from(4.into(), vec![4]),
         );
 
         let mut checks = Default::default();

@@ -5,7 +5,7 @@ use language::address::Node;
 use language::syntax::NodeBlock;
 use language::syntax::Program;
 
-fn dups_to_str(duplicates: HashSet<u32>) -> String {
+fn dups_to_str<T: std::fmt::Display>(duplicates: HashSet<T>) -> String {
     duplicates.iter().fold(String::new(), |mut acc, value| {
         acc.push_str(format!("{},", value).as_str());
         acc
@@ -18,14 +18,21 @@ fn dups_to_str(duplicates: HashSet<u32>) -> String {
 ///
 /// # Arguments
 /// * `ports` - set of used ports
-fn check_ranges(ports: &HashSet<u32>) -> Option<HashSet<u32>> {
-    let max_port = ports.iter().max().unwrap_or(&0u32);
-    if (*max_port as usize) > ports.len() {
-        let missing_ports = (1..(max_port + 1)).filter(|v| !ports.contains(v)).collect();
-        Some(missing_ports)
-    } else {
-        None
-    }
+fn check_ranges<T: std::hash::Hash + Eq + Ord + From<u8>>(
+    ports: &HashSet<T>,
+) -> Option<HashSet<T>> {
+    ports.iter().max().and_then(|max_port| {
+        if *max_port > (ports.len() as u8).into() {
+            let missing_ports = (1..=255)
+                .map(|i| i.into())
+                .filter(|v| *v < *max_port)
+                .filter(|v| !ports.contains(v))
+                .collect();
+            Some(missing_ports)
+        } else {
+            None
+        }
+    })
 }
 
 fn check_inputs(nodes: &[NodeBlock], result: &mut CheckResult) {
@@ -110,9 +117,9 @@ mod tests {
                 vec![InputMapping {
                     from: Port {
                         node: Node::In,
-                        port: 1,
+                        port: 1.into(),
                     },
-                    to: 1,
+                    to: 1.into(),
                 }],
                 vec![],
                 vec![],
@@ -122,9 +129,9 @@ mod tests {
                 vec![InputMapping {
                     from: Port {
                         node: Node::In,
-                        port: 2,
+                        port: 2.into(),
                     },
-                    to: 2,
+                    to: 2.into(),
                 }],
                 vec![],
                 vec![],
@@ -143,9 +150,9 @@ mod tests {
                 vec![InputMapping {
                     from: Port {
                         node: Node::In,
-                        port: 3,
+                        port: 3.into(),
                     },
-                    to: 1,
+                    to: 1.into(),
                 }],
                 vec![],
                 vec![],
@@ -155,9 +162,9 @@ mod tests {
                 vec![InputMapping {
                     from: Port {
                         node: Node::In,
-                        port: 3,
+                        port: 3.into(),
                     },
-                    to: 2,
+                    to: 2.into(),
                 }],
                 vec![],
                 vec![],
@@ -175,10 +182,10 @@ mod tests {
                 Node::new_node(&"a"),
                 vec![],
                 vec![OutputMapping {
-                    from: 1,
+                    from: 1.into(),
                     to: Port {
                         node: Node::Out,
-                        port: 1,
+                        port: 1.into(),
                     },
                 }],
                 vec![],
@@ -187,10 +194,10 @@ mod tests {
                 Node::new_node(&"b"),
                 vec![],
                 vec![OutputMapping {
-                    from: 2,
+                    from: 2.into(),
                     to: Port {
                         node: Node::Out,
-                        port: 2,
+                        port: 2.into(),
                     },
                 }],
                 vec![],
@@ -208,10 +215,10 @@ mod tests {
                 Node::new_node(&"a"),
                 vec![],
                 vec![OutputMapping {
-                    from: 1,
+                    from: 1.into(),
                     to: Port {
                         node: Node::Out,
-                        port: 3,
+                        port: 3.into(),
                     },
                 }],
                 vec![],
@@ -220,10 +227,10 @@ mod tests {
                 Node::new_node(&"b"),
                 vec![],
                 vec![OutputMapping {
-                    from: 2,
+                    from: 2.into(),
                     to: Port {
                         node: Node::Out,
-                        port: 3,
+                        port: 3.into(),
                     },
                 }],
                 vec![],
@@ -242,15 +249,15 @@ mod tests {
                 vec![InputMapping {
                     from: Port {
                         node: Node::In,
-                        port: 3,
+                        port: 3.into(),
                     },
-                    to: 1,
+                    to: 1.into(),
                 }],
                 vec![OutputMapping {
-                    from: 1,
+                    from: 1.into(),
                     to: Port {
                         node: Node::Out,
-                        port: 3,
+                        port: 3.into(),
                     },
                 }],
                 vec![],
@@ -260,24 +267,21 @@ mod tests {
                 vec![InputMapping {
                     from: Port {
                         node: Node::In,
-                        port: 3,
+                        port: 3.into(),
                     },
-                    to: 2,
+                    to: 2.into(),
                 }],
                 vec![OutputMapping {
-                    from: 2,
+                    from: 2.into(),
                     to: Port {
                         node: Node::Out,
-                        port: 3,
+                        port: 3.into(),
                     },
                 }],
                 vec![],
             ),
         ];
-        let tree = Program {
-            nodes,
-            tests: None,
-        };
+        let tree = Program { nodes, tests: None };
         check(&tree, &mut checks);
         assert_eq!(checks.has_errors(), true);
         assert_eq!(checks.error_count(), 2);
@@ -291,17 +295,14 @@ mod tests {
             vec![InputMapping {
                 from: Port {
                     node: Node::In,
-                    port: 3,
+                    port: 3.into(),
                 },
-                to: 1,
+                to: 1.into(),
             }],
             vec![],
             vec![],
         )];
-        let tree = Program {
-            nodes,
-            tests: None,
-        };
+        let tree = Program { nodes, tests: None };
         check(&tree, &mut checks);
         assert_eq!(checks.has_warnings(), true);
     }
@@ -313,18 +314,15 @@ mod tests {
             Node::new_node(&"a"),
             vec![],
             vec![OutputMapping {
-                from: 1,
+                from: 1.into(),
                 to: Port {
                     node: Node::Out,
-                    port: 3,
+                    port: 3.into(),
                 },
             }],
             vec![],
         )];
-        let tree = Program {
-            nodes,
-            tests: None,
-        };
+        let tree = Program { nodes, tests: None };
         check(&tree, &mut checks);
         assert_eq!(checks.has_warnings(), true);
     }

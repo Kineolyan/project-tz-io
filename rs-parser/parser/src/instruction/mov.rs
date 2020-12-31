@@ -62,7 +62,10 @@ mod tests {
         let res = mov_operation(to_input(b"MOV <1, >2"));
         assert_full_result(
             res,
-            Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(2)),
+            Operation::MOV(
+                ValuePointer::INPUT(1.into()),
+                ValuePointer::OUTPUT(2.into()),
+            ),
         );
     }
 
@@ -71,7 +74,7 @@ mod tests {
         let res = mov_operation(to_input(b"MOV <1, ACC"));
         assert_full_result(
             res,
-            Operation::MOV(ValuePointer::PORT(1), ValuePointer::ACC),
+            Operation::MOV(ValuePointer::INPUT(1.into()), ValuePointer::ACC),
         );
     }
 
@@ -80,7 +83,7 @@ mod tests {
         let res = mov_operation(to_input(b"MOV 12, >3"));
         assert_full_result(
             res,
-            Operation::MOV(ValuePointer::VALUE(12), ValuePointer::PORT(3)),
+            Operation::MOV(ValuePointer::VALUE(12), ValuePointer::OUTPUT(3.into())),
         );
     }
 
@@ -89,7 +92,7 @@ mod tests {
         let res = mov_operation(to_input(b"MOV ACC, >4"));
         assert_full_result(
             res,
-            Operation::MOV(ValuePointer::ACC, ValuePointer::PORT(4)),
+            Operation::MOV(ValuePointer::ACC, ValuePointer::OUTPUT(4.into())),
         );
     }
 
@@ -128,7 +131,7 @@ mod tests {
         let res = mov_operation(to_input(b"MOV NIL, >12"));
         assert_full_result(
             res,
-            Operation::MOV(ValuePointer::NIL, ValuePointer::PORT(12)),
+            Operation::MOV(ValuePointer::NIL, ValuePointer::OUTPUT(12.into())),
         );
     }
 
@@ -137,7 +140,7 @@ mod tests {
         let res = mov_operation(to_input(b"MOV <1, NIL"));
         assert_full_result(
             res,
-            Operation::MOV(ValuePointer::PORT(1), ValuePointer::NIL),
+            Operation::MOV(ValuePointer::INPUT(1.into()), ValuePointer::NIL),
         );
     }
 

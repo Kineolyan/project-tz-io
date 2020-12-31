@@ -1,7 +1,7 @@
 // Doubles the first input, inc the second and sums both values
-/>> [1, 2] -> [5]
-/>> [2, 3] -> [8]
-/>> [-2, 3] -> [0]
+/>> 1: [1 2 -2]
+/>> 2: [2 3  3]
+/<< 1: [5 8  0]
 
 Node #1
 ===========

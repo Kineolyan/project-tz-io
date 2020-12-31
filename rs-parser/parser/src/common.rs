@@ -10,7 +10,7 @@ pub fn ws<'a, F: 'a, O, E: nom::error::ParseError<&'a [u8]>>(
     inner: F,
 ) -> impl FnMut(&'a [u8]) -> IResult<&'a [u8], O, E>
 where
-    F: Fn(&'a [u8]) -> IResult<&'a [u8], O, E>,
+    F: FnMut(&'a [u8]) -> IResult<&'a [u8], O, E>,
 {
     nom::sequence::delimited(space0, inner, space0)
 }
@@ -32,6 +32,11 @@ fn to<T: str::FromStr>(v: &[u8]) -> Result<T, i8> {
 
 pub fn be_uint(input: &[u8]) -> IResult<&[u8], u32> {
     c::map_res(digit1, to::<u32>)(input)
+}
+
+pub fn be_u8(input: &[u8]) -> IResult<&[u8], u8> {
+    let (input, number) = c::map_res(digit1, to::<u8>)(input)?;
+    Ok((input, number))
 }
 
 pub fn be_i8(input: &[u8]) -> IResult<&[u8], i8> {

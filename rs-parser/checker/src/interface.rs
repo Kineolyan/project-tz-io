@@ -7,7 +7,10 @@ use language::syntax::Program;
 /// Module checking that the ports referenced by inputs
 /// or outputs for duplicated port numbers.
 
-fn check_ports<T, F: Fn(&T) -> u32>(inputs: &[T], accessor: F) -> HashSet<u32> {
+fn check_ports<T, U, F: Fn(&T) -> U>(inputs: &[T], accessor: F) -> HashSet<U>
+where
+    U: Copy + std::hash::Hash + Eq,
+{
     let mut values = HashSet::new();
     let mut duplicates = HashSet::new();
     for port in inputs.iter() {
@@ -19,7 +22,7 @@ fn check_ports<T, F: Fn(&T) -> u32>(inputs: &[T], accessor: F) -> HashSet<u32> {
     duplicates
 }
 
-fn dups_to_str(duplicates: HashSet<u32>) -> String {
+fn dups_to_str<T: std::fmt::Display>(duplicates: HashSet<T>) -> String {
     duplicates.iter().fold(String::new(), |mut acc, value| {
         acc.push_str(format!("{},", value).as_str());
         acc
@@ -62,10 +65,10 @@ mod tests {
     use language::address::{Node, Port};
     use language::syntax::{InputMapping, OutputMapping};
 
-    fn fake_input(i: u32) -> InputMapping {
+    fn fake_input(i: u8) -> InputMapping {
         InputMapping {
-            from: Port::new(Node::In, i),
-            to: i,
+            from: Port::new(Node::In, i.into()),
+            to: i.into(),
         }
     }
 
@@ -98,10 +101,10 @@ mod tests {
         assert_eq!(check.has_errors(), true);
     }
 
-    fn fake_output(i: u32) -> OutputMapping {
+    fn fake_output(i: u8) -> OutputMapping {
         OutputMapping {
-            from: i,
-            to: Port::new(Node::Out, i),
+            from: i.into(),
+            to: Port::new(Node::Out, i.into()),
         }
     }
 

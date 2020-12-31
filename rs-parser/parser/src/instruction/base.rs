@@ -12,19 +12,16 @@ pub fn nil_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
     c::value(ValuePointer::NIL, tag("NIL"))(input)
 }
 
-fn pointer<'a>(arrow: &'static str, input: &'a [u8]) -> IResult<&'a [u8], ValuePointer> {
-    c::map(
-        nom::sequence::preceded(tag(arrow), common::be_uint),
-        ValuePointer::PORT,
-    )(input)
+fn pointer<'a>(arrow: &'static str) -> impl FnMut(&'a [u8]) -> IResult<&'a [u8], u8> {
+    nom::sequence::preceded(tag(arrow), common::be_u8)
 }
 
 pub fn input_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
-    pointer("<", input)
+    c::map(pointer("<"), |slot| ValuePointer::INPUT(slot.into()))(input)
 }
 
 pub fn output_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
-    pointer(">", input)
+    c::map(pointer(">"), |slot| ValuePointer::OUTPUT(slot.into()))(input)
 }
 
 pub fn value_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
@@ -57,13 +54,13 @@ mod tests {
     #[test]
     fn test_parse_input_pointer() {
         let res = input_pointer(to_input(b"<12"));
-        assert_full_result(res, ValuePointer::PORT(12));
+        assert_full_result(res, ValuePointer::INPUT(12.into()));
     }
 
     #[test]
     fn test_parse_output_pointer() {
         let res = output_pointer(to_input(b">43"));
-        assert_full_result(res, ValuePointer::PORT(43));
+        assert_full_result(res, ValuePointer::OUTPUT(43.into()));
     }
 
     #[test]

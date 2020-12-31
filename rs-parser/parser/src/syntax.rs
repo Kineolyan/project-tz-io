@@ -265,7 +265,7 @@ mod tests {
     #[test]
     fn test_parse_instruction_with_comment() {
         let res = instruction_line(to_input(b"ADD <2 // Sum the values\n"));
-        assert_full_result(res, vec![Operation::ADD(ValuePointer::PORT(2))]);
+        assert_full_result(res, vec![Operation::ADD(ValuePointer::INPUT(2.into()))]);
     }
 
     #[test]
@@ -275,7 +275,7 @@ mod tests {
             res,
             vec![
                 Operation::LABEL(String::from("LBL")),
-                Operation::SUB(ValuePointer::PORT(3)),
+                Operation::SUB(ValuePointer::INPUT(3.into())),
             ],
         );
     }
@@ -292,10 +292,10 @@ JEZ F1\n";
             res,
             vec![
                 Operation::LABEL(String::from("START")),
-                Operation::MOV(ValuePointer::PORT(1), ValuePointer::ACC),
+                Operation::MOV(ValuePointer::INPUT(1.into()), ValuePointer::ACC),
                 Operation::LABEL(String::from("F1")),
                 Operation::SWP(MemoryPointer::BAK(1)),
-                Operation::MOV(ValuePointer::ACC, ValuePointer::PORT(1)),
+                Operation::MOV(ValuePointer::ACC, ValuePointer::OUTPUT(1.into())),
                 Operation::JEZ(String::from("F1")),
             ],
         );
@@ -321,17 +321,17 @@ MOV ACC, >1
             (
                 Node::new_node("123"),
                 vec![InputMapping {
-                    from: Port::new(Node::In, 1),
-                    to: 1,
+                    from: Port::new(Node::In, 1.into()),
+                    to: 1.into(),
                 }],
                 vec![OutputMapping {
-                    from: 1,
-                    to: Port::new(Node::Out, 1),
+                    from: 1.into(),
+                    to: Port::new(Node::Out, 1.into()),
                 }],
                 vec![
-                    Operation::MOV(ValuePointer::PORT(1), ValuePointer::ACC),
+                    Operation::MOV(ValuePointer::INPUT(1.into()), ValuePointer::ACC),
                     Operation::SWP(MemoryPointer::BAK(1)),
-                    Operation::MOV(ValuePointer::ACC, ValuePointer::PORT(1)),
+                    Operation::MOV(ValuePointer::ACC, ValuePointer::OUTPUT(1.into())),
                 ],
             ),
         );
@@ -479,22 +479,22 @@ MOV ACC, >1
                 Node::new_node("1"),
                 vec![
                     InputMapping {
-                        from: Port::named_port(&"1", 1),
-                        to: 1,
+                        from: Port::named_port(&"1", 1.into()),
+                        to: 1.into(),
                     },
                     InputMapping {
-                        from: Port::named_port(&"2", 1),
-                        to: 2,
+                        from: Port::named_port(&"2", 1.into()),
+                        to: 2.into(),
                     },
                 ],
                 vec![OutputMapping {
-                    from: 1,
-                    to: Port::new(Node::Out, 1),
+                    from: 1.into(),
+                    to: Port::new(Node::Out, 1.into()),
                 }],
                 vec![
-                    Operation::MOV(ValuePointer::PORT(1), ValuePointer::ACC),
-                    Operation::ADD(ValuePointer::PORT(2)),
-                    Operation::MOV(ValuePointer::ACC, ValuePointer::PORT(1)),
+                    Operation::MOV(ValuePointer::INPUT(1.into()), ValuePointer::ACC),
+                    Operation::ADD(ValuePointer::INPUT(2.into())),
+                    Operation::MOV(ValuePointer::ACC, ValuePointer::OUTPUT(1.into())),
                 ],
             ),
         );
@@ -537,38 +537,47 @@ MOV <3, >3
                 (
                     Node::new_node("1"),
                     vec![InputMapping {
-                        from: Port::new(Node::In, 1),
-                        to: 1,
+                        from: Port::new(Node::In, 1.into()),
+                        to: 1.into(),
                     }],
                     vec![OutputMapping {
-                        from: 1,
-                        to: Port::named_port(&"2", 2),
+                        from: 1.into(),
+                        to: Port::named_port(&"2", 2.into()),
                     }],
-                    vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
+                    vec![Operation::MOV(
+                        ValuePointer::INPUT(1.into()),
+                        ValuePointer::OUTPUT(1.into()),
+                    )],
                 ),
                 (
                     Node::new_node("2"),
                     vec![InputMapping {
-                        from: Port::named_port(&"1", 1),
-                        to: 2,
+                        from: Port::named_port(&"1", 1.into()),
+                        to: 2.into(),
                     }],
                     vec![OutputMapping {
-                        from: 2,
-                        to: Port::named_port(&"3", 3),
+                        from: 2.into(),
+                        to: Port::named_port(&"3", 3.into()),
                     }],
-                    vec![Operation::MOV(ValuePointer::PORT(2), ValuePointer::PORT(2))],
+                    vec![Operation::MOV(
+                        ValuePointer::INPUT(2.into()),
+                        ValuePointer::OUTPUT(2.into()),
+                    )],
                 ),
                 (
                     Node::new_node("3"),
                     vec![InputMapping {
-                        from: Port::named_port(&"2", 2),
-                        to: 3,
+                        from: Port::named_port(&"2", 2.into()),
+                        to: 3.into(),
                     }],
                     vec![OutputMapping {
-                        from: 3,
-                        to: Port::new(Node::Out, 1),
+                        from: 3.into(),
+                        to: Port::new(Node::Out, 1.into()),
                     }],
-                    vec![Operation::MOV(ValuePointer::PORT(3), ValuePointer::PORT(3))],
+                    vec![Operation::MOV(
+                        ValuePointer::INPUT(3.into()),
+                        ValuePointer::OUTPUT(3.into()),
+                    )],
                 ),
             ],
         );

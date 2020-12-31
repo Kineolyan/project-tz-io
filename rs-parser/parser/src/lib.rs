@@ -17,25 +17,16 @@ use language::test::TestCase;
 
 pub type ParsingResult = Result<Program, ()>;
 
-fn program(input: &[u8]) -> nom::IResult<&[u8], (Vec<NodeBlock>, Vec<TestCase>)> {
+fn program(input: &[u8]) -> nom::IResult<&[u8], (Vec<NodeBlock>, Option<TestCase>)> {
     use crate::common::opt_eol;
 
     let (input, _) = opt_eol(input)?;
-    let (input, mut start_cases) = nom::multi::many0(crate::test::test_case)(input)?;
+    let (input, test_case) = nom::combinator::opt(crate::test::test_case)(input)?;
     let (input, _) = opt_eol(input)?;
     let (input, nodes) = crate::syntax::node_list(input)?;
     let (input, _) = opt_eol(input)?;
-    let (input, mut end_cases) = nom::multi::many0(crate::test::test_case)(input)?;
-    let (input, _) = opt_eol(input)?;
 
-    let test_cases = {
-        let mut all = vec![];
-        all.append(&mut start_cases);
-        all.append(&mut end_cases);
-        all
-    };
-
-    Ok((input, (nodes, test_cases)))
+    Ok((input, (nodes, test_case)))
 }
 
 fn print_error(e: &nom::error::Error<&[u8]>) {
@@ -118,38 +109,45 @@ MOV <2, >2
             (
                 Node::new_node("1"),
                 vec![InputMapping {
-                    from: Port::new(Node::In, 1),
-                    to: 1,
+                    from: Port::new(Node::In, 1.into()),
+                    to: 1.into(),
                 }],
                 vec![OutputMapping {
-                    from: 1,
-                    to: Port::named_port(&"2", 2),
+                    from: 1.into(),
+                    to: Port::named_port(&"2", 2.into()),
                 }],
-                vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
+                vec![Operation::MOV(
+                    ValuePointer::INPUT(1.into()),
+                    ValuePointer::OUTPUT(1.into()),
+                )],
             ),
             (
                 Node::new_node("2"),
                 vec![InputMapping {
-                    from: Port::named_port(&"1", 1),
-                    to: 2,
+                    from: Port::named_port(&"1", 1.into()),
+                    to: 2.into(),
                 }],
                 vec![OutputMapping {
-                    from: 2,
-                    to: Port::named_port(&"3", 3),
+                    from: 2.into(),
+                    to: Port::named_port(&"3", 3.into()),
                 }],
-                vec![Operation::MOV(ValuePointer::PORT(2), ValuePointer::PORT(2))],
+                vec![Operation::MOV(
+                    ValuePointer::INPUT(2.into()),
+                    ValuePointer::OUTPUT(2.into()),
+                )],
             ),
         ];
 
-        assert_full_result(res, (nodes, vec![]));
+        assert_full_result(res, (nodes, None));
     }
 
     #[test]
     fn test_program_with_tests() {
         let content = b"// Start of the program
 // Another comment
-/>> [1, 2] -> [3]
-/>> [1, 2, 4] -> [-8]
+/>> 1: [1 2]
+/>> 2: [2 4]
+/<< 1: [-1 -2]
 
 Node #1
 ==========
@@ -160,7 +158,6 @@ MOV <1,  >1
 1 -> #2:2
 =======
 
-/>> [1] -> [-1, 1]
 // End comment, to conclude
 ";
 
@@ -168,20 +165,24 @@ MOV <1,  >1
         let nodes = vec![(
             Node::new_node("1"),
             vec![InputMapping {
-                from: Port::new(Node::In, 1),
-                to: 1,
+                from: Port::new(Node::In, 1.into()),
+                to: 1.into(),
             }],
             vec![OutputMapping {
-                from: 1,
-                to: Port::named_port(&"2", 2),
+                from: 1.into(),
+                to: Port::named_port(&"2", 2.into()),
             }],
-            vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
+            vec![Operation::MOV(
+                ValuePointer::INPUT(1.into()),
+                ValuePointer::OUTPUT(1.into()),
+            )],
         )];
-        let test_cases = vec![
-            TestCase::new(vec![1, 2], vec![3]),
-            TestCase::new(vec![1, 2, 4], vec![-8]),
-            TestCase::new(vec![1], vec![-1, 1]),
-        ];
+        let test_cases = Some(
+            TestCase::default()
+                .input_into(1.into(), vec![1, 2])
+                .input_into(2.into(), vec![2, 4])
+                .output_from(1.into(), vec![-1, -2]),
+        );
 
         assert_full_result(res, (nodes, test_cases));
     }
@@ -189,16 +190,10 @@ MOV <1,  >1
     #[test]
     fn test_program_with_trailing_spaces() {
         let content = b"// Start of the program
-// Another comment
-/>> [1, 2] -> [3]
-/>> [1, 2, 4] -> [-8]
-
 Node #1
 ==========
 MOV <1,  >1
 =======
-
-/>> [1] -> [-1, 1]
 // End comment, to conclude
    ";
 
@@ -207,14 +202,11 @@ MOV <1,  >1
             Node::new_node("1"),
             vec![],
             vec![],
-            vec![Operation::MOV(ValuePointer::PORT(1), ValuePointer::PORT(1))],
+            vec![Operation::MOV(
+                ValuePointer::INPUT(1.into()),
+                ValuePointer::OUTPUT(1.into()),
+            )],
         )];
-        let test_cases = vec![
-            TestCase::new(vec![1, 2], vec![3]),
-            TestCase::new(vec![1, 2, 4], vec![-8]),
-            TestCase::new(vec![1], vec![-1, 1]),
-        ];
-
-        assert_result(res, (nodes, test_cases), b"   ");
+        assert_result(res, (nodes, None), b"   ");
     }
 }

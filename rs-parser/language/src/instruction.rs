@@ -5,7 +5,8 @@ pub enum ValuePointer {
     VALUE(u32),
     ACC,
     NIL,
-    PORT(u32),
+    INPUT(crate::address::InputSlot),
+    OUTPUT(crate::address::OutputSlot),
 }
 
 // The idea is to have ACC is the top of the stack, for ADD, SUB, NEG, ...
@@ -52,7 +53,8 @@ impl ValuePointer {
             ValuePointer::VALUE(ref value) => write!(f, "Value({})", value),
             ValuePointer::ACC => write!(f, "ACC"),
             ValuePointer::NIL => write!(f, "NIL"),
-            ValuePointer::PORT(ref port) => write!(f, "Port({})", port),
+            ValuePointer::INPUT(ref port) => write!(f, "Input({})", port),
+            ValuePointer::OUTPUT(ref port) => write!(f, "Input({})", port),
         }
     }
 }

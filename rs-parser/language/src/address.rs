@@ -41,20 +41,62 @@ impl Node {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Port {
+pub struct Port<Slot> {
     pub node: Node,
-    pub port: u32,
+    pub port: Slot,
 }
 
-impl Port {
-    pub fn new(node: Node, port: u32) -> Self {
+impl<Slot> Port<Slot> {
+    pub fn new(node: Node, port: Slot) -> Self {
         Port { port, node }
     }
 
-    pub fn named_port(node_name: &str, port: u32) -> Self {
+    pub fn named_port(node_name: &str, port: Slot) -> Self {
         Port {
             node: Node::new_node(node_name),
             port,
         }
+    }
+}
+
+#[derive(PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Copy, Clone)]
+pub struct InputSlot(u8);
+
+impl InputSlot {
+    pub fn value(&self) -> u8 {
+        self.0
+    }
+}
+
+impl std::convert::From<u8> for InputSlot {
+    fn from(value: u8) -> Self {
+        InputSlot(value)
+    }
+}
+
+impl fmt::Display for InputSlot {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Copy, Clone)]
+pub struct OutputSlot(u8);
+
+impl OutputSlot {
+    pub fn value(&self) -> u8 {
+        self.0
+    }
+}
+
+impl std::convert::From<u8> for OutputSlot {
+    fn from(value: u8) -> Self {
+        OutputSlot(value)
+    }
+}
+
+impl fmt::Display for OutputSlot {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }

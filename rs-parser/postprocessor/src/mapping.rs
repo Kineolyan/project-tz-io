@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
-use language::address::{Node, Port};
+use language::address::{InputSlot, Node, OutputSlot, Port};
 use language::syntax::Program;
 use language::syntax::{InputMapping, NodeBlock, OutputMapping};
 
+/// TODO this is perform inside a single operation, we could use &str instead of a String
 type Index = HashMap<String, usize>;
 fn map_node_to_idx(tree: &Program) -> Index {
     let mut index = HashMap::new();
@@ -46,7 +47,12 @@ fn complete_inputs(mut tree: Program, index: &Index) -> Program {
     tree
 }
 
-fn complete_input(node: &NodeBlock, src_id: &str, from: u32, to: u32) -> Option<InputMapping> {
+fn complete_input(
+    node: &NodeBlock,
+    src_id: &str,
+    from: OutputSlot,
+    to: InputSlot,
+) -> Option<InputMapping> {
     // Skip if the port is already present
     let inputs: &Vec<InputMapping> = &node.1;
     if !inputs.iter().any(|input| match input.from.node {
@@ -95,7 +101,12 @@ fn complete_outputs(mut tree: Program, index: &Index) -> Program {
     tree
 }
 
-fn complete_output(node: &NodeBlock, dst_id: &str, from: u32, to: u32) -> Option<OutputMapping> {
+fn complete_output(
+    node: &NodeBlock,
+    dst_id: &str,
+    from: OutputSlot,
+    to: InputSlot,
+) -> Option<OutputMapping> {
     // Skip if the port is already present
     let outputs: &Vec<OutputMapping> = &node.2;
     if !outputs.iter().any(|output| match output.to.node {
@@ -134,17 +145,17 @@ mod tests {
             vec![],
             vec![
                 OutputMapping {
-                    from: 1,
+                    from: 1.into(),
                     to: Port {
                         node: Node::new_node(&"b"),
-                        port: 2,
+                        port: 2.into(),
                     },
                 },
                 OutputMapping {
-                    from: 2,
+                    from: 2.into(),
                     to: Port {
                         node: Node::Out,
-                        port: 1,
+                        port: 1.into(),
                     },
                 },
             ],
@@ -153,16 +164,16 @@ mod tests {
         let dst = (Node::new_node(&"b"), vec![], vec![], vec![]);
         let tree = complete_mappings(Program {
             nodes: vec![src, dst],
-            tests: vec![],
+            tests: None,
         });
         assert_eq!(
             tree.nodes[1].1,
             vec![InputMapping {
                 from: Port {
                     node: Node::new_node(&"a"),
-                    port: 1
+                    port: 1.into()
                 },
-                to: 2
+                to: 2.into()
             }]
         );
     }
@@ -176,16 +187,16 @@ mod tests {
                 InputMapping {
                     from: Port {
                         node: Node::In,
-                        port: 1,
+                        port: 1.into(),
                     },
-                    to: 1,
+                    to: 1.into(),
                 },
                 InputMapping {
                     from: Port {
                         node: Node::new_node(&"a"),
-                        port: 1,
+                        port: 1.into(),
                     },
-                    to: 2,
+                    to: 2.into(),
                 },
             ],
             vec![],
@@ -193,15 +204,15 @@ mod tests {
         );
         let tree = complete_mappings(Program {
             nodes: vec![src, dst],
-            tests: vec![],
+            tests: None,
         });
         assert_eq!(
             tree.nodes[0].2,
             vec![OutputMapping {
-                from: 1,
+                from: 1.into(),
                 to: Port {
                     node: Node::new_node(&"b"),
-                    port: 2
+                    port: 2.into()
                 }
             }]
         );
@@ -213,10 +224,10 @@ mod tests {
             Node::new_node(&"a"),
             vec![],
             vec![OutputMapping {
-                from: 2,
+                from: 2.into(),
                 to: Port {
                     node: Node::new_node(&"b"),
-                    port: 2,
+                    port: 2.into(),
                 },
             }],
             vec![],
@@ -226,32 +237,32 @@ mod tests {
             vec![InputMapping {
                 from: Port {
                     node: Node::new_node(&"a"),
-                    port: 1,
+                    port: 1.into(),
                 },
-                to: 1,
+                to: 1.into(),
             }],
             vec![],
             vec![],
         );
         let tree = complete_mappings(Program {
             nodes: vec![src, dst],
-            tests: vec![],
+            tests: None,
         });
         assert_eq!(
             tree.nodes[0].2,
             vec![
                 OutputMapping {
-                    from: 2,
+                    from: 2.into(),
                     to: Port {
                         node: Node::new_node(&"b"),
-                        port: 2
+                        port: 2.into()
                     }
                 },
                 OutputMapping {
-                    from: 1,
+                    from: 1.into(),
                     to: Port {
                         node: Node::new_node(&"b"),
-                        port: 1
+                        port: 1.into()
                     }
                 }
             ]
@@ -262,16 +273,16 @@ mod tests {
                 InputMapping {
                     from: Port {
                         node: Node::new_node(&"a"),
-                        port: 1
+                        port: 1.into()
                     },
-                    to: 1
+                    to: 1.into()
                 },
                 InputMapping {
                     from: Port {
                         node: Node::new_node(&"a"),
-                        port: 2
+                        port: 2.into()
                     },
-                    to: 2
+                    to: 2.into()
                 }
             ]
         );

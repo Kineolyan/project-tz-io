@@ -26,11 +26,14 @@ pub fn node_ref(input: &[u8]) -> IResult<&[u8], Node> {
 
 /// Reads the reference to a node and a port.
 /// This expects something like `<node-label>:<port-number>`.
-pub fn port_ref(input: &[u8]) -> IResult<&[u8], Port> {
+pub fn port_ref<Slot>(input: &[u8]) -> IResult<&[u8], Port<Slot>>
+where
+    Slot: From<u8>,
+{
     let (input, id) = node_ref(input)?;
     let (input, _) = nom::bytes::complete::tag(":")(input)?;
-    let (input, port) = crate::common::be_uint(input)?;
-    Ok((input, Port::new(id, port)))
+    let (input, port) = crate::common::be_u8(input)?;
+    Ok((input, Port::new(id, port.into())))
 }
 
 pub fn node_header(input: &[u8]) -> IResult<&[u8], Node> {

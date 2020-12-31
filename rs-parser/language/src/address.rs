@@ -59,8 +59,14 @@ impl<Slot> Port<Slot> {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Copy, Clone)]
 pub struct InputSlot(u8);
+
+impl InputSlot {
+    pub fn value(&self) -> u8 {
+        self.0
+    }
+}
 
 impl std::convert::From<u8> for InputSlot {
     fn from(value: u8) -> Self {
@@ -74,8 +80,14 @@ impl fmt::Display for InputSlot {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Copy, Clone)]
 pub struct OutputSlot(u8);
+
+impl OutputSlot {
+    pub fn value(&self) -> u8 {
+        self.0
+    }
+}
 
 impl std::convert::From<u8> for OutputSlot {
     fn from(value: u8) -> Self {

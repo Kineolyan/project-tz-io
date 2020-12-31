@@ -98,17 +98,28 @@ fn create_reference_instructions(
             instructions.push(constructs::Operation::ldc(cst_idx));
             instructions.push(constructs::Operation::invokestatic(value_method_idx));
         }
-        ValuePointer::PORT(ref id) => {
-            let cst_idx = class.map_integer(*id);
+        ValuePointer::INPUT(id) => {
+            assert!(input, "Must be an input slot");
+            let cst_idx = class.map_integer(id.value().into());
             let value_method_idx = class.map_method(
                 REFERENCES_CLASS_NAME,
-                if input { "inSlot" } else { "outSlot" },
+                "inSlot",
                 &constructs::Signature {
-                    return_type: constants::Type::Object(String::from(if input {
-                        INPUT_CLASS_NAME
-                    } else {
-                        OUTPUT_CLASS_NAME
-                    })),
+                    return_type: constants::Type::Object(String::from(INPUT_CLASS_NAME)),
+                    parameter_types: vec![constants::Type::Integer],
+                },
+            );
+            instructions.push(constructs::Operation::ldc(cst_idx));
+            instructions.push(constructs::Operation::invokestatic(value_method_idx));
+        }
+        ValuePointer::OUTPUT(id) => {
+            assert!(!input, "Must be an output slot");
+            let cst_idx = class.map_integer(id.value().into());
+            let value_method_idx = class.map_method(
+                REFERENCES_CLASS_NAME,
+                "outSlot",
+                &constructs::Signature {
+                    return_type: constants::Type::Object(String::from(OUTPUT_CLASS_NAME)),
                     parameter_types: vec![constants::Type::Integer],
                 },
             );
@@ -137,7 +148,12 @@ fn create_slot_indexes(tree: &Program) -> SlotStructure {
                 Node::In => "<IN>",
                 _ => panic!("Unexpect input node {:?} for {:?}", input.from.node, node),
             };
-            let node_slot = NodeSlot(input_name, input.from.port, node_name, input.to);
+            let node_slot = NodeSlot(
+                input_name,
+                input.from.port.value().into(),
+                node_name,
+                input.to.value().into(),
+            );
             let dic_idx = slots.map(node_slot) as u32;
             ins.push(dic_idx);
             if let Node::In = &input.from.node {
@@ -153,7 +169,12 @@ fn create_slot_indexes(tree: &Program) -> SlotStructure {
                 Node::Out => "<OUT>",
                 _ => panic!("Unexpect input node {:?} for {:?}", output.to.node, node),
             };
-            let node_slot = NodeSlot(node_name, output.from, output_name, output.to.port);
+            let node_slot = NodeSlot(
+                node_name,
+                output.from.value().into(),
+                output_name,
+                output.to.port.value().into(),
+            );
             let dic_idx = slots.map(node_slot) as u32;
             outs.push(dic_idx);
             if let Node::Out = &output.to.node {

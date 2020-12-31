@@ -12,19 +12,16 @@ pub fn nil_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
     c::value(ValuePointer::NIL, tag("NIL"))(input)
 }
 
-fn pointer<'a>(arrow: &'static str, input: &'a [u8]) -> IResult<&'a [u8], ValuePointer> {
-    c::map(
-        nom::sequence::preceded(tag(arrow), common::be_uint),
-        ValuePointer::PORT,
-    )(input)
+fn pointer<'a>(arrow: &'static str) -> impl FnMut(&[u8]) -> IResult<&'a [u8], u8> {
+    nom::sequence::preceded(tag(arrow), common::be_u8)
 }
 
 pub fn input_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
-    pointer("<", input)
+    c::map(pointer("<"), |slot| ValuePointer::INPUT(slot.into()))(input)
 }
 
 pub fn output_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
-    pointer(">", input)
+    c::map(pointer(">"), |slot| ValuePointer::OUTPUT(slot.into()))(input)
 }
 
 pub fn value_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {

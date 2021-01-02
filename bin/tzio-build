@@ -4,7 +4,25 @@ source "$(dirname "${BASH_SOURCE[0]}")/_resolve.sh"
 readonly THIS_FILE=$(resolve_file ${BASH_SOURCE[0]})
 readonly DIR=$(dirname $(dirname "$THIS_FILE"))
 
-readonly RUST_COMPILER=$DIR/rs-parser/target/debug/rs-parser
+function find_compiler() {
+  local DEBUG_BINARY=$DIR/rs-parser/target/debug/app
+  if [ -f "$DEBUG_BINARY" ]
+  then
+    echo $DEBUG_BINARY
+		return 0
+  fi
+
+  local RELEASE_BINARY=$DIR/rs-parser/target/release/app
+  if [ -f "$RELEASE_BINARY" ]
+  then
+    echo $RELEASE_BINARY
+		return 0
+  fi
+
+  echo -e "\e[31mCannot find binary. Maybe compile rs-parser\e[0m"
+  return 2
+}
+readonly RUST_COMPILER=$(find_compiler)
 
 function print_help() {
 	cat <<HELP

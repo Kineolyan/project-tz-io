@@ -2,16 +2,20 @@ buildscript {
     repositories {
         mavenCentral()
     }
-    dependencies {
-        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
-    }
+//     dependencies {
+//         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
+//     }
+}
+
+plugins {
+    id "io.freefair.lombok" version "6.4.3" apply false
 }
 
 ext.junitVintageVersion  = '5.7.0'
 ext.junitPlatformVersion = '1.7.0'
 ext.junitJupiterVersion  = '5.7.0'
 ext.assertjVersion = '3.18.1'
-ext.lombokVersion = '1.18.16'
+ext.lombokVersion = '1.18.24'
 
 allprojects {
     repositories {
@@ -23,25 +27,24 @@ allprojects {
 }
 
 // Config for java projects
-ext.javaVersion = 15
-def javaProjects = ['tzio-spec', 'tzio-tck', 'tzio-java']
-configure(subprojects.findAll {javaProjects.contains(it.name)}) {
-    apply plugin: 'java'
-    apply plugin: 'maven'
+// ext.javaVersion = 15
+// def javaProjects = ['tzio-spec', 'tzio-tck', 'tzio-java', 'tzio-jdk18']
+// configure(subprojects.findAll {javaProjects.contains(it.name)}) {
+// java {
+//     toolchain {
+//         languageVersion = JavaLanguageVersion.of(11)
+//     }
+// }
+//
+//     plugins {
+//         id "io.freefair.lombok" version "6.4.3"
+//     }
+//
+// //     compileTestJava {
+// //         sourceCompatibility = javaVersion
+// //         targetCompatibility = javaVersion
+// //         options.compilerArgs += '-parameters'
+// //     }
+// }
 
-    dependencies {
-        compileOnly "org.projectlombok:lombok:${lombokVersion}"
-        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-
-        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    }
-
-    sourceCompatibility = javaVersion
-
-    compileTestJava {
-        sourceCompatibility = javaVersion
-        targetCompatibility = javaVersion
-        options.compilerArgs += '-parameters'
-    }
-}
+version = '1.2.1'

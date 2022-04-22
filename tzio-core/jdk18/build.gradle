@@ -5,7 +5,7 @@ plugins {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
+        languageVersion = JavaLanguageVersion.of(18)
     }
 }
 
@@ -15,9 +15,18 @@ dependencies {
     testImplementation("org.assertj:assertj-core:${assertjVersion}")
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add("--enable-preview")
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    jvmArgs("--enable-preview")
+}
+
 task fullJar(type: Jar) {
     manifest {
-        attributes 'Implementation-Title': 'TZ Java Core (Full)',
+        attributes 'Implementation-Title': 'TZ JDK18 Core (Full)',
                 'Implementation-Version': version
     }
     baseName = project.name + '-full'

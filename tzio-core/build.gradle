@@ -11,10 +11,8 @@ plugins {
     id "io.freefair.lombok" version "6.4.3" apply false
 }
 
-ext.junitVintageVersion  = '5.7.0'
-ext.junitPlatformVersion = '1.7.0'
-ext.junitJupiterVersion  = '5.7.0'
-ext.assertjVersion = '3.18.1'
+ext.junitVersion  = '5.8.2'
+ext.assertjVersion = '3.22.0'
 ext.lombokVersion = '1.18.24'
 
 allprojects {

@@ -12,10 +12,6 @@ java {
 dependencies {
     implementation project(':tzio-spec')
 
-    implementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-    runtimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
-    implementation group: 'org.junit.platform', name: 'junit-platform-runner', version: junitPlatformVersion
-    // Only needed to run tests in an (IntelliJ) IDE(A) that bundles an older version
-    runtimeOnly("org.junit.platform:junit-platform-launcher:${junitPlatformVersion}")
+    implementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     implementation("org.assertj:assertj-core:${assertjVersion}")
 }

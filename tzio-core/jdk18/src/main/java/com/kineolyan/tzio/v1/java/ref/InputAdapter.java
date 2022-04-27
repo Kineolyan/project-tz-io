@@ -23,7 +23,7 @@ public class InputAdapter implements InputReferenceVisitor<InputReference> {
 
 	@Override
 	public InputReference visit(final SlotReference ref) {
-		return References.inSlot(ref.slot);
+		return References.inSlot(ref.slot());
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class InputAdapter implements InputReferenceVisitor<InputReference> {
 
 	@Override
 	public InputReference visit(final ValueReference ref) {
-		return References.value(ref.value);
+		return References.value(ref.value());
 	}
 
 	@Override

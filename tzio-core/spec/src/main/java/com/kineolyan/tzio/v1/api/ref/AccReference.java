@@ -1,6 +1,6 @@
 package com.kineolyan.tzio.v1.api.ref;
 
-public class AccReference implements InputReferenceType, OutputReferenceType {
+public record AccReference() implements InputReferenceType, OutputReferenceType {
 
 	@Override
 	public <R> R accept(InputReferenceVisitor<R> visitor) {

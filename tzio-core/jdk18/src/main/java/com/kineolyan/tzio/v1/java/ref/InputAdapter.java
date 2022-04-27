@@ -18,7 +18,12 @@ public class InputAdapter implements InputReferenceVisitor<InputReference> {
 	 * @return created input
 	 */
 	public InputReference convert(final InputReferenceType type) {
-		return type.accept(this);
+		return switch (type) {
+			case SlotReference slot -> visit(slot);
+			case NilReference nil -> visit(nil);
+			case AccReference acc -> visit(acc);
+			case ValueReference value -> visit(value);
+		};
 	}
 
 	@Override

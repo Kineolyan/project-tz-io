@@ -9,7 +9,11 @@ import com.kineolyan.tzio.v1.api.ref.SlotReference;
 public class OutputAdapter implements OutputReferenceVisitor<OutputReference> {
 
 	public OutputReference convert(final OutputReferenceType type) {
-		return type.accept(this);
+		return switch (type) {
+			case SlotReference slot -> visit(slot);
+			case NilReference nil -> visit(nil);
+			case AccReference acc -> visit(acc);
+		};
 	}
 
 	@Override

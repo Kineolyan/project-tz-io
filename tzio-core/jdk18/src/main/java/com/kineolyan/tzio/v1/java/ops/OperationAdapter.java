@@ -31,7 +31,21 @@ public class OperationAdapter implements OperationVisitor<Operation> {
 	private final OutputAdapter outputAdapter;
 
 	public Operation convert(OperationType type) {
-		return type.accept(this);
+		return switch (type) {
+			case MovOperation mov -> visit(mov);
+			case SavOperation save -> visit(save);
+			case JmpOperation jmp -> visit(jmp);
+			case AddOperation add -> visit(add);
+			case JroOperation jro -> visit(jro);
+			case JgzOperation jgz -> visit(jgz);
+			case JnzOperation jnz -> visit(jnz);
+			case JlzOperation jlz -> visit(jlz);
+			case JezOperation jez -> visit(jez);
+			case NegOperation neg -> visit(neg);
+			case SwpOperation swap -> visit(swap);
+			case LabelOperation label -> visit(label);
+			case SubOperation sub -> visit(sub);
+		};
 	}
 
 	@Override

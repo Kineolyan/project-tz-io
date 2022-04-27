@@ -2,24 +2,19 @@ package com.kineolyan.tzio.v1.java.ops;
 
 import com.kineolyan.tzio.v1.java.Node;
 import com.kineolyan.tzio.v1.java.ref.InputReference;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
 import java.util.function.ToIntFunction;
 
 /**
  * Conditional operation offsetting to the "next" operation according to the input value.
  */
+@RequiredArgsConstructor
 class JroOperation implements Operation {
 
 	/** Input to read for the shift increment */
 	private final InputReference input;
-
-	/**
-	 * Constructor.
-	 * @param input input to read for the shift value.
-	 */
-	public JroOperation(final InputReference input) {
-		this.input = input;
-	}
 
 	@Override
 	public Shift execute(final Node node) {
@@ -33,19 +28,10 @@ class JroOperation implements Operation {
 
 	/**
 	 * Special increment shifting by a given value.
+	 *
+	 * @param increment Increment to apply to the operation
 	 */
-	private static class JroShift implements Operation.Shift {
-
-		/** Increment to apply to the operation */
-		private final int increment;
-
-		/**
-		 * Constructor.
-		 * @param increment operation increment
-		 */
-		private JroShift(final int increment) {
-			this.increment = increment;
-		}
+	private record JroShift(int increment) implements Operation.Shift {
 
 		/**
 		 * Creates the appropriate shift according to the increment.

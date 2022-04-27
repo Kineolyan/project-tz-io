@@ -1,6 +1,8 @@
 package com.kineolyan.tzio.v1.java.ops;
 
 import com.kineolyan.tzio.v1.java.Node;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
 import java.util.function.IntPredicate;
 import java.util.function.ToIntFunction;
@@ -8,7 +10,8 @@ import java.util.function.ToIntFunction;
 /**
  * Conditional operation jumping to a given label when the consider node value is 0.
  */
-class ConditionalOperation implements Operation, Operation.Shift {
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+final class ConditionalOperation implements Operation, Operation.Shift {
 
 	/** Target label operation */
 	private final String targetLabel;
@@ -18,20 +21,6 @@ class ConditionalOperation implements Operation, Operation.Shift {
 
 	/** Name of the operation for sweet debug */
 	private final String operationName;
-
-	/**
-	 * Constructor
-	 * @param label label to go to when the value predicate is met
-	 * @param predicate predicate on the node value
-	 */
-	private ConditionalOperation(
-		final String label,
-		final IntPredicate predicate,
-		final String operationName) {
-		this.targetLabel = label;
-		this.valuePredicate = predicate;
-		this.operationName = operationName;
-	}
 
 	/**
 	 * Creates a JEZ conditional operation.

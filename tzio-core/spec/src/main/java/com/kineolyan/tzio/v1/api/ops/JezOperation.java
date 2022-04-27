@@ -1,15 +1,9 @@
 package com.kineolyan.tzio.v1.api.ops;
 
-public class JezOperation implements OperationType {
-
-	public final String label;
-
-	public JezOperation(String label) {
-		this.label = label;
-	}
+public record JezOperation(String label) implements OperationType {
 
 	@Override
-	public <R> R accept(OperationVisitor<R>visitor) {
+	public <R> R accept(OperationVisitor<R> visitor) {
 		return visitor.visit(this);
 	}
 

@@ -4,24 +4,19 @@ import com.kineolyan.tzio.v1.java.Node;
 
 /**
  * Empty operation, serving as a label point for "goto" operators.
+ *
+ * @param label Label of the operation
  */
-class LabelOperation implements Operation {
-
-	/** Label of the operation */
-	private final String label;
+record LabelOperation(String label) implements Operation {
 
 	/**
 	 * Constructor
+	 *
 	 * @param label operation label
 	 */
-	public LabelOperation(final String label) {
-		this.label = label;
+	LabelOperation {
 	}
 
-	@Override
-	public String label() {
-		return this.label;
-	}
 
 	@Override
 	public Shift execute(final Node node) {

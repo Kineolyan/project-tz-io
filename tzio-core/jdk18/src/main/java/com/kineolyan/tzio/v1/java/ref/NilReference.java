@@ -1,17 +1,17 @@
 package com.kineolyan.tzio.v1.java.ref;
 
 import com.kineolyan.tzio.v1.java.Node;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Reference to the null source.
  */
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 class NilReference implements InputReference, OutputReference {
 
 	/** Singleton instance of this reference */
 	public static NilReference INSTANCE = new NilReference();
-
-	/** Hidden constructor */
-	private NilReference() {}
 
 	@Override
 	public boolean canRead(final Node node) {

@@ -2,14 +2,7 @@ package com.kineolyan.tzio.v1.api.ops;
 
 import com.kineolyan.tzio.v1.api.ref.InputReferenceType;
 
-public class JroOperation implements OperationType {
-
-	public final InputReferenceType input;
-
-
-	public JroOperation(InputReferenceType input) {
-		this.input = input;
-	}
+public record JroOperation(InputReferenceType input) implements OperationType {
 
 	@Override
 	public <R> R accept(OperationVisitor<R> visitor) {

@@ -1,17 +1,17 @@
 package com.kineolyan.tzio.v1.java.ref;
 
 import com.kineolyan.tzio.v1.java.Node;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Reference to the node internal value.
  */
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 class AccReference implements InputReference, OutputReference {
 
 	/** Singleton instance of this reference */
 	public static AccReference INSTANCE = new AccReference();
-
-	/** Hidden constructor */
-	private AccReference() {}
 
 	@Override
 	public boolean canRead(final Node node) {

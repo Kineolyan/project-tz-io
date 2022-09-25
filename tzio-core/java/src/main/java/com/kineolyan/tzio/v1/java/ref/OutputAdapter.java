@@ -14,7 +14,7 @@ public class OutputAdapter implements OutputReferenceVisitor<OutputReference> {
 
 	@Override
 	public OutputReference visit(final SlotReference ref) {
-		return References.outSlot(ref.slot);
+		return References.outSlot(ref.slot());
 	}
 
 	@Override

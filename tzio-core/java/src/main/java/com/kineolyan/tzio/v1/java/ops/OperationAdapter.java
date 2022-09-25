@@ -47,30 +47,30 @@ public class OperationAdapter implements OperationVisitor<Operation> {
 	@Override
 	public Operation visit(final MovOperation movOperation) {
 		return Operations.MOV(
-			this.inputAdapter.convert(movOperation.input),
-			this.outputAdapter.convert(movOperation.output));
+			this.inputAdapter.convert(movOperation.input()),
+			this.outputAdapter.convert(movOperation.output()));
 	}
 
 	@Override
 	public Operation visit(final SavOperation savOperation) {
-		return Operations.SAV(savOperation.slot);
+		return Operations.SAV(savOperation.slot());
 	}
 
 	@Override
 	public Operation visit(final SwpOperation swpOperation) {
-		return Operations.SWP(swpOperation.slot);
+		return Operations.SWP(swpOperation.slot());
 	}
 
 	@Override
 	public Operation visit(final AddOperation addOperation) {
 		return Operations.ADD(
-				this.inputAdapter.convert(addOperation.input));
+				this.inputAdapter.convert(addOperation.input()));
 	}
 
 	@Override
 	public Operation visit(final SubOperation subOperation) {
 		return Operations.SUB(
-				this.inputAdapter.convert(subOperation.input));
+				this.inputAdapter.convert(subOperation.input()));
 	}
 
 	@Override
@@ -80,38 +80,38 @@ public class OperationAdapter implements OperationVisitor<Operation> {
 
 	@Override
 	public Operation visit(final LabelOperation labelOperation) {
-		return Operations.LABEL(labelOperation.label);
+		return Operations.LABEL(labelOperation.label());
 	}
 
 	@Override
 	public Operation visit(final JmpOperation jmpOperation) {
-		return Operations.JMP(jmpOperation.label);
+		return Operations.JMP(jmpOperation.label());
 	}
 
 	@Override
 	public Operation visit(final JezOperation jezOperation) {
-		return Operations.JEZ(jezOperation.label);
+		return Operations.JEZ(jezOperation.label());
 	}
 
 	@Override
 	public Operation visit(final JnzOperation jnzOperation) {
-		return Operations.JNZ(jnzOperation.label);
+		return Operations.JNZ(jnzOperation.label());
 	}
 
 	@Override
 	public Operation visit(final JlzOperation jlzOperation) {
-		return Operations.JLZ(jlzOperation.label);
+		return Operations.JLZ(jlzOperation.label());
 	}
 
 	@Override
 	public Operation visit(final JgzOperation jgzOperation) {
-		return Operations.JGZ(jgzOperation.label);
+		return Operations.JGZ(jgzOperation.label());
 	}
 
 	@Override
 	public Operation visit(final JroOperation jroOperation) {
 		return Operations.JRO(
-				this.inputAdapter.convert(jroOperation.input));
+				this.inputAdapter.convert(jroOperation.input()));
 	}
 
 }

@@ -6,13 +6,12 @@ readonly DIR=$(dirname $(dirname "$THIS_FILE"))
 
 readonly RUST_COMPILER=$DIR/rs-parser/target/debug/rs-parser
 
-readonly VERSION="1.0-SNAPSHOT"
-readonly JAVA_JARS=(
-  "$DIR/tzio-core/java/build/libs/tzio-java-full-$VERSION.jar"
-)
-readonly SCALA_JARS=(
-  "$DIR/tzio-core/scala/build/libs/tzio-scala-full-$VERSION.jar"
-)
+define-jars() {
+  readonly local version="$1"
+  export JAVA_JARS=(
+    "$DIR/tzio-core/java/build/libs/tzio-java-full-$version.jar"
+  )
+}
 
 function print_help() {
 	cat <<HELP
@@ -21,9 +20,9 @@ Usage:
 
 Options:
   -h, --help: Prints this help message
-  -l <lang>, --lang <lang>: Choose the platform running the program
+  -l <lang>, --lang <lang>: Choose the platform running the program (default: java)
+  -V <version>, --sys-version <version>: Version of the core to use (default: 1.0-SNAPSHOT)
   --java: Shortcut for --lang=java
-  --scala: Shortcut for --lang=scala
   --verbose: Activate verbose messages of the running platform
 HELP
 	exit 0
@@ -110,6 +109,7 @@ PROPS
 language=
 args=
 verbose=0
+VERSION="1.0-SNAPSHOT"
 while true
 do
   arg="$1"
@@ -123,13 +123,16 @@ do
     --verbose) verbose=1 ;;
     --java)
       language='java' ;;
-    --scala)
-      language='scala' ;;
+    -V|--sys-version)
+      VERSION="$1"
+      shift 1 ;;
     # end of loop and errors
     --|'') break ;;
     *) args="$args $arg" ;;
   esac
 done
+
+define-jars $VERSION
 
 case $language in
   java)

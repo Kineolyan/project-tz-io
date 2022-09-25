@@ -1,11 +1,17 @@
+plugins {
+    id 'java-library'
+    id "io.freefair.lombok"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 dependencies {
     implementation project(':tzio-spec')
 
-//    compile group: 'junit', name: 'junit', version: '4.12'
-    implementation("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
-    runtime("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
-    implementation group: 'org.junit.platform', name: 'junit-platform-runner', version: junitPlatformVersion
-    // Only needed to run tests in an (IntelliJ) IDE(A) that bundles an older version
-    runtime("org.junit.platform:junit-platform-launcher:${junitPlatformVersion}")
+    implementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     implementation("org.assertj:assertj-core:${assertjVersion}")
 }

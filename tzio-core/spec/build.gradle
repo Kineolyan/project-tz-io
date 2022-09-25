@@ -1,0 +1,10 @@
+plugins {
+    id 'java-library'
+    id "io.freefair.lombok"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}

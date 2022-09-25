@@ -1,0 +1,45 @@
+plugins {
+    id 'java-library'
+    id "io.freefair.lombok"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(18)
+    }
+}
+
+dependencies {
+    implementation project(':tzio-spec')
+    testImplementation project(':tzio-tck')
+    testImplementation("org.assertj:assertj-core:${assertjVersion}")
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add("--enable-preview")
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    jvmArgs("--enable-preview")
+}
+
+task fullJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'TZ JDK18 Core (Full)',
+                'Implementation-Version': version
+    }
+    baseName = project.name + '-full'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+build.dependsOn fullJar
+
+test {
+    useJUnitPlatform()
+
+    failFast = false
+}

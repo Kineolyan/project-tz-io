@@ -6,7 +6,7 @@ package com.kineolyan.tzio.v1.api.ref;
  *   The reference can check that the input can provide a value and can read it.
  * </p>
  */
-public interface InputReferenceType {
+public sealed interface InputReferenceType permits SlotReference, AccReference, ValueReference, NilReference{
 
 	<R> R accept(InputReferenceVisitor<R> visitor);
 

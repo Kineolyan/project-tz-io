@@ -6,7 +6,7 @@ package com.kineolyan.tzio.v1.api.ref;
  *   The reference can check that the output can be written and can perform the write.
  * </p>
  */
-public interface OutputReferenceType {
+public sealed interface OutputReferenceType permits SlotReference, AccReference, NilReference {
 
 	<R> R accept(OutputReferenceVisitor<R> visitor);
 

@@ -1,6 +1,6 @@
 package com.kineolyan.tzio.v1.api.ref;
 
-public class NilReference implements InputReferenceType, OutputReferenceType {
+public record NilReference() implements InputReferenceType, OutputReferenceType {
 
 	@Override
 	public <R> R accept(InputReferenceVisitor<R> visitor) {

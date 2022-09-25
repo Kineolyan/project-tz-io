@@ -1,7 +1,21 @@
+plugins {
+    id 'java-library'
+    id "io.freefair.lombok"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 dependencies {
     implementation project(':tzio-spec')
     testImplementation project(':tzio-tck')
     testImplementation("org.assertj:assertj-core:${assertjVersion}")
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
 }
 
 task fullJar(type: Jar) {
@@ -10,16 +24,13 @@ task fullJar(type: Jar) {
                 'Implementation-Version': version
     }
     baseName = project.name + '-full'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
 build.dependsOn fullJar
 
 test {
-    useJUnitPlatform {
-        excludeTags 'slow'
-        includeEngines 'junit-jupiter'//, 'junit-vintage'
-    }
+    useJUnitPlatform()
 
     failFast = false
 }

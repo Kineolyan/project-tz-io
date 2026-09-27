@@ -40,7 +40,40 @@ jobs:
 
   build-rs-parser:
     docker:
-      - image: cimg/rust:1.48.0
+      - image: cimg/rust:1.94.1
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+          - v2-cargo-{{ checksum "rs-parser/Cargo.lock" }}
+          - v2-cargo-
+
+      - run:
+          command: cargo fmt --check
+          working_directory: ~/repo/rs-parser
+
+      - run:
+          command: cargo clippy --all-targets --locked -- -D warnings
+          working_directory: ~/repo/rs-parser
+
+      - run:
+          command: cargo test --locked
+          working_directory: ~/repo/rs-parser
+
+      - save_cache:
+          key: v2-cargo-{{ checksum "rs-parser/Cargo.lock" }}
+          paths:
+            - ~/.cargo/registry
+            - ~/repo/rs-parser/target
+
+  # Checks the minimal Rust version declared in rs-parser/Cargo.toml
+  build-rs-parser-msrv:
+    docker:
+      - image: cimg/rust:1.85.0
 
     working_directory: ~/repo
 
@@ -48,7 +81,7 @@ jobs:
       - checkout
 
       - run:
-          command: cargo test
+          command: cargo test --locked
           working_directory: ~/repo/rs-parser
 
   build-java-reader:
@@ -71,4 +104,5 @@ workflows:
     jobs:
       - build-core
       - build-rs-parser
+      - build-rs-parser-msrv
       - build-java-reader

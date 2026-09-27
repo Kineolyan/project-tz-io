@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 use language::syntax::Program;
-use parser::{parse, ParsingResult};
+use parser::{ParsingResult, parse};
 
 fn parse_file(filename: &str) -> ParsingResult {
     println!("Compiling {}", filename);
@@ -48,14 +48,9 @@ fn main() {
     let target_dir = &args[2];
     let result =
         process_input(filename).and_then(|result| create_output(result, filename, target_dir));
-    if result.is_ok() {
-        println!("File {} compiled with success to {}", filename, target_dir);
-    } else {
-        panic!(
-            "Error in file {} compilation: {}",
-            filename,
-            result.unwrap_err()
-        );
+    match result {
+        Ok(()) => println!("File {} compiled with success to {}", filename, target_dir),
+        Err(e) => panic!("Error in file {} compilation: {}", filename, e),
     }
 }
 
@@ -66,30 +61,30 @@ mod tests {
     #[test]
     fn test_sample_sum() {
         let res = process_input("../../language-samples/sum.io");
-        assert_eq!(res.is_ok(), true);
+        assert!(res.is_ok());
     }
 
     #[test]
     fn test_sample_increment() {
         let res = process_input("../../language-samples/increment.io");
-        assert_eq!(res.is_ok(), true);
+        assert!(res.is_ok());
     }
 
     #[test]
     fn test_sample_max() {
         let res = process_input("../../language-samples/max.io");
-        assert_eq!(res.is_ok(), true);
+        assert!(res.is_ok());
     }
 
     #[test]
     fn test_sample_double() {
         let res = process_input("../../language-samples/double.io");
-        assert_eq!(res.is_ok(), true);
+        assert!(res.is_ok());
     }
 
     #[test]
     fn test_sample_diffs() {
         let res = process_input("../../language-samples/diffs.io");
-        assert_eq!(res.is_ok(), true);
+        assert!(res.is_ok());
     }
 }

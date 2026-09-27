@@ -10,14 +10,16 @@ use language::instruction::Operation;
 pub fn add_operation(input: &[u8]) -> Res<'_, Operation> {
     let (input, _) = tag("ADD").parse(input)?;
     let (input, _) = space1(input)?;
-    let (input, value) = alt((input_pointer, acc_pointer, nil_pointer, value_pointer)).parse(input)?;
+    let (input, value) =
+        alt((input_pointer, acc_pointer, nil_pointer, value_pointer)).parse(input)?;
     Ok((input, Operation::ADD(value)))
 }
 
 pub fn sub_operation(input: &[u8]) -> Res<'_, Operation> {
     let (input, _) = tag("SUB").parse(input)?;
     let (input, _) = space1(input)?;
-    let (input, value) = alt((input_pointer, acc_pointer, nil_pointer, value_pointer)).parse(input)?;
+    let (input, value) =
+        alt((input_pointer, acc_pointer, nil_pointer, value_pointer)).parse(input)?;
     Ok((input, Operation::SUB(value)))
 }
 

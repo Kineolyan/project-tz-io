@@ -8,7 +8,7 @@ use language::syntax::{InputMapping, NodeBlock, OutputMapping};
 type Index = HashMap<String, usize>;
 fn map_node_to_idx(tree: &Program) -> Index {
     let mut index = HashMap::new();
-    for (i, &(ref node, _, _, _)) in tree.nodes.iter().enumerate() {
+    for (i, (node, _, _, _)) in tree.nodes.iter().enumerate() {
         if let Node::Node(node_id) = node {
             index.insert(node_id.clone(), i);
         }
@@ -141,13 +141,13 @@ mod tests {
     #[test]
     fn test_complete_node_inputs() {
         let src = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![],
             vec![
                 OutputMapping {
                     from: 1.into(),
                     to: Port {
-                        node: Node::new_node(&"b"),
+                        node: Node::new_node("b"),
                         port: 2.into(),
                     },
                 },
@@ -161,7 +161,7 @@ mod tests {
             ],
             vec![],
         );
-        let dst = (Node::new_node(&"b"), vec![], vec![], vec![]);
+        let dst = (Node::new_node("b"), vec![], vec![], vec![]);
         let tree = complete_mappings(Program {
             nodes: vec![src, dst],
             tests: None,
@@ -170,7 +170,7 @@ mod tests {
             tree.nodes[1].1,
             vec![InputMapping {
                 from: Port {
-                    node: Node::new_node(&"a"),
+                    node: Node::new_node("a"),
                     port: 1.into()
                 },
                 to: 2.into()
@@ -180,9 +180,9 @@ mod tests {
 
     #[test]
     fn test_complete_node_outputs() {
-        let src = (Node::new_node(&"a"), vec![], vec![], vec![]);
+        let src = (Node::new_node("a"), vec![], vec![], vec![]);
         let dst = (
-            Node::new_node(&"b"),
+            Node::new_node("b"),
             vec![
                 InputMapping {
                     from: Port {
@@ -193,7 +193,7 @@ mod tests {
                 },
                 InputMapping {
                     from: Port {
-                        node: Node::new_node(&"a"),
+                        node: Node::new_node("a"),
                         port: 1.into(),
                     },
                     to: 2.into(),
@@ -211,7 +211,7 @@ mod tests {
             vec![OutputMapping {
                 from: 1.into(),
                 to: Port {
-                    node: Node::new_node(&"b"),
+                    node: Node::new_node("b"),
                     port: 2.into()
                 }
             }]
@@ -221,22 +221,22 @@ mod tests {
     #[test]
     fn test_complete_partial_definitions() {
         let src = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![],
             vec![OutputMapping {
                 from: 2.into(),
                 to: Port {
-                    node: Node::new_node(&"b"),
+                    node: Node::new_node("b"),
                     port: 2.into(),
                 },
             }],
             vec![],
         );
         let dst = (
-            Node::new_node(&"b"),
+            Node::new_node("b"),
             vec![InputMapping {
                 from: Port {
-                    node: Node::new_node(&"a"),
+                    node: Node::new_node("a"),
                     port: 1.into(),
                 },
                 to: 1.into(),
@@ -254,14 +254,14 @@ mod tests {
                 OutputMapping {
                     from: 2.into(),
                     to: Port {
-                        node: Node::new_node(&"b"),
+                        node: Node::new_node("b"),
                         port: 2.into()
                     }
                 },
                 OutputMapping {
                     from: 1.into(),
                     to: Port {
-                        node: Node::new_node(&"b"),
+                        node: Node::new_node("b"),
                         port: 1.into()
                     }
                 }
@@ -272,14 +272,14 @@ mod tests {
             vec![
                 InputMapping {
                     from: Port {
-                        node: Node::new_node(&"a"),
+                        node: Node::new_node("a"),
                         port: 1.into()
                     },
                     to: 1.into()
                 },
                 InputMapping {
                     from: Port {
-                        node: Node::new_node(&"a"),
+                        node: Node::new_node("a"),
                         port: 2.into()
                     },
                     to: 2.into()

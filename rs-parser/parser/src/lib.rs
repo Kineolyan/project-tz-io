@@ -1,5 +1,3 @@
-
-
 mod address;
 mod common;
 mod instruction;
@@ -48,6 +46,7 @@ fn format_error(input: &[u8], e: VerboseError<&[u8]>) -> String {
     nom_language::error::convert_error(text, VerboseError { errors })
 }
 
+#[allow(clippy::result_unit_err)]
 pub fn parse(input: &[u8]) -> ParsingResult {
     let res = program(input);
     match res {
@@ -122,7 +121,7 @@ MOV <2, >2
                 }],
                 vec![OutputMapping {
                     from: 1.into(),
-                    to: Port::named_port(&"2", 2.into()),
+                    to: Port::named_port("2", 2.into()),
                 }],
                 vec![Operation::MOV(
                     ValuePointer::INPUT(1.into()),
@@ -132,12 +131,12 @@ MOV <2, >2
             (
                 Node::new_node("2"),
                 vec![InputMapping {
-                    from: Port::named_port(&"1", 1.into()),
+                    from: Port::named_port("1", 1.into()),
                     to: 2.into(),
                 }],
                 vec![OutputMapping {
                     from: 2.into(),
-                    to: Port::named_port(&"3", 3.into()),
+                    to: Port::named_port("3", 3.into()),
                 }],
                 vec![Operation::MOV(
                     ValuePointer::INPUT(2.into()),
@@ -178,7 +177,7 @@ MOV <1,  >1
             }],
             vec![OutputMapping {
                 from: 1.into(),
-                to: Port::named_port(&"2", 2.into()),
+                to: Port::named_port("2", 2.into()),
             }],
             vec![Operation::MOV(
                 ValuePointer::INPUT(1.into()),

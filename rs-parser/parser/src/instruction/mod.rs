@@ -26,5 +26,6 @@ pub fn parse_instruction(input: &[u8]) -> Res<'_, language::instruction::Operati
         jlz_operation,
         jgz_operation,
         jro_operation,
-    )).parse(input)
+    ))
+    .parse(input)
 }

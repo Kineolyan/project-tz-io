@@ -6,7 +6,7 @@ mod writer;
 
 use std::cmp::Eq;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::Path;
 
 use crate::java::dictionary::Dictionary;
 use language::address::Node;
@@ -414,7 +414,7 @@ fn create_jro_operation(
     instructions.push(constructs::Operation::invokestatic(method_idx));
 }
 
-pub fn create_main_file(tree: &Program, package: &str, output_dir: &PathBuf) -> Result<(), String> {
+pub fn create_main_file(tree: &Program, package: &str, output_dir: &Path) -> Result<(), String> {
     let slots = create_slot_indexes(tree);
     let mut class = class::JavaClass::new();
 
@@ -423,7 +423,7 @@ pub fn create_main_file(tree: &Program, package: &str, output_dir: &PathBuf) -> 
     classname.push_str("/Main");
     class.set_class(&classname);
 
-    class.set_super_class(&OBJECT_CLASS_NAME);
+    class.set_super_class(OBJECT_CLASS_NAME);
 
     let mut definition_methods: Vec<class::PoolIdx> = vec![];
     for (i, node) in tree.nodes.iter().enumerate() {
@@ -434,10 +434,8 @@ pub fn create_main_file(tree: &Program, package: &str, output_dir: &PathBuf) -> 
     let create_idx = create_construction(&mut class, &definition_methods, &slots);
     create_main(&mut class, create_idx);
 
-    let mut output_file = output_dir.clone();
-    output_file.push("Main");
-    output_file.set_extension("class");
-    writer::write(&class, output_file.as_path())
+    let output_file = output_dir.join("Main.class");
+    writer::write(&class, &output_file)
         .map_err(|e| format!("Failed to write into file. Caused by {}", e))
 }
 
@@ -449,7 +447,7 @@ fn create_node_definition_method(
     slots: &SlotStructure,
 ) -> class::PoolIdx {
     let add_node_idx = class.map_interface_method(
-        &TZ_ENV_CLASS_NAME,
+        TZ_ENV_CLASS_NAME,
         "addNode",
         &constructs::Signature {
             return_type: constants::Type::Object(String::from(TZ_ENV_CLASS_NAME)),
@@ -468,11 +466,11 @@ fn create_node_definition_method(
         parameter_types: vec![constants::Type::Object(String::from(TZ_ENV_CLASS_NAME))],
     };
 
-    let node_name = class.map_string(&node.0.get_id());
+    let node_name = class.map_string(node.0.get_id());
     let input_array_var_idx = 1;
     let create_input_array = create_int_array(
         class,
-        &slots
+        slots
             .node_inputs
             .get(&i)
             .unwrap_or_else(|| panic!("No inputs for node {}", i)),
@@ -481,7 +479,7 @@ fn create_node_definition_method(
     let output_array_var_idx = 2;
     let create_output_array = create_int_array(
         class,
-        &slots
+        slots
             .node_outputs
             .get(&i)
             .unwrap_or_else(|| panic!("No outputs for node {}", i)),
@@ -530,7 +528,7 @@ fn create_construction(
 ) -> class::PoolIdx {
     let get_instance_idx = class.map_interface_method(
         TZ_SYSTEM_CLASS_NAME,
-        &"getInstance",
+        "getInstance",
         &constructs::Signature {
             return_type: constants::Type::Object(String::from(TZ_SYSTEM_CLASS_NAME)),
             parameter_types: vec![],
@@ -538,7 +536,7 @@ fn create_construction(
     );
     let create_env_idx = class.map_interface_method(
         TZ_SYSTEM_CLASS_NAME,
-        &"createEnv",
+        "createEnv",
         &constructs::Signature {
             return_type: constants::Type::Object(String::from(TZ_ENV_CLASS_NAME)),
             parameter_types: vec![],
@@ -605,7 +603,7 @@ fn create_construction(
         ],
     );
 
-    class.create_method(access, &"create", this_signature, vec![method_code])
+    class.create_method(access, "create", this_signature, vec![method_code])
 }
 
 fn create_main(class: &mut class::JavaClass, creator_idx: class::PoolIdx) -> class::PoolIdx {
@@ -634,7 +632,7 @@ fn create_main(class: &mut class::JavaClass, creator_idx: class::PoolIdx) -> cla
     let local_count = constructs::count_local_vars(Some(&signature), &operations);
     class.create_method(
         access,
-        &"main",
+        "main",
         signature,
         vec![constructs::Attribute::Code {
             max_stack: 3,
@@ -647,7 +645,7 @@ fn create_main(class: &mut class::JavaClass, creator_idx: class::PoolIdx) -> cla
 fn get_with_slots_idx(class: &mut class::JavaClass) -> class::PoolIdx {
     class.map_interface_method(
         TZ_ENV_CLASS_NAME,
-        &"withSlots",
+        "withSlots",
         &constructs::Signature {
             return_type: constants::Type::Object(String::from(TZ_ENV_CLASS_NAME)),
             parameter_types: vec![
@@ -661,8 +659,8 @@ fn get_with_slots_idx(class: &mut class::JavaClass) -> class::PoolIdx {
 
 fn get_run_from_system_idx(class: &mut class::JavaClass) -> class::PoolIdx {
     class.map_interface_method(
-        &TZ_ENV_CLASS_NAME,
-        &"runFromSystem",
+        TZ_ENV_CLASS_NAME,
+        "runFromSystem",
         &constructs::Signature {
             return_type: constants::Type::Void,
             parameter_types: vec![constants::Type::ObjectArray(

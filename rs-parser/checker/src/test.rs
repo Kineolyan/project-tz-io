@@ -5,25 +5,29 @@ use language::syntax::{InputMapping, NodeBlock, OutputMapping};
 use language::test::TestCase;
 
 fn is_reading_in(mapping: &InputMapping) -> bool {
-    matches!(mapping, InputMapping {
-            from:
-                Port {
-                    node: Node::In,
-                    port: _,
-                },
+    matches!(
+        mapping,
+        InputMapping {
+            from: Port {
+                node: Node::In,
+                port: _,
+            },
             to: _
-    })
+        }
+    )
 }
 
 fn is_writing_out(mapping: &&OutputMapping) -> bool {
-    matches!(mapping, OutputMapping {
-        from: _,
-        to:
-            Port {
+    matches!(
+        mapping,
+        OutputMapping {
+            from: _,
+            to: Port {
                 node: Node::Out,
                 port: _,
             },
-    })
+        }
+    )
 }
 
 /// Module checking that the tests are correctly formed.
@@ -34,7 +38,7 @@ fn count_ios(nodes: &[NodeBlock]) -> Counts {
     let mut outs = 0;
     for node in nodes {
         ins += node.1.iter().filter(|i| is_reading_in(i)).count();
-        outs += node.2.iter().filter(|o| is_writing_out(o)).count();
+        outs += node.2.iter().filter(is_writing_out).count();
     }
 
     (ins, outs)
@@ -112,8 +116,8 @@ pub fn check(tree: &Program, result: &mut CheckResult) -> bool {
     let counts = count_ios(&tree.nodes);
 
     let initial_count = result.error_count();
-    for test in &tree.tests {
-        check_test(&test, result, &counts);
+    if let Some(test) = &tree.tests {
+        check_test(test, result, &counts);
     }
 
     result.error_count() == initial_count
@@ -127,7 +131,7 @@ mod tests {
 
     fn create_nodes() -> Vec<NodeBlock> {
         let src = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![InputMapping {
                 from: Port {
                     node: Node::In,
@@ -145,7 +149,7 @@ mod tests {
             vec![],
         );
         let dst = (
-            Node::new_node(&"b"),
+            Node::new_node("b"),
             vec![InputMapping {
                 from: Port {
                     node: Node::In,
@@ -173,8 +177,8 @@ mod tests {
             },
             &mut check_result,
         );
-        assert_eq!(result, true);
-        assert_eq!(check_result.has_errors(), false);
+        assert!(result);
+        assert!(!check_result.has_errors());
     }
 
     #[test]
@@ -191,8 +195,8 @@ mod tests {
             },
             &mut check_result,
         );
-        assert_eq!(result, true);
-        assert_eq!(check_result.has_errors(), false);
+        assert!(result);
+        assert!(!check_result.has_errors());
     }
 
     #[test]
@@ -212,8 +216,8 @@ mod tests {
             },
             &mut checks,
         );
-        assert_eq!(result, false);
-        assert_eq!(checks.has_errors(), true);
+        assert!(!result);
+        assert!(checks.has_errors());
         assert_eq!(checks.error_count(), 1);
     }
 
@@ -236,8 +240,8 @@ mod tests {
             },
             &mut checks,
         );
-        assert_eq!(result, false);
-        assert_eq!(checks.has_errors(), true);
+        assert!(!result);
+        assert!(checks.has_errors());
         assert_eq!(checks.error_count(), 2);
     }
 
@@ -258,8 +262,8 @@ mod tests {
             },
             &mut checks,
         );
-        assert_eq!(result, false);
-        assert_eq!(checks.has_errors(), true);
+        assert!(!result);
+        assert!(checks.has_errors());
         assert_eq!(checks.error_count(), 1);
     }
 
@@ -282,8 +286,8 @@ mod tests {
             },
             &mut checks,
         );
-        assert_eq!(result, false);
-        assert_eq!(checks.has_errors(), true);
+        assert!(!result);
+        assert!(checks.has_errors());
         assert_eq!(checks.error_count(), 2);
     }
 }

@@ -1,20 +1,20 @@
-
 use crate::common::Res;
-use nom::Parser;
 use crate::common::to_string;
 use crate::instruction::base::{acc_pointer, input_pointer, nil_pointer, value_pointer};
 use language::instruction::Operation;
+use nom::Parser;
 
 fn label_name(input: &[u8]) -> Res<'_, String> {
     nom::combinator::map_res(nom::character::complete::alphanumeric1, to_string).parse(input)
 }
 
 pub fn label_operation(input: &[u8]) -> Res<'_, Operation> {
-    let (input, (label, _, _)) = ((
+    let (input, (label, _, _)) = (
         label_name,
         nom::character::complete::space0,
         nom::bytes::complete::tag(":"),
-    )).parse(input)?;
+    )
+        .parse(input)?;
     Ok((input, Operation::LABEL(label)))
 }
 
@@ -24,11 +24,12 @@ macro_rules! jump_fn {
         pub fn $name(input: &[u8]) -> Res<'_, Operation> {
             // TODO once we see the operation, we can deduce that it must be followed by a label
             // Using Failure would mark the issue in the parsing
-            let (rest, (_, _, label)) = ((
+            let (rest, (_, _, label)) = (
                 nom::bytes::complete::tag($pattern),
                 nom::character::complete::space1,
                 label_name,
-            )).parse(input)?;
+            )
+                .parse(input)?;
             Ok((rest, $cnstr(label)))
         }
     };

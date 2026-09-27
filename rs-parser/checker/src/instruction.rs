@@ -1,3 +1,7 @@
+//! Module checking that the ports referenced by instructions
+//! are defined in the inputs/outputs.
+//! This only generate warnings.
+
 use std::collections::HashSet;
 
 use crate::CheckResult;
@@ -6,21 +10,17 @@ use language::instruction::{Operation, ValuePointer};
 use language::syntax::Program;
 use language::syntax::{InputMapping, NodeBlock, OutputMapping};
 
-/// Module checking that the ports referenced by instructions
-/// are defined in the inputs/outputs.
-/// This only generate warnings.
-
 fn collect_input_ports(inputs: &[InputMapping]) -> HashSet<InputSlot> {
     inputs
         .iter()
-        .map(|ref input| input.to)
+        .map(|input| input.to)
         .collect::<HashSet<InputSlot>>()
 }
 
 fn collect_output_ports(outputs: &[OutputMapping]) -> HashSet<OutputSlot> {
     outputs
         .iter()
-        .map(|ref output| output.from)
+        .map(|output| output.from)
         .collect::<HashSet<OutputSlot>>()
 }
 
@@ -102,7 +102,7 @@ mod tests {
         let mut check = Default::default();
 
         let node_ok = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![InputMapping {
                 from: Port::new(Node::In, 3.into()),
                 to: 1.into(),
@@ -115,10 +115,10 @@ mod tests {
             ],
         );
         check_node(&node_ok, &mut check);
-        assert_eq!(check.has_errors(), false);
+        assert!(!check.has_errors());
 
         let node_ko = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![InputMapping {
                 from: Port::new(Node::In, 3.into()),
                 to: 1.into(),
@@ -130,7 +130,7 @@ mod tests {
             vec![Operation::JRO(ValuePointer::INPUT(2.into()))],
         );
         check_node(&node_ko, &mut check);
-        assert_eq!(check.has_errors(), true);
+        assert!(check.has_errors());
     }
 
     #[test]
@@ -138,7 +138,7 @@ mod tests {
         let mut check = Default::default();
 
         let node_ok = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![InputMapping {
                 from: Port::new(Node::In, 3.into()),
                 to: 1.into(),
@@ -151,10 +151,10 @@ mod tests {
             ],
         );
         check_node(&node_ok, &mut check);
-        assert_eq!(check.has_errors(), false);
+        assert!(!check.has_errors());
 
         let node_ko = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![InputMapping {
                 from: Port::new(Node::In, 3.into()),
                 to: 1.into(),
@@ -166,7 +166,7 @@ mod tests {
             vec![Operation::ADD(ValuePointer::INPUT(2.into()))],
         );
         check_node(&node_ko, &mut check);
-        assert_eq!(check.has_errors(), true);
+        assert!(check.has_errors());
     }
 
     #[test]
@@ -174,7 +174,7 @@ mod tests {
         let mut check = Default::default();
 
         let node_ok = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![InputMapping {
                 from: Port::new(Node::In, 3.into()),
                 to: 1.into(),
@@ -187,10 +187,10 @@ mod tests {
             ],
         );
         check_node(&node_ok, &mut check);
-        assert_eq!(check.has_errors(), false);
+        assert!(!check.has_errors());
 
         let node_ko = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![InputMapping {
                 from: Port::new(Node::In, 3.into()),
                 to: 1.into(),
@@ -202,7 +202,7 @@ mod tests {
             vec![Operation::SUB(ValuePointer::INPUT(2.into()))],
         );
         check_node(&node_ko, &mut check);
-        assert_eq!(check.has_errors(), true);
+        assert!(check.has_errors());
     }
 
     #[test]
@@ -210,7 +210,7 @@ mod tests {
         let mut check = Default::default();
 
         let node_ok = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![InputMapping {
                 from: Port::new(Node::In, 3.into()),
                 to: 1.into(),
@@ -229,10 +229,10 @@ mod tests {
             ],
         );
         check_node(&node_ok, &mut check);
-        assert_eq!(check.has_errors(), false);
+        assert!(!check.has_errors());
 
         let node_ko = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![InputMapping {
                 from: Port::new(Node::In, 1.into()),
                 to: 1.into(),

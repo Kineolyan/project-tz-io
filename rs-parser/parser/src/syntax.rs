@@ -1,13 +1,15 @@
-
 use crate::common::Res;
-use nom::Parser;
-use nom::error::context;
 use language::instruction::Operation;
 use language::syntax::NodeBlock;
 use language::syntax::{InputMapping, OutputMapping};
+use nom::Parser;
+use nom::error::context;
 
 fn fail(input: &[u8]) -> nom::Err<nom_language::error::VerboseError<&[u8]>> {
-    nom::Err::Failure(crate::common::error_at(input, nom::error::ErrorKind::Satisfy))
+    nom::Err::Failure(crate::common::error_at(
+        input,
+        nom::error::ErrorKind::Satisfy,
+    ))
 }
 
 /// Parses a line of a given symbol, ending with optional spaces before a new-line char
@@ -19,7 +21,8 @@ fn line_of<'a>(symbol: &'static str, input: &'a [u8]) -> Res<'a, ()> {
             nom::character::complete::space0,
             nom::character::complete::newline,
         ),
-    ).parse(input)
+    )
+    .parse(input)
 }
 /// Line marking the start/end of a node
 /// This consumes the chars AND the terminating new-line
@@ -89,11 +92,7 @@ fn instruction_line(initial_input: &[u8]) -> Res<'_, Vec<Operation>> {
     if label.is_some() || instruction.is_some() {
         Ok((
             input,
-            vec![label, instruction]
-                .into_iter()
-                .filter(|v| v.is_some())
-                .map(|v| v.unwrap())
-                .collect(),
+            vec![label, instruction].into_iter().flatten().collect(),
         ))
     } else {
         Err(fail(initial_input))
@@ -115,7 +114,7 @@ fn collect_inputs(input: &[u8]) -> Res<'_, Vec<InputMapping>> {
     use nom::character::complete::newline;
 
     if let Ok((some, ins)) = crate::mapping::inputs(input) {
-        let (rest, _) = ((newline, code_line)).parse(some).map_err(|_| fail(some))?;
+        let (rest, _) = (newline, code_line).parse(some).map_err(|_| fail(some))?;
         Ok((rest, ins))
     } else {
         Ok((input, vec![]))
@@ -184,7 +183,8 @@ pub fn node_list(input: &[u8]) -> Res<'_, Vec<NodeBlock>> {
     nom::multi::separated_list1(
         nom::multi::many1(crate::common::eol),
         context("node", node_block),
-    ).parse(input)
+    )
+    .parse(input)
 }
 
 #[cfg(test)]
@@ -481,11 +481,11 @@ MOV ACC, >1
                 Node::new_node("1"),
                 vec![
                     InputMapping {
-                        from: Port::named_port(&"1", 1.into()),
+                        from: Port::named_port("1", 1.into()),
                         to: 1.into(),
                     },
                     InputMapping {
-                        from: Port::named_port(&"2", 1.into()),
+                        from: Port::named_port("2", 1.into()),
                         to: 2.into(),
                     },
                 ],
@@ -562,7 +562,7 @@ MOV <3, >3
                     }],
                     vec![OutputMapping {
                         from: 1.into(),
-                        to: Port::named_port(&"2", 2.into()),
+                        to: Port::named_port("2", 2.into()),
                     }],
                     vec![Operation::MOV(
                         ValuePointer::INPUT(1.into()),
@@ -572,12 +572,12 @@ MOV <3, >3
                 (
                     Node::new_node("2"),
                     vec![InputMapping {
-                        from: Port::named_port(&"1", 1.into()),
+                        from: Port::named_port("1", 1.into()),
                         to: 2.into(),
                     }],
                     vec![OutputMapping {
                         from: 2.into(),
-                        to: Port::named_port(&"3", 3.into()),
+                        to: Port::named_port("3", 3.into()),
                     }],
                     vec![Operation::MOV(
                         ValuePointer::INPUT(2.into()),
@@ -587,7 +587,7 @@ MOV <3, >3
                 (
                     Node::new_node("3"),
                     vec![InputMapping {
-                        from: Port::named_port(&"2", 2.into()),
+                        from: Port::named_port("2", 2.into()),
                         to: 3.into(),
                     }],
                     vec![OutputMapping {

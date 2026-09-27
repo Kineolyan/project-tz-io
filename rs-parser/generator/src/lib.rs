@@ -20,12 +20,11 @@ fn prepare_output<'a>(filename: &'a str, target_dir: &'a str) -> Result<PathBuf,
         let output_dir = output_dir_buffer.as_path();
         // Clean the existing directory
         let _deleted = fs::remove_dir_all(output_dir);
-        let created = fs::create_dir_all(output_dir);
-        if created.is_err() {
+        if let Err(e) = fs::create_dir_all(output_dir) {
             result = Err(format!(
                 "Could not create output directory {} due to error {}",
                 output_dir.to_str().unwrap(),
-                created.unwrap_err()
+                e
             ))
         }
     }
@@ -36,7 +35,7 @@ fn prepare_output<'a>(filename: &'a str, target_dir: &'a str) -> Result<PathBuf,
 /// Do generate the program into an existing directory.
 fn generate_program(program: &Program, output_dir: PathBuf) -> Result<(), String> {
     let package = output_dir.file_stem().unwrap().to_str().unwrap();
-    java::create_main_file(&program, package, &output_dir)
+    java::create_main_file(program, package, &output_dir)
 }
 
 /// Generates a TZIO program as a Java project.

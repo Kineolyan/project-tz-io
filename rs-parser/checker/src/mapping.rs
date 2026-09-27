@@ -1,3 +1,11 @@
+//! Module checking that the mappings between the various nodes
+//! are consistent.
+//! For example, when a node A maps its outputs to node B, if B
+//! defines its inputs, A and B must map the same ports.
+//! A.out: [1 -> B#1] and B.in: [A#1 -> 1] are ok, same mapping
+//! A.out: [1 -> B#1] and B.in: [A#2 -> 2] are ok, they is no overlap
+//! A.out: [1 -> B#1] and B.in: [A#2 -> 1] are inconsistent
+
 use std::collections::HashMap;
 
 use crate::result::CheckResult;
@@ -5,18 +13,10 @@ use language::address::Node;
 use language::syntax::NodeBlock;
 use language::syntax::Program;
 
-/// Module checking that the mappings between the various nodes
-/// are consistent.
-/// For example, when a node A maps its outputs to node B, if B
-/// defines its inputs, A and B must map the same ports.
-/// A.out: [1 -> B#1] and B.in: [A#1 -> 1] are ok, same mapping
-/// A.out: [1 -> B#1] and B.in: [A#2 -> 2] are ok, they is no overlap
-/// A.out: [1 -> B#1] and B.in: [A#2 -> 1] are inconsistent
-
 type Index<'a> = HashMap<&'a String, usize>;
 // TODO move this method to some utility module
 fn map_node_to_idx<'a>(nodes: &'a [NodeBlock], index: &mut Index<'a>) {
-    for (i, &(ref node, _, _, _)) in nodes.iter().enumerate() {
+    for (i, (node, _, _, _)) in nodes.iter().enumerate() {
         if let Node::Node(node_id) = node {
             index.insert(node_id, i);
         }
@@ -39,8 +39,8 @@ fn check_node_inputs(
             let is_match = index
                 .get(src_id)
                 .map(|node_idx| &nodes[*node_idx])
-                .map(|ref src_node| {
-                    src_node.2.iter().any(|ref output|
+                .map(|src_node| {
+                    src_node.2.iter().any(|output|
             // Output m: i -> n:j <=> Input n: m:i -> j
             match &output.to.node {
               Node::Node(id) =>
@@ -78,8 +78,8 @@ fn check_node_outputs(
             let is_match = index
                 .get(src_id)
                 .map(|node_idx| &nodes[*node_idx])
-                .map(|ref dst_node| {
-                    dst_node.1.iter().any(|ref input|
+                .map(|dst_node| {
+                    dst_node.1.iter().any(|input|
             // Output m: i -> n:j <=> Input n: m:i -> j
             match &input.from.node {
               Node::Node(id) =>
@@ -128,22 +128,22 @@ mod tests {
         let mut check_result = Default::default();
 
         let src = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![],
             vec![OutputMapping {
                 from: 1.into(),
                 to: Port {
-                    node: Node::new_node(&"b"),
+                    node: Node::new_node("b"),
                     port: 2.into(),
                 },
             }],
             vec![],
         );
         let dst = (
-            Node::new_node(&"b"),
+            Node::new_node("b"),
             vec![InputMapping {
                 from: Port {
-                    node: Node::new_node(&"a"),
+                    node: Node::new_node("a"),
                     port: 1.into(),
                 },
                 to: 2.into(),
@@ -154,27 +154,27 @@ mod tests {
         let nodes = vec![src, dst];
         let tree = Program { nodes, tests: None };
         let result = check(&tree, &mut check_result);
-        assert_eq!(result, true);
-        assert_eq!(check_result.has_errors(), false);
+        assert!(result);
+        assert!(!check_result.has_errors());
         let mut check_result = Default::default();
 
         let src = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![],
             vec![OutputMapping {
                 from: 1.into(),
                 to: Port {
-                    node: Node::new_node(&"b"),
+                    node: Node::new_node("b"),
                     port: 2.into(),
                 },
             }],
             vec![],
         );
         let dst = (
-            Node::new_node(&"b"),
+            Node::new_node("b"),
             vec![InputMapping {
                 from: Port {
-                    node: Node::new_node(&"a"),
+                    node: Node::new_node("a"),
                     port: 1.into(),
                 },
                 to: 2.into(),
@@ -185,8 +185,8 @@ mod tests {
         let nodes = vec![src, dst];
         let tree = Program { nodes, tests: None };
         let result = check(&tree, &mut check_result);
-        assert_eq!(result, true);
-        assert_eq!(check_result.has_errors(), false);
+        assert!(result);
+        assert!(!check_result.has_errors());
     }
 
     #[test]
@@ -194,7 +194,7 @@ mod tests {
         let mut check_result = Default::default();
 
         let src = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![InputMapping {
                 from: Port {
                     node: Node::In,
@@ -206,21 +206,21 @@ mod tests {
                 OutputMapping {
                     from: 1.into(),
                     to: Port {
-                        node: Node::new_node(&"b"),
+                        node: Node::new_node("b"),
                         port: 3.into(), // Incorrect port
                     },
                 },
                 OutputMapping {
                     from: 4.into(), // Incorrect port
                     to: Port {
-                        node: Node::new_node(&"b"),
+                        node: Node::new_node("b"),
                         port: 2.into(),
                     },
                 },
                 OutputMapping {
                     from: 1.into(),
                     to: Port {
-                        node: Node::new_node(&"c"), // Incorrect name
+                        node: Node::new_node("c"), // Incorrect name
                         port: 2.into(),
                     },
                 },
@@ -228,10 +228,10 @@ mod tests {
             vec![],
         );
         let dst = (
-            Node::new_node(&"b"),
+            Node::new_node("b"),
             vec![InputMapping {
                 from: Port {
-                    node: Node::new_node(&"a"),
+                    node: Node::new_node("a"),
                     port: 1.into(),
                 },
                 to: 2.into(),
@@ -250,7 +250,7 @@ mod tests {
             tests: None,
         };
         let result = check(&tree, &mut check_result);
-        assert_eq!(result, false);
+        assert!(!result);
         assert_eq!(check_result.error_count(), 4);
     }
 }

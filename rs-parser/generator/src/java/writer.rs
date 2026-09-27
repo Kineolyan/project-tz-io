@@ -158,10 +158,7 @@ fn write_class_definition(writer: &mut dyn Writer, class: &JavaClass) -> StdResu
     write_u16(writer, 0)
 }
 
-fn write_attribute(
-    writer: &mut dyn Writer,
-    &(ref idx, ref attribute): &(u16, Attribute),
-) -> StdResult {
+fn write_attribute(writer: &mut dyn Writer, (idx, attribute): &(u16, Attribute)) -> StdResult {
     match attribute {
         Attribute::Code {
             max_stack,

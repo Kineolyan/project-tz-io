@@ -1,6 +1,6 @@
 use crate::common::Res;
-use nom::Parser;
 use language::address::{Node, Port};
+use nom::Parser;
 
 fn input_node(input: &[u8]) -> Res<'_, Node> {
     let (remaining, _) = nom::bytes::complete::tag("IN").parse(input)?;
@@ -17,7 +17,8 @@ fn node_id(input: &[u8]) -> Res<'_, Node> {
     let (input, id) = nom::combinator::map_res(
         nom::bytes::complete::take_while(|c: u8| c.is_ascii_alphanumeric()),
         crate::common::to_string,
-    ).parse(input)?;
+    )
+    .parse(input)?;
     Ok((input, Node::Node(id)))
 }
 
@@ -67,7 +68,7 @@ mod tests {
     fn test_parse_node_id() {
         let content = to_input(b"#abc42");
         let res = node_id(content);
-        assert_full_result(res, Node::new_node(&"abc42"));
+        assert_full_result(res, Node::new_node("abc42"));
     }
 
     #[test]
@@ -75,13 +76,13 @@ mod tests {
         let content = to_input(b"Node #a1");
 
         let res = node_header(content);
-        assert_full_result(res, Node::new_node(&"a1"));
+        assert_full_result(res, Node::new_node("a1"));
     }
 
     #[test]
     fn test_parse_node_ref() {
         let res_node = node_ref(to_input(b"#ref"));
-        assert_full_result(res_node, Node::new_node(&"ref"));
+        assert_full_result(res_node, Node::new_node("ref"));
 
         let res_in = node_ref(to_input(b"IN"));
         assert_full_result(res_in, Node::In);

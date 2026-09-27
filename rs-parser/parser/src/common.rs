@@ -67,7 +67,8 @@ fn end_line_comment(input: &[u8]) -> Res<'_, ()> {
             nom::bytes::complete::tag("//"),
             nom::bytes::complete::is_not("\n\r"),
         ),
-    ).parse(input)
+    )
+    .parse(input)
 }
 
 /// Parses all spaces until the new-line, including an optional single-line comment
@@ -116,12 +117,9 @@ pub mod tests {
         }
     }
 
-    pub fn assert_full_result<Result: PartialEq + Debug>(
-        res: Res<'_, Result>,
-        value: Result,
-    ) {
+    pub fn assert_full_result<Result: PartialEq + Debug>(res: Res<'_, Result>, value: Result) {
         if let Ok((remaining, _)) = &res {
-            if remaining.len() > 0 as usize {
+            if !remaining.is_empty() {
                 panic!(
                     "Unexpected remaining {}",
                     str::from_utf8(remaining).unwrap()

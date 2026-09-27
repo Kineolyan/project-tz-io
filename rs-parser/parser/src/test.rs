@@ -1,10 +1,10 @@
 use crate::common::Res;
-use nom::Parser;
 use crate::common::ws;
 use language::{
     address::{InputSlot, OutputSlot},
     test::TestCase,
 };
+use nom::Parser;
 use nom::bytes::complete as bytes;
 use nom::character::complete::space0;
 
@@ -16,21 +16,16 @@ pub fn array(input: &[u8]) -> Res<'_, Vec<i8>> {
     nom::sequence::delimited(bytes::tag("["), values, bytes::tag("]")).parse(input)
 }
 
-fn test_values<'a, Slot>(
-    tag: &'static str,
-) -> impl Fn(&'a [u8]) -> Res<'a, (Slot, Vec<i8>)>
+fn test_values<'a, Slot>(tag: &'static str) -> impl Fn(&'a [u8]) -> Res<'a, (Slot, Vec<i8>)>
 where
     Slot: From<u8>,
 {
     move |input| {
         let (input, _) = bytes::tag(tag).parse(input)?;
         // TODO at this point, we are in a test comment, the syntax must be correct
-        let (input, (slot, _)) = ws((
-            crate::common::be_u8,
-            bytes::tag(":"),
-        ) ).parse(input)?;
+        let (input, (slot, _)) = ws((crate::common::be_u8, bytes::tag(":"))).parse(input)?;
         let (input, values) = ws(array).parse(input)?;
-        let (rest, _) = ((space0, bytes::tag("\n"))).parse(input)?;
+        let (rest, _) = (space0, bytes::tag("\n")).parse(input)?;
         Ok((rest, (slot.into(), values)))
     }
 }

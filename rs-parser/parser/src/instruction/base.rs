@@ -1,10 +1,10 @@
-use crate::common::Res;
-use nom::Parser;
-use nom_language::error::VerboseError;
 use crate::common;
+use crate::common::Res;
 use language::instruction::{MemoryPointer, ValuePointer};
+use nom::Parser;
 use nom::bytes::complete::tag;
 use nom::combinator as c;
+use nom_language::error::VerboseError;
 
 pub fn acc_pointer(input: &[u8]) -> Res<'_, ValuePointer> {
     c::value(ValuePointer::ACC, tag("ACC")).parse(input)

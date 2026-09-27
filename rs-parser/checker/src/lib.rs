@@ -39,7 +39,7 @@ mod tests {
     #[test]
     fn test_complete_check_stack() {
         let src = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![InputMapping {
                 from: Port {
                     node: Node::In,
@@ -50,7 +50,7 @@ mod tests {
             vec![OutputMapping {
                 from: 1.into(),
                 to: Port {
-                    node: Node::new_node(&"b"),
+                    node: Node::new_node("b"),
                     port: 2.into(),
                 },
             }],
@@ -60,10 +60,10 @@ mod tests {
             )],
         );
         let dst = (
-            Node::new_node(&"b"),
+            Node::new_node("b"),
             vec![InputMapping {
                 from: Port {
-                    node: Node::new_node(&"a"),
+                    node: Node::new_node("a"),
                     port: 1.into(),
                 },
                 to: 2.into(),
@@ -85,27 +85,27 @@ mod tests {
             nodes: tree,
             tests: None,
         });
-        assert_eq!(result.has_errors(), false);
+        assert!(!result.has_errors());
     }
 
     #[test]
     fn test_checker_counts() {
         let mut checks = CheckResult::default();
-        assert_eq!(checks.has_errors(), false);
-        assert_eq!(checks.has_warnings(), false);
+        assert!(!checks.has_errors());
+        assert!(!checks.has_warnings());
         assert_eq!(checks.error_count(), 0);
         assert_eq!(checks.warning_count(), 0);
 
         checks.add_error(String::from("e"));
-        assert_eq!(checks.has_errors(), true);
-        assert_eq!(checks.has_warnings(), false);
+        assert!(checks.has_errors());
+        assert!(!checks.has_warnings());
         assert_eq!(checks.error_count(), 1);
         assert_eq!(checks.warning_count(), 0);
 
         checks.add_warning(String::from("w1"));
         checks.add_warning(String::from("w2"));
-        assert_eq!(checks.has_errors(), true);
-        assert_eq!(checks.has_warnings(), true);
+        assert!(checks.has_errors());
+        assert!(checks.has_warnings());
         assert_eq!(checks.error_count(), 1);
         assert_eq!(checks.warning_count(), 2);
     }

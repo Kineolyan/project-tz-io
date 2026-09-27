@@ -31,7 +31,7 @@ fn test_input(
     op: &Operation,
     pointer: &ValuePointer,
 ) {
-    if let ValuePointer::INPUT(ref port) = pointer {
+    if let ValuePointer::INPUT(port) = pointer {
         if !inputs.contains(port) {
             result.add_error(format!(
                 "Port {} from {} is not defined in node {} inputs",
@@ -48,7 +48,7 @@ fn test_output(
     op: &Operation,
     pointer: &ValuePointer,
 ) {
-    if let ValuePointer::OUTPUT(ref port) = pointer {
+    if let ValuePointer::OUTPUT(port) = pointer {
         if !outputs.contains(port) {
             result.add_error(format!(
                 "Port {} from {} is not defined in node {} outputs",
@@ -64,17 +64,17 @@ fn check_node(node: &NodeBlock, result: &mut CheckResult) {
 
     for op in &node.3 {
         match op {
-            Operation::MOV(ref from, ref to) => {
+            Operation::MOV(from, to) => {
                 test_input(result, &inputs, &node.0, op, from);
                 test_output(result, &outputs, &node.0, op, to);
             }
-            Operation::ADD(ref value) => {
+            Operation::ADD(value) => {
                 test_input(result, &inputs, &node.0, op, value);
             }
-            Operation::SUB(ref value) => {
+            Operation::SUB(value) => {
                 test_input(result, &inputs, &node.0, op, value);
             }
-            Operation::JRO(ref value) => {
+            Operation::JRO(value) => {
                 test_input(result, &inputs, &node.0, op, value);
             }
             _ => {}

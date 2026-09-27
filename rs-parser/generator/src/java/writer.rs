@@ -85,7 +85,7 @@ fn write_constant_pool(writer: &mut dyn Writer, class: &JavaClass) -> StdResult 
 
     for (_idx, element) in class.pool_iter() {
         match element {
-            PoolElement::Utf8Value(ref value) => {
+            PoolElement::Utf8Value(value) => {
                 write_u8(writer, constants::PoolCode::Utf8 as u8)?;
                 write_u16(writer, value.len() as u16)?;
                 write_string(writer, value)?;
@@ -164,9 +164,9 @@ fn write_attribute(
 ) -> StdResult {
     match attribute {
         Attribute::Code {
-            ref max_stack,
-            ref operations,
-            ref locals,
+            max_stack,
+            operations,
+            locals,
         } => {
             write_u16(writer, *idx)?;
 
@@ -193,18 +193,18 @@ fn write_attribute(
 
 fn write_operation(writer: &mut dyn Writer, operation: &Operation) -> StdResult {
     match operation {
-        Operation::aload(ref idx) => {
+        Operation::aload(idx) => {
             // if idx > 3 { // TODO write the optimization
             write_u8(writer, 25)?;
             write_u8(writer, *idx)
         }
         Operation::aconst_null => write_u8(writer, 1),
         Operation::areturn => write_u8(writer, 176),
-        Operation::astore(ref idx) => {
+        Operation::astore(idx) => {
             write_u8(writer, 58)?;
             write_u8(writer, *idx)
         }
-        Operation::bipush(ref value) => {
+        Operation::bipush(value) => {
             write_u8(writer, 16)?;
             write_u8(writer, *value as u8)
         }
@@ -212,25 +212,25 @@ fn write_operation(writer: &mut dyn Writer, operation: &Operation) -> StdResult 
         Operation::iastore => write_u8(writer, 79),
         Operation::iconst_1 => write_u8(writer, 4),
         Operation::iconst_m1 => write_u8(writer, 2),
-        Operation::invokespecial(ref idx) => {
+        Operation::invokespecial(idx) => {
             write_u8(writer, 183)?;
             write_u16(writer, *idx)
         }
-        Operation::invokevirtual(ref idx) => {
+        Operation::invokevirtual(idx) => {
             write_u8(writer, 182)?;
             write_u16(writer, *idx)
         }
-        Operation::invokestatic(ref idx) => {
+        Operation::invokestatic(idx) => {
             write_u8(writer, 184)?;
             write_u16(writer, *idx)
         }
-        Operation::invokedynamic(ref idx) => {
+        Operation::invokedynamic(idx) => {
             write_u8(writer, 185)?;
             write_u16(writer, *idx)?;
             write_u8(writer, 0)?; // 3rd value must be 0
             write_u8(writer, 0) // 4th value must be 0
         }
-        Operation::invokeinterface(ref idx, ref count) => {
+        Operation::invokeinterface(idx, count) => {
             write_u8(writer, 185)?;
             write_u16(writer, *idx)?;
 
@@ -239,7 +239,7 @@ fn write_operation(writer: &mut dyn Writer, operation: &Operation) -> StdResult 
 
             write_u8(writer, 0) // 4th value must be 0
         }
-        Operation::ldc(ref idx) => {
+        Operation::ldc(idx) => {
             // Optimize using ldc or ldc_w
             if *idx < 256 {
                 write_u8(writer, 18)?;
@@ -249,11 +249,11 @@ fn write_operation(writer: &mut dyn Writer, operation: &Operation) -> StdResult 
                 write_u16(writer, *idx)
             }
         }
-        Operation::new(ref idx) => {
+        Operation::new(idx) => {
             write_u8(writer, 187)?;
             write_u16(writer, *idx)
         }
-        Operation::newarray(ref array_type) => {
+        Operation::newarray(array_type) => {
             write_u8(writer, 188)?;
             write_u8(writer, array_type.clone() as u8)
         }

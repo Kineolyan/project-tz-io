@@ -1,6 +1,4 @@
-// #![cfg(feature = "alloc")]
 
-extern crate nom;
 
 mod address;
 mod common;
@@ -11,17 +9,22 @@ mod test;
 
 use std::result::Result;
 
+use nom::Parser;
+use nom_language::error::VerboseError;
+
+use crate::common::Res;
+
 use language::syntax::NodeBlock;
 use language::syntax::Program;
 use language::test::TestCase;
 
 pub type ParsingResult = Result<Program, ()>;
 
-fn program(input: &[u8]) -> nom::IResult<&[u8], (Vec<NodeBlock>, Option<TestCase>)> {
+fn program(input: &[u8]) -> Res<'_, (Vec<NodeBlock>, Option<TestCase>)> {
     use crate::common::opt_eol;
 
     let (input, _) = opt_eol(input)?;
-    let (input, test_case) = nom::combinator::opt(crate::test::test_case)(input)?;
+    let (input, test_case) = nom::combinator::opt(crate::test::test_case).parse(input)?;
     let (input, _) = opt_eol(input)?;
     let (input, nodes) = crate::syntax::node_list(input)?;
     let (input, _) = opt_eol(input)?;
@@ -29,12 +32,20 @@ fn program(input: &[u8]) -> nom::IResult<&[u8], (Vec<NodeBlock>, Option<TestCase
     Ok((input, (nodes, test_case)))
 }
 
-fn print_error(e: &nom::error::Error<&[u8]>) {
-    println!(
-        "Error = {:#?}\n{:#?}",
-        e.code,
-        crate::common::to_string(e.input).expect("Cannot display content")
-    )
+/// Formats a parsing error, with line numbers and parsing contexts
+fn format_error(input: &[u8], e: VerboseError<&[u8]>) -> String {
+    let Ok(text) = std::str::from_utf8(input) else {
+        return format!("{:#?}", e);
+    };
+    let errors = e
+        .errors
+        .into_iter()
+        .map(|(slice, kind)| {
+            let offset = slice.as_ptr() as usize - input.as_ptr() as usize;
+            (text.get(offset..).unwrap_or(""), kind)
+        })
+        .collect();
+    nom_language::error::convert_error(text, VerboseError { errors })
 }
 
 pub fn parse(input: &[u8]) -> ParsingResult {
@@ -56,10 +67,7 @@ pub fn parse(input: &[u8]) -> ParsingResult {
             }
         }
         Err(nom::Err::Error(e)) | Err(nom::Err::Failure(e)) => {
-            // if cfg!(feature = "alloc") {
-            //     nom::error::convert_error(input, e);
-            // }
-            print_error(&e);
+            println!("Parsing error:\n{}", format_error(input, e));
             Result::Err(())
         }
         Err(nom::Err::Incomplete(needed)) => {
@@ -208,5 +216,51 @@ MOV <1,  >1
             )],
         )];
         assert_result(res, (nodes, None), b"   ");
+    }
+
+    #[test]
+    fn test_parse_valid_program() {
+        let content = b"Node #1
+==========
+IN:1 -> 1
+---------
+MOV <1, >1
+---------
+1 -> OUT:1
+==========
+";
+
+        let program = parse(content).expect("Program should be parsed");
+        assert_eq!(program.nodes.len(), 1);
+        assert_eq!(program.nodes[0].0, Node::new_node("1"));
+        assert!(program.tests.is_none());
+    }
+
+    #[test]
+    fn test_parse_invalid_program() {
+        let content = b"Node #1
+==========
+IN:1 -> 1
+---------
+UNKNOWN <1, >1
+---------
+1 -> OUT:1
+==========
+";
+
+        assert!(parse(content).is_err());
+    }
+
+    #[test]
+    fn test_parse_program_with_unparsed_content() {
+        let content = b"Node #1
+==========
+MOV <1, >1
+==========
+
+garbage
+";
+
+        assert!(parse(content).is_err());
     }
 }

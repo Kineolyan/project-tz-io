@@ -1,28 +1,29 @@
+use crate::common::Res;
+use nom::Parser;
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::space1;
-use nom::IResult;
 
 use crate::instruction::base::{acc_pointer, input_pointer, nil_pointer, value_pointer};
 use language::instruction::Operation;
 
-pub fn add_operation(input: &[u8]) -> IResult<&[u8], Operation> {
-    let (input, _) = tag("ADD")(input)?;
+pub fn add_operation(input: &[u8]) -> Res<'_, Operation> {
+    let (input, _) = tag("ADD").parse(input)?;
     let (input, _) = space1(input)?;
-    let (input, value) = alt((input_pointer, acc_pointer, nil_pointer, value_pointer))(input)?;
+    let (input, value) = alt((input_pointer, acc_pointer, nil_pointer, value_pointer)).parse(input)?;
     Ok((input, Operation::ADD(value)))
 }
 
-pub fn sub_operation(input: &[u8]) -> IResult<&[u8], Operation> {
-    let (input, _) = tag("SUB")(input)?;
+pub fn sub_operation(input: &[u8]) -> Res<'_, Operation> {
+    let (input, _) = tag("SUB").parse(input)?;
     let (input, _) = space1(input)?;
-    let (input, value) = alt((input_pointer, acc_pointer, nil_pointer, value_pointer))(input)?;
+    let (input, value) = alt((input_pointer, acc_pointer, nil_pointer, value_pointer)).parse(input)?;
     Ok((input, Operation::SUB(value)))
 }
 
-pub fn neg_operation(input: &[u8]) -> IResult<&[u8], Operation> {
+pub fn neg_operation(input: &[u8]) -> Res<'_, Operation> {
     use nom::combinator::value;
-    value(Operation::NEG, tag("NEG"))(input)
+    value(Operation::NEG, tag("NEG")).parse(input)
 }
 
 #[cfg(test)]

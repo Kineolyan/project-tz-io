@@ -1,16 +1,26 @@
+use nom::IResult;
+use nom::Parser;
 use nom::character::complete::digit1;
 use nom::character::complete::space0;
 use nom::combinator as c;
-use nom::IResult;
+use nom_language::error::VerboseError;
 
 use std::str;
 
+/// Result of all parsers of this crate, carrying verbose errors
+pub type Res<'a, O> = IResult<&'a [u8], O, VerboseError<&'a [u8]>>;
+
+/// Builds a parsing error at the given position
+pub fn error_at(input: &[u8], kind: nom::error::ErrorKind) -> VerboseError<&[u8]> {
+    nom::error::ParseError::from_error_kind(input, kind)
+}
+
 /// Wrap a parser with space-consumers
-pub fn ws<'a, F: 'a, O, E: nom::error::ParseError<&'a [u8]>>(
+pub fn ws<'a, F, O, E: nom::error::ParseError<&'a [u8]>>(
     inner: F,
-) -> impl FnMut(&'a [u8]) -> IResult<&'a [u8], O, E>
+) -> impl Parser<&'a [u8], Output = O, Error = E>
 where
-    F: FnMut(&'a [u8]) -> IResult<&'a [u8], O, E>,
+    F: Parser<&'a [u8], Output = O, Error = E>,
 {
     nom::sequence::delimited(space0, inner, space0)
 }
@@ -30,18 +40,18 @@ fn to<T: str::FromStr>(v: &[u8]) -> Result<T, i8> {
         .and_then(|i| i.parse::<T>().or(Err(-2)))
 }
 
-pub fn be_uint(input: &[u8]) -> IResult<&[u8], u32> {
-    c::map_res(digit1, to::<u32>)(input)
+pub fn be_uint(input: &[u8]) -> Res<'_, u32> {
+    c::map_res(digit1, to::<u32>).parse(input)
 }
 
-pub fn be_u8(input: &[u8]) -> IResult<&[u8], u8> {
-    let (input, number) = c::map_res(digit1, to::<u8>)(input)?;
+pub fn be_u8(input: &[u8]) -> Res<'_, u8> {
+    let (input, number) = c::map_res(digit1, to::<u8>).parse(input)?;
     Ok((input, number))
 }
 
-pub fn be_i8(input: &[u8]) -> IResult<&[u8], i8> {
-    let (input, sign) = nom::combinator::opt(nom::bytes::complete::tag("-"))(input)?;
-    let (input, number) = c::map_res(digit1, to::<i8>)(input)?;
+pub fn be_i8(input: &[u8]) -> Res<'_, i8> {
+    let (input, sign) = nom::combinator::opt(nom::bytes::complete::tag("-")).parse(input)?;
+    let (input, number) = c::map_res(digit1, to::<i8>).parse(input)?;
     let value = match sign {
         Some(_) => -number,
         None => number,
@@ -50,25 +60,25 @@ pub fn be_i8(input: &[u8]) -> IResult<&[u8], i8> {
 }
 
 /// Consume a one-line comment without consuming the new-line chars
-fn end_line_comment(input: &[u8]) -> IResult<&[u8], ()> {
+fn end_line_comment(input: &[u8]) -> Res<'_, ()> {
     nom::combinator::value(
         (),
         nom::sequence::pair(
             nom::bytes::complete::tag("//"),
             nom::bytes::complete::is_not("\n\r"),
         ),
-    )(input)
+    ).parse(input)
 }
 
 /// Parses all spaces until the new-line, including an optional single-line comment
-pub fn eol(input: &[u8]) -> IResult<&[u8], ()> {
+pub fn eol(input: &[u8]) -> Res<'_, ()> {
     let (input, _) = space0(input)?;
-    let (input, _) = nom::combinator::opt(end_line_comment)(input)?;
-    nom::combinator::value((), nom::character::complete::newline)(input)
+    let (input, _) = nom::combinator::opt(end_line_comment).parse(input)?;
+    nom::combinator::value((), nom::character::complete::newline).parse(input)
 }
 
-pub fn opt_eol(input: &[u8]) -> IResult<&[u8], Vec<()>> {
-    nom::multi::many0(eol)(input)
+pub fn opt_eol(input: &[u8]) -> Res<'_, Vec<()>> {
+    nom::multi::many0(eol).parse(input)
 }
 
 #[cfg(test)]
@@ -77,7 +87,7 @@ pub mod tests {
     use std::fmt::Debug;
 
     use super::*;
-    use nom::{Err, IResult};
+    use nom::Err;
 
     fn assert_remaining_content(value: &[u8], expected: &[u8]) {
         if value != expected {
@@ -89,7 +99,7 @@ pub mod tests {
         }
     }
     pub fn assert_result<Result: PartialEq + Debug>(
-        res: IResult<&[u8], Result>,
+        res: Res<'_, Result>,
         value: Result,
         remaining: &[u8],
     ) {
@@ -99,20 +109,18 @@ pub mod tests {
                 assert_remaining_content(parsed, remaining);
             }
             Err(nom::Err::Failure(error)) => {
-                panic!(
-                    "Cannot parse ```{}```",
-                    str::from_utf8(error.input).unwrap()
-                );
+                let input = error.errors.first().map_or(&b""[..], |(i, _)| i);
+                panic!("Cannot parse ```{}```", str::from_utf8(input).unwrap());
             }
             _ => assert_eq!(res, Ok((remaining, value))),
         }
     }
 
     pub fn assert_full_result<Result: PartialEq + Debug>(
-        res: IResult<&[u8], Result>,
+        res: Res<'_, Result>,
         value: Result,
     ) {
-        if let Ok((ref remaining, _)) = &res {
+        if let Ok((remaining, _)) = &res {
             if remaining.len() > 0 as usize {
                 panic!(
                     "Unexpected remaining {}",
@@ -123,7 +131,7 @@ pub mod tests {
         assert_result(res, value, to_input(b""));
     }
 
-    pub fn assert_cannot_parse<Result: PartialEq + Debug>(res: IResult<&[u8], Result>) {
+    pub fn assert_cannot_parse<Result: PartialEq + Debug>(res: Res<'_, Result>) {
         match res {
             Ok((i, o)) => {
                 panic!(

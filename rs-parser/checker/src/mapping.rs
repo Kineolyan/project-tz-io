@@ -17,7 +17,7 @@ type Index<'a> = HashMap<&'a String, usize>;
 // TODO move this method to some utility module
 fn map_node_to_idx<'a>(nodes: &'a [NodeBlock], index: &mut Index<'a>) {
     for (i, &(ref node, _, _, _)) in nodes.iter().enumerate() {
-        if let Node::Node(ref node_id) = node {
+        if let Node::Node(node_id) = node {
             index.insert(node_id, i);
         }
     }
@@ -30,12 +30,12 @@ fn check_node_inputs(
     index: &Index,
 ) {
     let this_id = match &node.0 {
-        Node::Node(ref id) => id,
+        Node::Node(id) => id,
         _ => panic!("Node of incorrect type"),
     };
     let inputs = &node.1;
     for input in inputs.iter() {
-        if let Node::Node(ref src_id) = &input.from.node {
+        if let Node::Node(src_id) = &input.from.node {
             let is_match = index
                 .get(src_id)
                 .map(|node_idx| &nodes[*node_idx])
@@ -43,7 +43,7 @@ fn check_node_inputs(
                     src_node.2.iter().any(|ref output|
             // Output m: i -> n:j <=> Input n: m:i -> j
             match &output.to.node {
-              Node::Node(ref id) =>
+              Node::Node(id) =>
                 id == this_id
                 && output.from == input.from.port
                 && output.to.port == input.to,
@@ -69,12 +69,12 @@ fn check_node_outputs(
     index: &Index,
 ) {
     let this_id = match &node.0 {
-        Node::Node(ref id) => id,
+        Node::Node(id) => id,
         _ => panic!("Node of incorrect type"),
     };
     let outputs = &node.2;
     for output in outputs.iter() {
-        if let Node::Node(ref src_id) = &output.to.node {
+        if let Node::Node(src_id) = &output.to.node {
             let is_match = index
                 .get(src_id)
                 .map(|node_idx| &nodes[*node_idx])
@@ -82,7 +82,7 @@ fn check_node_outputs(
                     dst_node.1.iter().any(|ref input|
             // Output m: i -> n:j <=> Input n: m:i -> j
             match &input.from.node {
-              Node::Node(ref id) =>
+              Node::Node(id) =>
                 id == this_id
                 && input.from.port == output.from
                 && input.to == output.to.port,

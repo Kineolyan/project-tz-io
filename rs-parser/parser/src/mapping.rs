@@ -1,13 +1,14 @@
+use crate::common::Res;
+use nom::Parser;
 use nom::bytes::complete::tag;
-use nom::IResult; //space;
 
 use crate::address::port_ref;
 use crate::common::{be_u8, ws};
 use language::syntax::{InputMapping, OutputMapping};
 
-pub fn input_item(input: &[u8]) -> IResult<&[u8], InputMapping> {
+pub fn input_item(input: &[u8]) -> Res<'_, InputMapping> {
     let (remaining, (port, _, input_ref)) =
-        nom::sequence::tuple((port_ref, ws(tag("->")), be_u8))(input)?;
+        ((port_ref, ws(tag("->")), be_u8)).parse(input)?;
     let mapping = InputMapping {
         from: port,
         to: input_ref.into(),
@@ -15,13 +16,13 @@ pub fn input_item(input: &[u8]) -> IResult<&[u8], InputMapping> {
     Ok((remaining, mapping))
 }
 
-pub fn inputs(input: &[u8]) -> IResult<&[u8], Vec<InputMapping>> {
-    nom::multi::separated_list1(ws(tag(",")), input_item)(input)
+pub fn inputs(input: &[u8]) -> Res<'_, Vec<InputMapping>> {
+    nom::multi::separated_list1(ws(tag(",")), input_item).parse(input)
 }
 
-pub fn output_item(input: &[u8]) -> IResult<&[u8], OutputMapping> {
+pub fn output_item(input: &[u8]) -> Res<'_, OutputMapping> {
     let (remaining, (input_ref, _, port)) =
-        nom::sequence::tuple((be_u8, ws(tag("->")), port_ref))(input)?;
+        ((be_u8, ws(tag("->")), port_ref)).parse(input)?;
     let mapping = OutputMapping {
         from: input_ref.into(),
         to: port,
@@ -29,8 +30,8 @@ pub fn output_item(input: &[u8]) -> IResult<&[u8], OutputMapping> {
     Ok((remaining, mapping))
 }
 
-pub fn outputs(input: &[u8]) -> IResult<&[u8], Vec<OutputMapping>> {
-    nom::multi::separated_list1(ws(tag(",")), output_item)(input)
+pub fn outputs(input: &[u8]) -> Res<'_, Vec<OutputMapping>> {
+    nom::multi::separated_list1(ws(tag(",")), output_item).parse(input)
 }
 
 #[cfg(test)]

@@ -9,7 +9,7 @@ type Index = HashMap<String, usize>;
 fn map_node_to_idx(tree: &Program) -> Index {
     let mut index = HashMap::new();
     for (i, &(ref node, _, _, _)) in tree.nodes.iter().enumerate() {
-        if let Node::Node(ref node_id) = node {
+        if let Node::Node(node_id) = node {
             index.insert(node_id.clone(), i);
         }
     }
@@ -24,7 +24,7 @@ fn complete_inputs(mut tree: Program, index: &Index) -> Program {
         // Read outputs and add them to their sources
         let outputs: &Vec<OutputMapping> = &node.2;
         for output in outputs.iter() {
-            if let Node::Node(ref dst_id) = &output.to.node {
+            if let Node::Node(dst_id) = &output.to.node {
                 let idx = index
                     .get(dst_id)
                     .unwrap_or_else(|| panic!("No reference to node {}", dst_id));

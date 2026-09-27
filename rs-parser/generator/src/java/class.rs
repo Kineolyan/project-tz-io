@@ -81,12 +81,12 @@ impl JavaClass {
         self.class_pool
             .get(&self.class_id)
             .and_then(|element| match element {
-                PoolElement::ClassInfo(ref idx) => Some(idx),
+                PoolElement::ClassInfo(idx) => Some(idx),
                 _ => None,
             })
             .and_then(|idx| self.class_pool.get(idx))
             .and_then(|element| match element {
-                PoolElement::Utf8Value(ref value) => Some(value.clone()),
+                PoolElement::Utf8Value(value) => Some(value.clone()),
                 _ => None,
             })
     }
@@ -222,18 +222,18 @@ fn type_to_str(out: &mut String, t: &Type) {
         Type::Void => out.push('V'),
         Type::Boolean => out.push('Z'),
         Type::Integer => out.push('I'),
-        Type::Object(ref c) => {
+        Type::Object(c) => {
             out.push('L');
             out.push_str(c);
             out.push(';');
         }
-        Type::ObjectArray(ref dim, ref object_type) => {
+        Type::ObjectArray(dim, object_type) => {
             (0..*dim).for_each(|_| out.push('['));
             out.push('L');
             out.push_str(object_type);
             out.push(';');
         }
-        Type::PrimitiveArray(ref dim, ref prim_type) => {
+        Type::PrimitiveArray(dim, prim_type) => {
             (0..*dim).for_each(|_| out.push('['));
             match prim_type {
                 ArrayType::BOOLEAN => out.push('Z'),

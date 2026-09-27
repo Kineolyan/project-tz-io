@@ -1,3 +1,5 @@
+use crate::common::Res;
+use nom::Parser;
 use crate::common::ws;
 use language::{
     address::{InputSlot, OutputSlot},
@@ -5,44 +7,43 @@ use language::{
 };
 use nom::bytes::complete as bytes;
 use nom::character::complete::space0;
-use nom::IResult;
 
-pub fn values(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
-    nom::multi::separated_list1(nom::character::complete::space1, crate::common::be_i8)(input)
+pub fn values(input: &[u8]) -> Res<'_, Vec<i8>> {
+    nom::multi::separated_list1(nom::character::complete::space1, crate::common::be_i8).parse(input)
 }
 
-pub fn array(input: &[u8]) -> IResult<&[u8], Vec<i8>> {
-    nom::sequence::delimited(bytes::tag("["), values, bytes::tag("]"))(input)
+pub fn array(input: &[u8]) -> Res<'_, Vec<i8>> {
+    nom::sequence::delimited(bytes::tag("["), values, bytes::tag("]")).parse(input)
 }
 
 fn test_values<'a, Slot>(
     tag: &'static str,
-) -> impl Fn(&'a [u8]) -> IResult<&'a [u8], (Slot, Vec<i8>)>
+) -> impl Fn(&'a [u8]) -> Res<'a, (Slot, Vec<i8>)>
 where
     Slot: From<u8>,
 {
     move |input| {
-        let (input, _) = bytes::tag(tag)(input)?;
+        let (input, _) = bytes::tag(tag).parse(input)?;
         // TODO at this point, we are in a test comment, the syntax must be correct
-        let (input, (slot, _)) = ws(nom::sequence::tuple((
+        let (input, (slot, _)) = ws((
             crate::common::be_u8,
             bytes::tag(":"),
-        )))(input)?;
-        let (input, values) = ws(array)(input)?;
-        let (rest, _) = nom::sequence::tuple((space0, bytes::tag("\n")))(input)?;
+        ) ).parse(input)?;
+        let (input, values) = ws(array).parse(input)?;
+        let (rest, _) = ((space0, bytes::tag("\n"))).parse(input)?;
         Ok((rest, (slot.into(), values)))
     }
 }
 
-fn test_input_values(input: &[u8]) -> IResult<&[u8], (OutputSlot, Vec<i8>)> {
-    test_values("/>> ")(input)
+fn test_input_values(input: &[u8]) -> Res<'_, (OutputSlot, Vec<i8>)> {
+    test_values("/>> ").parse(input)
 }
 
-fn test_output_values(input: &[u8]) -> IResult<&[u8], (InputSlot, Vec<i8>)> {
-    test_values("/<< ")(input)
+fn test_output_values(input: &[u8]) -> Res<'_, (InputSlot, Vec<i8>)> {
+    test_values("/<< ").parse(input)
 }
 
-pub fn test_case(input: &[u8]) -> IResult<&[u8], TestCase> {
+pub fn test_case(input: &[u8]) -> Res<'_, TestCase> {
     let mut test: Option<TestCase> = None;
     let mut remaining = input;
     loop {
@@ -63,7 +64,7 @@ pub fn test_case(input: &[u8]) -> IResult<&[u8], TestCase> {
 
         return test.map_or_else(
             || {
-                Err(nom::Err::Error(nom::error::Error::new(
+                Err(nom::Err::Error(crate::common::error_at(
                     input,
                     nom::error::ErrorKind::Satisfy,
                 )))

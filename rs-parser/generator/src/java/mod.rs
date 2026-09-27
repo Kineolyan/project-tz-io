@@ -85,7 +85,7 @@ fn create_reference_instructions(
             );
             instructions.push(constructs::Operation::invokestatic(nil_method_idx));
         }
-        ValuePointer::VALUE(ref value) => {
+        ValuePointer::VALUE(value) => {
             let cst_idx = class.map_integer(*value);
             let value_method_idx = class.map_method(
                 REFERENCES_CLASS_NAME,
@@ -144,7 +144,7 @@ fn create_slot_indexes(tree: &Program) -> SlotStructure {
         let mut ins = Vec::new();
         for input in &node.1 {
             let input_name = match &input.from.node {
-                Node::Node(ref id) => id,
+                Node::Node(id) => id,
                 Node::In => "<IN>",
                 _ => panic!("Unexpect input node {:?} for {:?}", input.from.node, node),
             };
@@ -165,7 +165,7 @@ fn create_slot_indexes(tree: &Program) -> SlotStructure {
         let mut outs = Vec::new();
         for output in &node.2 {
             let output_name = match &output.to.node {
-                Node::Node(ref id) => id,
+                Node::Node(id) => id,
                 Node::Out => "<OUT>",
                 _ => panic!("Unexpect input node {:?} for {:?}", output.to.node, node),
             };
@@ -254,19 +254,19 @@ fn create_operation_array(
         instructions.push(constructs::Operation::aload(var_idx));
         // Construct the operation object
         match operation {
-            Operation::MOV(ref from_pointer, ref to_pointer) => {
+            Operation::MOV(from_pointer, to_pointer) => {
                 create_mov_operation(class, from_pointer, to_pointer, &mut instructions);
             }
-            Operation::SAV(ref mem_pointer) => {
+            Operation::SAV(mem_pointer) => {
                 create_memory_operation(class, "SAV", mem_pointer, &mut instructions);
             }
-            Operation::SWP(ref mem_pointer) => {
+            Operation::SWP(mem_pointer) => {
                 create_memory_operation(class, "SWP", mem_pointer, &mut instructions);
             }
-            Operation::ADD(ref value_pointer) => {
+            Operation::ADD(value_pointer) => {
                 create_math_operation(class, "ADD", value_pointer, &mut instructions);
             }
-            Operation::SUB(ref value_pointer) => {
+            Operation::SUB(value_pointer) => {
                 create_math_operation(class, "SUB", value_pointer, &mut instructions);
             }
             Operation::NEG => {
@@ -280,25 +280,25 @@ fn create_operation_array(
                 );
                 instructions.push(constructs::Operation::invokestatic(method_idx));
             }
-            Operation::LABEL(ref name) => {
+            Operation::LABEL(name) => {
                 create_labeled_operation(class, "LABEL", name, &mut instructions);
             }
-            Operation::JMP(ref name) => {
+            Operation::JMP(name) => {
                 create_labeled_operation(class, "JMP", name, &mut instructions);
             }
-            Operation::JEZ(ref name) => {
+            Operation::JEZ(name) => {
                 create_labeled_operation(class, "JEZ", name, &mut instructions);
             }
-            Operation::JNZ(ref name) => {
+            Operation::JNZ(name) => {
                 create_labeled_operation(class, "JNZ", name, &mut instructions);
             }
-            Operation::JLZ(ref name) => {
+            Operation::JLZ(name) => {
                 create_labeled_operation(class, "JLZ", name, &mut instructions);
             }
-            Operation::JGZ(ref name) => {
+            Operation::JGZ(name) => {
                 create_labeled_operation(class, "JGZ", name, &mut instructions);
             }
-            Operation::JRO(ref value_pointer) => {
+            Operation::JRO(value_pointer) => {
                 create_jro_operation(class, value_pointer, &mut instructions);
             }
         }

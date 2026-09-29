@@ -26,7 +26,7 @@ impl Node {
 
     pub fn get_id(&self) -> &String {
         match self {
-            Node::Node(ref id) => id,
+            Node::Node(id) => id,
             _ => panic!("Not a named node: {}", self),
         }
     }
@@ -35,7 +35,7 @@ impl Node {
         match self {
             Node::In => write!(f, "<IN>"),
             Node::Out => write!(f, "<OUT>"),
-            Node::Node(ref id) => write!(f, "Node#{}", id),
+            Node::Node(id) => write!(f, "Node#{}", id),
         }
     }
 }

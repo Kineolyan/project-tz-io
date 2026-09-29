@@ -81,12 +81,12 @@ impl JavaClass {
         self.class_pool
             .get(&self.class_id)
             .and_then(|element| match element {
-                PoolElement::ClassInfo(ref idx) => Some(idx),
+                PoolElement::ClassInfo(idx) => Some(idx),
                 _ => None,
             })
             .and_then(|idx| self.class_pool.get(idx))
             .and_then(|element| match element {
-                PoolElement::Utf8Value(ref value) => Some(value.clone()),
+                PoolElement::Utf8Value(value) => Some(value.clone()),
                 _ => None,
             })
     }
@@ -116,7 +116,7 @@ impl JavaClass {
         let name_idx = self.map_utf8_value(method_name);
         let descriptor = create_descriptor(&signature);
         let descriptor_idx = self.map_utf8_value(&descriptor);
-        let attr_idx = self.map_utf8_value(&"Code");
+        let attr_idx = self.map_utf8_value("Code");
 
         self.methods.push(Method {
             access,
@@ -172,7 +172,7 @@ impl JavaClass {
 
     pub fn map_self_method(&mut self, method_name: &str, signature: &Signature) -> PoolIdx {
         let class_name = self.get_class_name().expect("Class name not defined yet");
-        self.map_method(&class_name, method_name, &signature)
+        self.map_method(&class_name, method_name, signature)
     }
 
     pub fn map_class(&mut self, classname: &str) -> PoolIdx {
@@ -194,7 +194,7 @@ impl JavaClass {
     /// Gets an iterator on all elements of the class pool
     ///
     /// Elements are enumrated by increasing pool idx.
-    pub fn pool_iter(&self) -> DictionaryIter<PoolElement> {
+    pub fn pool_iter(&self) -> DictionaryIter<'_, PoolElement> {
         self.class_pool.iter()
     }
 
@@ -222,18 +222,18 @@ fn type_to_str(out: &mut String, t: &Type) {
         Type::Void => out.push('V'),
         Type::Boolean => out.push('Z'),
         Type::Integer => out.push('I'),
-        Type::Object(ref c) => {
+        Type::Object(c) => {
             out.push('L');
             out.push_str(c);
             out.push(';');
         }
-        Type::ObjectArray(ref dim, ref object_type) => {
+        Type::ObjectArray(dim, object_type) => {
             (0..*dim).for_each(|_| out.push('['));
             out.push('L');
             out.push_str(object_type);
             out.push(';');
         }
-        Type::PrimitiveArray(ref dim, ref prim_type) => {
+        Type::PrimitiveArray(dim, prim_type) => {
             (0..*dim).for_each(|_| out.push('['));
             match prim_type {
                 ArrayType::BOOLEAN => out.push('Z'),
@@ -334,8 +334,8 @@ mod tests {
             let mut c = JavaClass::new();
             c.set_class("a/b/C");
             c.set_super_class("a/b/SC");
-            assert_eq!(c.class_id < c.super_class_id, true);
-            assert_eq!(c.super_class_id < c.pool_size(), true);
+            assert!(c.class_id < c.super_class_id);
+            assert!(c.super_class_id < c.pool_size());
             assert_eq!(c.pool_size(), 5);
         }
 
@@ -378,15 +378,15 @@ mod tests {
         fn test_map_method() {
             let mut c = JavaClass::new();
             let return_idx = c.map_method(
-                &"a/C1",
-                &"m1",
+                "a/C1",
+                "m1",
                 &Signature {
                     return_type: Type::ObjectArray(2, String::from("a/C2")),
                     parameter_types: vec![Type::Integer, Type::PrimitiveArray(1, ArrayType::LONG)],
                 },
             );
 
-            assert_eq!(return_idx < c.pool_size(), true);
+            assert!(return_idx < c.pool_size());
             assert_eq!(
                 c.pool_size(),
                 2 + // Class name and info
@@ -401,7 +401,7 @@ mod tests {
             for i in 0..(indexes.len() - 1) {
                 let i1 = *indexes[i];
                 let i2 = *indexes[i + 1];
-                assert_eq!(i1 < i2, true, "Invalid indexes {} >= {}", i1, i2);
+                assert!(i1 < i2, "Invalid indexes {} >= {}", i1, i2);
             }
 
             let elements: Vec<&PoolElement> = c.pool_iter().map(|elt| elt.1).collect();
@@ -469,7 +469,7 @@ mod tests {
 
             let pool_size = c.pool_size();
             {
-                assert_eq!(return_idx < pool_size, true);
+                assert!(return_idx < pool_size);
                 assert_eq!(
                     pool_size,
                     2 + // Class name and info
@@ -531,7 +531,7 @@ mod tests {
             {
                 let code_idx = c.map_utf8_value("Code");
                 assert_eq!(pool_size, c.pool_size());
-                assert_eq!(code_idx < pool_size, true);
+                assert!(code_idx < pool_size);
             }
         }
     }

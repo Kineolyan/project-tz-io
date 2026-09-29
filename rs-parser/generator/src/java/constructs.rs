@@ -127,8 +127,8 @@ pub fn count_local_vars(signature: Option<&Signature>, operations: &[Operation])
     let op_count = operations
         .iter()
         .map(|op| match op {
-            Operation::aload(ref idx) => *idx as u16 + 1,
-            Operation::astore(ref idx) => *idx as u16 + 1,
+            Operation::aload(idx) => *idx as u16 + 1,
+            Operation::astore(idx) => *idx as u16 + 1,
             _ => 0u16,
         })
         .max()

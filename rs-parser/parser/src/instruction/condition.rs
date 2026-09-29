@@ -1,33 +1,35 @@
-use nom::IResult;
-
+use crate::common::Res;
 use crate::common::to_string;
 use crate::instruction::base::{acc_pointer, input_pointer, nil_pointer, value_pointer};
 use language::instruction::Operation;
+use nom::Parser;
 
-fn label_name(input: &[u8]) -> IResult<&[u8], String> {
-    nom::combinator::map_res(nom::character::complete::alphanumeric1, to_string)(input)
+fn label_name(input: &[u8]) -> Res<'_, String> {
+    nom::combinator::map_res(nom::character::complete::alphanumeric1, to_string).parse(input)
 }
 
-pub fn label_operation(input: &[u8]) -> IResult<&[u8], Operation> {
-    let (input, (label, _, _)) = nom::sequence::tuple((
+pub fn label_operation(input: &[u8]) -> Res<'_, Operation> {
+    let (input, (label, _, _)) = (
         label_name,
         nom::character::complete::space0,
         nom::bytes::complete::tag(":"),
-    ))(input)?;
+    )
+        .parse(input)?;
     Ok((input, Operation::LABEL(label)))
 }
 
 // JMP, JEZ, JNZ, JGZ, JLZ, JRO
 macro_rules! jump_fn {
     ($name:ident, $pattern:expr, $cnstr:path) => {
-        pub fn $name(input: &[u8]) -> IResult<&[u8], Operation> {
+        pub fn $name(input: &[u8]) -> Res<'_, Operation> {
             // TODO once we see the operation, we can deduce that it must be followed by a label
             // Using Failure would mark the issue in the parsing
-            let (rest, (_, _, label)) = nom::sequence::tuple((
+            let (rest, (_, _, label)) = (
                 nom::bytes::complete::tag($pattern),
                 nom::character::complete::space1,
                 label_name,
-            ))(input)?;
+            )
+                .parse(input)?;
             Ok((rest, $cnstr(label)))
         }
     };
@@ -38,11 +40,11 @@ jump_fn!(jnz_operation, "JNZ", Operation::JNZ);
 jump_fn!(jlz_operation, "JLZ", Operation::JLZ);
 jump_fn!(jgz_operation, "JGZ", Operation::JGZ);
 
-pub fn jro_operation(input: &[u8]) -> IResult<&[u8], Operation> {
-    let (input, _) = nom::bytes::complete::tag("JRO")(input)?;
+pub fn jro_operation(input: &[u8]) -> Res<'_, Operation> {
+    let (input, _) = nom::bytes::complete::tag("JRO").parse(input)?;
     let (input, _) = nom::character::complete::space1(input)?;
     let (input, value) =
-        nom::branch::alt((acc_pointer, nil_pointer, input_pointer, value_pointer))(input)?;
+        nom::branch::alt((acc_pointer, nil_pointer, input_pointer, value_pointer)).parse(input)?;
     Ok((input, Operation::JRO(value)))
 }
 

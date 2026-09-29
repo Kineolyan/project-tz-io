@@ -61,7 +61,7 @@ impl<K: Eq + Hash> Dictionary<K> {
         self.next_idx
     }
 
-    pub fn iter(&self) -> DictionaryIter<K> {
+    pub fn iter(&self) -> DictionaryIter<'_, K> {
         let mut elements: Vec<(&u16, &K)> = self
             .pool
             .iter()

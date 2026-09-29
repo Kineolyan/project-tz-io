@@ -1,3 +1,5 @@
+use crate::common::Res;
+use nom::Parser;
 mod base;
 pub mod condition;
 mod math;
@@ -9,7 +11,7 @@ use crate::instruction::math::*;
 use crate::instruction::memory::*;
 use crate::instruction::mov::*;
 
-pub fn parse_instruction(input: &[u8]) -> nom::IResult<&[u8], language::instruction::Operation> {
+pub fn parse_instruction(input: &[u8]) -> Res<'_, language::instruction::Operation> {
     nom::branch::alt((
         mov_operation,
         swp_operation,
@@ -24,5 +26,6 @@ pub fn parse_instruction(input: &[u8]) -> nom::IResult<&[u8], language::instruct
         jlz_operation,
         jgz_operation,
         jro_operation,
-    ))(input)
+    ))
+    .parse(input)
 }

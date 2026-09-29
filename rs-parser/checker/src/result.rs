@@ -1,15 +1,7 @@
+#[derive(Default)]
 pub struct CheckResult {
     warnings: Vec<String>,
     errors: Vec<String>,
-}
-
-impl Default for CheckResult {
-    fn default() -> Self {
-        CheckResult {
-            warnings: Vec::new(),
-            errors: Vec::new(),
-        }
-    }
 }
 
 impl CheckResult {
@@ -42,20 +34,20 @@ impl CheckResult {
     }
 
     pub(crate) fn print_report_into<F: FnMut(&str)>(&self, mut out: F) {
-        out(&" == TZIO compiler == ");
+        out(" == TZIO compiler == ");
         if self.has_warnings() {
             out(&format!(
                 "{} Warnings in your project",
                 self.warning_count()
             ));
             for warning in &self.warnings {
-                out(&warning);
+                out(warning);
             }
         }
         if self.has_errors() {
             out(&format!("{} Errors in your project", self.error_count()));
             for error in &self.errors {
-                out(&error);
+                out(error);
             }
         }
     }

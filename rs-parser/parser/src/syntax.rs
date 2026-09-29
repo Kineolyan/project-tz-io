@@ -1,35 +1,37 @@
-use nom::IResult;
-
+use crate::common::Res;
 use language::instruction::Operation;
 use language::syntax::NodeBlock;
 use language::syntax::{InputMapping, OutputMapping};
+use nom::Parser;
+use nom::error::context;
 
-fn fail(input: &[u8]) -> nom::Err<nom::error::Error<&[u8]>> {
-    nom::Err::Failure(nom::error::Error::new(
+fn fail(input: &[u8]) -> nom::Err<nom_language::error::VerboseError<&[u8]>> {
+    nom::Err::Failure(crate::common::error_at(
         input,
         nom::error::ErrorKind::Satisfy,
     ))
 }
 
 /// Parses a line of a given symbol, ending with optional spaces before a new-line char
-fn line_of<'a>(symbol: &'static str, input: &'a [u8]) -> IResult<&'a [u8], ()> {
+fn line_of<'a>(symbol: &'static str, input: &'a [u8]) -> Res<'a, ()> {
     nom::combinator::value(
         (),
-        nom::sequence::tuple((
+        (
             nom::multi::many_m_n(3, 10000, nom::bytes::complete::tag(symbol)),
             nom::character::complete::space0,
             nom::character::complete::newline,
-        )),
-    )(input)
+        ),
+    )
+    .parse(input)
 }
 /// Line marking the start/end of a node
 /// This consumes the chars AND the terminating new-line
-pub fn node_line(input: &[u8]) -> IResult<&[u8], ()> {
+pub fn node_line(input: &[u8]) -> Res<'_, ()> {
     line_of("=", input)
 }
 /// Line separating inputs/outputs from the node instructions
 /// This consumes the chars AND the terminating new-line
-pub fn code_line(input: &[u8]) -> IResult<&[u8], ()> {
+pub fn code_line(input: &[u8]) -> Res<'_, ()> {
     line_of("-", input)
 }
 
@@ -42,7 +44,7 @@ where
 
 /// Find the closing node-line and return the content of the block.
 /// If the final line cannot be found, it fails
-fn find_node_end_line(full_input: &[u8]) -> IResult<&[u8], &[u8]> {
+fn find_node_end_line(full_input: &[u8]) -> Res<'_, &[u8]> {
     let t = "\n==="; // At least 3 =
     let mut input = full_input;
     loop {
@@ -64,7 +66,7 @@ fn find_node_end_line(full_input: &[u8]) -> IResult<&[u8], &[u8]> {
     }
 }
 
-fn instruction_line(initial_input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
+fn instruction_line(initial_input: &[u8]) -> Res<'_, Vec<Operation>> {
     use nom::character::complete::space0;
     let (input, _) = space0(initial_input)?; // Consume leading space
     let (input, label) =
@@ -90,11 +92,7 @@ fn instruction_line(initial_input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
     if label.is_some() || instruction.is_some() {
         Ok((
             input,
-            vec![label, instruction]
-                .into_iter()
-                .filter(|v| v.is_some())
-                .map(|v| v.unwrap())
-                .collect(),
+            vec![label, instruction].into_iter().flatten().collect(),
         ))
     } else {
         Err(fail(initial_input))
@@ -102,7 +100,7 @@ fn instruction_line(initial_input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
 }
 
 /// Consumes all blank lines, possibly containing comments
-fn consume_eols(input: &[u8]) -> IResult<&[u8], ()> {
+fn consume_eols(input: &[u8]) -> Res<'_, ()> {
     let mut remaining = input;
     while let Ok((more, _)) = crate::common::eol(remaining) {
         remaining = more;
@@ -112,11 +110,11 @@ fn consume_eols(input: &[u8]) -> IResult<&[u8], ()> {
 
 /// Collects all inputs if any
 /// If an input section is found, the section must be correctly defined.
-fn collect_inputs(input: &[u8]) -> IResult<&[u8], Vec<InputMapping>> {
+fn collect_inputs(input: &[u8]) -> Res<'_, Vec<InputMapping>> {
     use nom::character::complete::newline;
 
     if let Ok((some, ins)) = crate::mapping::inputs(input) {
-        let (rest, _) = nom::sequence::tuple((newline, code_line))(some).map_err(|_| fail(some))?;
+        let (rest, _) = (newline, code_line).parse(some).map_err(|_| fail(some))?;
         Ok((rest, ins))
     } else {
         Ok((input, vec![]))
@@ -125,7 +123,7 @@ fn collect_inputs(input: &[u8]) -> IResult<&[u8], Vec<InputMapping>> {
 
 /// Collects all outputs if any.
 /// If an output section is found, the section must be correctly defined.
-fn collect_outputs(input: &[u8]) -> IResult<&[u8], Vec<OutputMapping>> {
+fn collect_outputs(input: &[u8]) -> Res<'_, Vec<OutputMapping>> {
     if let Ok((some, _)) = code_line(input) {
         crate::mapping::outputs(some).map_err(|_| fail(input))
     } else {
@@ -134,7 +132,7 @@ fn collect_outputs(input: &[u8]) -> IResult<&[u8], Vec<OutputMapping>> {
 }
 
 /// Collects all instructions of the node
-fn collect_instructions(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
+fn collect_instructions(input: &[u8]) -> Res<'_, Vec<Operation>> {
     let mut instructions = vec![];
     let mut remaining = input;
     while let Ok((rest, mut instruction)) = instruction_line(remaining) {
@@ -149,11 +147,11 @@ fn collect_instructions(input: &[u8]) -> IResult<&[u8], Vec<Operation>> {
     }
 }
 
-fn parse_node(initial_input: &[u8]) -> IResult<&[u8], NodeBlock> {
-    let (input, inputs) = collect_inputs(initial_input)?;
+fn parse_node(initial_input: &[u8]) -> Res<'_, NodeBlock> {
+    let (input, inputs) = context("inputs", collect_inputs).parse(initial_input)?;
     let (input, _) = consume_eols(input)?;
-    let (input, instructions) = collect_instructions(input)?;
-    let (input, outputs) = collect_outputs(input)?;
+    let (input, instructions) = context("instructions", collect_instructions).parse(input)?;
+    let (input, outputs) = context("outputs", collect_outputs).parse(input)?;
     // Here we must check that there is no more data in the input
 
     Ok((
@@ -163,11 +161,11 @@ fn parse_node(initial_input: &[u8]) -> IResult<&[u8], NodeBlock> {
     ))
 }
 
-pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], NodeBlock> {
+pub fn node_block(initial_input: &[u8]) -> Res<'_, NodeBlock> {
     use nom::character::complete::newline;
 
     let (input, _) = nom::character::complete::space0(initial_input)?;
-    let (input, node_id) = crate::address::node_header(input)?;
+    let (input, node_id) = context("node header", crate::address::node_header).parse(input)?;
     let (input, _) = newline(input)?;
 
     // At this point, we must see the start of a block
@@ -181,8 +179,12 @@ pub fn node_block(initial_input: &[u8]) -> IResult<&[u8], NodeBlock> {
     Ok((post_node_input, node))
 }
 
-pub fn node_list(input: &[u8]) -> IResult<&[u8], Vec<NodeBlock>> {
-    nom::multi::separated_list1(nom::multi::many1(crate::common::eol), node_block)(input)
+pub fn node_list(input: &[u8]) -> Res<'_, Vec<NodeBlock>> {
+    nom::multi::separated_list1(
+        nom::multi::many1(crate::common::eol),
+        context("node", node_block),
+    )
+    .parse(input)
 }
 
 #[cfg(test)]
@@ -479,11 +481,11 @@ MOV ACC, >1
                 Node::new_node("1"),
                 vec![
                     InputMapping {
-                        from: Port::named_port(&"1", 1.into()),
+                        from: Port::named_port("1", 1.into()),
                         to: 1.into(),
                     },
                     InputMapping {
-                        from: Port::named_port(&"2", 1.into()),
+                        from: Port::named_port("2", 1.into()),
                         to: 2.into(),
                     },
                 ],
@@ -498,6 +500,24 @@ MOV ACC, >1
                 ],
             ),
         );
+    }
+
+    #[test]
+    fn test_parse_node_list_without_blank_line_between_nodes() {
+        // Nodes must be separated by at least one blank line
+        let content = b"Node #1
+==========
+MOV <1, >1
+==========
+Node #2
+==========
+MOV <2, >2
+==========
+";
+
+        let (remaining, nodes) = node_list(content).unwrap();
+        assert_eq!(nodes.len(), 1);
+        assert!(remaining.starts_with(b"Node #2"));
     }
 
     #[test]
@@ -542,7 +562,7 @@ MOV <3, >3
                     }],
                     vec![OutputMapping {
                         from: 1.into(),
-                        to: Port::named_port(&"2", 2.into()),
+                        to: Port::named_port("2", 2.into()),
                     }],
                     vec![Operation::MOV(
                         ValuePointer::INPUT(1.into()),
@@ -552,12 +572,12 @@ MOV <3, >3
                 (
                     Node::new_node("2"),
                     vec![InputMapping {
-                        from: Port::named_port(&"1", 1.into()),
+                        from: Port::named_port("1", 1.into()),
                         to: 2.into(),
                     }],
                     vec![OutputMapping {
                         from: 2.into(),
-                        to: Port::named_port(&"3", 3.into()),
+                        to: Port::named_port("3", 3.into()),
                     }],
                     vec![Operation::MOV(
                         ValuePointer::INPUT(2.into()),
@@ -567,7 +587,7 @@ MOV <3, >3
                 (
                     Node::new_node("3"),
                     vec![InputMapping {
-                        from: Port::named_port(&"2", 2.into()),
+                        from: Port::named_port("2", 2.into()),
                         to: 3.into(),
                     }],
                     vec![OutputMapping {

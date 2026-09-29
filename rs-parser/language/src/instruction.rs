@@ -50,11 +50,11 @@ impl fmt::Display for ValuePointer {
 impl ValuePointer {
     fn do_fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ValuePointer::VALUE(ref value) => write!(f, "Value({})", value),
+            ValuePointer::VALUE(value) => write!(f, "Value({})", value),
             ValuePointer::ACC => write!(f, "ACC"),
             ValuePointer::NIL => write!(f, "NIL"),
-            ValuePointer::INPUT(ref port) => write!(f, "Input({})", port),
-            ValuePointer::OUTPUT(ref port) => write!(f, "Input({})", port),
+            ValuePointer::INPUT(port) => write!(f, "Input({})", port),
+            ValuePointer::OUTPUT(port) => write!(f, "Input({})", port),
         }
     }
 }
@@ -74,7 +74,7 @@ impl fmt::Display for MemoryPointer {
 impl MemoryPointer {
     fn do_fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            MemoryPointer::BAK(ref slot) => write!(f, "BAK({})", slot),
+            MemoryPointer::BAK(slot) => write!(f, "BAK({})", slot),
         }
     }
 }
@@ -94,19 +94,19 @@ impl fmt::Display for Operation {
 impl Operation {
     fn do_fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Operation::MOV(ref from, ref to) => write!(f, "MOV {} {}", from, to),
-            Operation::SAV(ref ptr) => write!(f, "SAV {}", ptr),
-            Operation::SWP(ref ptr) => write!(f, "SWP {}", ptr),
-            Operation::ADD(ref ptr) => write!(f, "ADD {}", ptr),
-            Operation::SUB(ref ptr) => write!(f, "SUB {}", ptr),
+            Operation::MOV(from, to) => write!(f, "MOV {} {}", from, to),
+            Operation::SAV(ptr) => write!(f, "SAV {}", ptr),
+            Operation::SWP(ptr) => write!(f, "SWP {}", ptr),
+            Operation::ADD(ptr) => write!(f, "ADD {}", ptr),
+            Operation::SUB(ptr) => write!(f, "SUB {}", ptr),
             Operation::NEG => write!(f, "NEG"),
-            Operation::LABEL(ref label) => write!(f, "LABEL {}", label),
-            Operation::JMP(ref label) => write!(f, "JMP {}", label),
-            Operation::JEZ(ref label) => write!(f, "JEZ {}", label),
-            Operation::JNZ(ref label) => write!(f, "JNZ {}", label),
-            Operation::JLZ(ref label) => write!(f, "JLZ {}", label),
-            Operation::JGZ(ref label) => write!(f, "JGZ {}", label),
-            Operation::JRO(ref ptr) => write!(f, "JRO {}", ptr),
+            Operation::LABEL(label) => write!(f, "LABEL {}", label),
+            Operation::JMP(label) => write!(f, "JMP {}", label),
+            Operation::JEZ(label) => write!(f, "JEZ {}", label),
+            Operation::JNZ(label) => write!(f, "JNZ {}", label),
+            Operation::JLZ(label) => write!(f, "JLZ {}", label),
+            Operation::JGZ(label) => write!(f, "JGZ {}", label),
+            Operation::JRO(ptr) => write!(f, "JRO {}", ptr),
         }
     }
 }

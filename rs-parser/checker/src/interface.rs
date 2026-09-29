@@ -1,11 +1,11 @@
+//! Module checking that the ports referenced by inputs
+//! or outputs for duplicated port numbers.
+
 use std::collections::HashSet;
 
 use crate::CheckResult;
 use language::syntax::NodeBlock;
 use language::syntax::Program;
-
-/// Module checking that the ports referenced by inputs
-/// or outputs for duplicated port numbers.
 
 fn check_ports<T, U, F: Fn(&T) -> U>(inputs: &[T], accessor: F) -> HashSet<U>
 where
@@ -30,7 +30,7 @@ fn dups_to_str<T: std::fmt::Display>(duplicates: HashSet<T>) -> String {
 }
 
 fn check_node(node: &NodeBlock, result: &mut CheckResult) {
-    let input_duplicates = check_ports(&node.1, |ref input| input.to);
+    let input_duplicates = check_ports(&node.1, |input| input.to);
     if !input_duplicates.is_empty() {
         result.add_error(format!(
             "Duplicated input ports referenced in {}: {}",
@@ -39,7 +39,7 @@ fn check_node(node: &NodeBlock, result: &mut CheckResult) {
         ));
     }
 
-    let output_duplicates = check_ports(&node.2, |ref output| output.from);
+    let output_duplicates = check_ports(&node.2, |output| output.from);
     if !output_duplicates.is_empty() {
         result.add_error(format!(
             "Duplicated output ports referenced in {}: {}",
@@ -77,16 +77,16 @@ mod tests {
         let mut check = Default::default();
 
         let node_ok = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![fake_input(1), fake_input(2), fake_input(3)],
             vec![],
             vec![],
         );
         check_node(&node_ok, &mut check);
-        assert_eq!(check.has_errors(), false);
+        assert!(!check.has_errors());
 
         let node_ko = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![
                 fake_input(1),
                 fake_input(2),
@@ -98,7 +98,7 @@ mod tests {
             vec![],
         );
         check_node(&node_ko, &mut check);
-        assert_eq!(check.has_errors(), true);
+        assert!(check.has_errors());
     }
 
     fn fake_output(i: u8) -> OutputMapping {
@@ -113,16 +113,16 @@ mod tests {
         let mut check = Default::default();
 
         let node_ok = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![],
             vec![fake_output(1), fake_output(2), fake_output(3)],
             vec![],
         );
         check_node(&node_ok, &mut check);
-        assert_eq!(check.has_errors(), false);
+        assert!(!check.has_errors());
 
         let node_ko = (
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![],
             vec![
                 fake_output(1),
@@ -134,6 +134,6 @@ mod tests {
             vec![],
         );
         check_node(&node_ko, &mut check);
-        assert_eq!(check.has_errors(), true);
+        assert!(check.has_errors());
     }
 }

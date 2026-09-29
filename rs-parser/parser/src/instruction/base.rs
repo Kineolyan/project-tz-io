@@ -1,36 +1,40 @@
 use crate::common;
+use crate::common::Res;
 use language::instruction::{MemoryPointer, ValuePointer};
+use nom::Parser;
 use nom::bytes::complete::tag;
 use nom::combinator as c;
-use nom::IResult;
+use nom_language::error::VerboseError;
 
-pub fn acc_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
-    c::value(ValuePointer::ACC, tag("ACC"))(input)
+pub fn acc_pointer(input: &[u8]) -> Res<'_, ValuePointer> {
+    c::value(ValuePointer::ACC, tag("ACC")).parse(input)
 }
 
-pub fn nil_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
-    c::value(ValuePointer::NIL, tag("NIL"))(input)
+pub fn nil_pointer(input: &[u8]) -> Res<'_, ValuePointer> {
+    c::value(ValuePointer::NIL, tag("NIL")).parse(input)
 }
 
-fn pointer<'a>(arrow: &'static str) -> impl FnMut(&'a [u8]) -> IResult<&'a [u8], u8> {
+fn pointer<'a>(
+    arrow: &'static str,
+) -> impl Parser<&'a [u8], Output = u8, Error = VerboseError<&'a [u8]>> {
     nom::sequence::preceded(tag(arrow), common::be_u8)
 }
 
-pub fn input_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
-    c::map(pointer("<"), |slot| ValuePointer::INPUT(slot.into()))(input)
+pub fn input_pointer(input: &[u8]) -> Res<'_, ValuePointer> {
+    c::map(pointer("<"), |slot| ValuePointer::INPUT(slot.into())).parse(input)
 }
 
-pub fn output_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
-    c::map(pointer(">"), |slot| ValuePointer::OUTPUT(slot.into()))(input)
+pub fn output_pointer(input: &[u8]) -> Res<'_, ValuePointer> {
+    c::map(pointer(">"), |slot| ValuePointer::OUTPUT(slot.into())).parse(input)
 }
 
-pub fn value_pointer(input: &[u8]) -> IResult<&[u8], ValuePointer> {
-    c::map(common::be_uint, ValuePointer::VALUE)(input)
+pub fn value_pointer(input: &[u8]) -> Res<'_, ValuePointer> {
+    c::map(common::be_uint, ValuePointer::VALUE).parse(input)
 }
 
 #[allow(dead_code)]
-pub fn bak_pointer(input: &[u8]) -> IResult<&[u8], MemoryPointer> {
-    c::value(MemoryPointer::BAK(1), tag("BAK"))(input)
+pub fn bak_pointer(input: &[u8]) -> Res<'_, MemoryPointer> {
+    c::value(MemoryPointer::BAK(1), tag("BAK")).parse(input)
 }
 
 #[cfg(test)]

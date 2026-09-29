@@ -1,17 +1,21 @@
+use crate::common::Res;
 use language::instruction::{MemoryPointer, Operation};
+use nom::Parser;
 
-pub fn swp_operation(input: &[u8]) -> nom::IResult<&[u8], Operation> {
+pub fn swp_operation(input: &[u8]) -> Res<'_, Operation> {
     nom::combinator::value(
         Operation::SWP(MemoryPointer::BAK(1)),
         nom::bytes::complete::tag("SWP"),
-    )(input)
+    )
+    .parse(input)
 }
 
-pub fn sav_operation(input: &[u8]) -> nom::IResult<&[u8], Operation> {
+pub fn sav_operation(input: &[u8]) -> Res<'_, Operation> {
     nom::combinator::value(
         Operation::SAV(MemoryPointer::BAK(1)),
         nom::bytes::complete::tag("SAV"),
-    )(input)
+    )
+    .parse(input)
 }
 
 #[cfg(test)]

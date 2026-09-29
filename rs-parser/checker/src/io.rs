@@ -113,7 +113,7 @@ mod tests {
         let mut checks = Default::default();
         let nodes = vec![
             (
-                Node::new_node(&"a"),
+                Node::new_node("a"),
                 vec![InputMapping {
                     from: Port {
                         node: Node::In,
@@ -125,7 +125,7 @@ mod tests {
                 vec![],
             ),
             (
-                Node::new_node(&"b"),
+                Node::new_node("b"),
                 vec![InputMapping {
                     from: Port {
                         node: Node::In,
@@ -138,7 +138,7 @@ mod tests {
             ),
         ];
         check_inputs(&nodes, &mut checks);
-        assert_eq!(checks.has_errors(), false);
+        assert!(!checks.has_errors());
     }
 
     #[test]
@@ -146,7 +146,7 @@ mod tests {
         let mut checks = Default::default();
         let nodes = vec![
             (
-                Node::new_node(&"a"),
+                Node::new_node("a"),
                 vec![InputMapping {
                     from: Port {
                         node: Node::In,
@@ -158,7 +158,7 @@ mod tests {
                 vec![],
             ),
             (
-                Node::new_node(&"b"),
+                Node::new_node("b"),
                 vec![InputMapping {
                     from: Port {
                         node: Node::In,
@@ -171,7 +171,7 @@ mod tests {
             ),
         ];
         check_inputs(&nodes, &mut checks);
-        assert_eq!(checks.has_errors(), true);
+        assert!(checks.has_errors());
     }
 
     #[test]
@@ -179,7 +179,7 @@ mod tests {
         let mut checks = Default::default();
         let nodes = vec![
             (
-                Node::new_node(&"a"),
+                Node::new_node("a"),
                 vec![],
                 vec![OutputMapping {
                     from: 1.into(),
@@ -191,7 +191,7 @@ mod tests {
                 vec![],
             ),
             (
-                Node::new_node(&"b"),
+                Node::new_node("b"),
                 vec![],
                 vec![OutputMapping {
                     from: 2.into(),
@@ -204,7 +204,7 @@ mod tests {
             ),
         ];
         check_outputs(&nodes, &mut checks);
-        assert_eq!(checks.has_errors(), false);
+        assert!(!checks.has_errors());
     }
 
     #[test]
@@ -212,7 +212,7 @@ mod tests {
         let mut checks = Default::default();
         let nodes = vec![
             (
-                Node::new_node(&"a"),
+                Node::new_node("a"),
                 vec![],
                 vec![OutputMapping {
                     from: 1.into(),
@@ -224,7 +224,7 @@ mod tests {
                 vec![],
             ),
             (
-                Node::new_node(&"b"),
+                Node::new_node("b"),
                 vec![],
                 vec![OutputMapping {
                     from: 2.into(),
@@ -237,7 +237,7 @@ mod tests {
             ),
         ];
         check_outputs(&nodes, &mut checks);
-        assert_eq!(checks.has_errors(), true);
+        assert!(checks.has_errors());
     }
 
     #[test]
@@ -245,7 +245,7 @@ mod tests {
         let mut checks = Default::default();
         let nodes = vec![
             (
-                Node::new_node(&"a"),
+                Node::new_node("a"),
                 vec![InputMapping {
                     from: Port {
                         node: Node::In,
@@ -263,7 +263,7 @@ mod tests {
                 vec![],
             ),
             (
-                Node::new_node(&"b"),
+                Node::new_node("b"),
                 vec![InputMapping {
                     from: Port {
                         node: Node::In,
@@ -283,7 +283,7 @@ mod tests {
         ];
         let tree = Program { nodes, tests: None };
         check(&tree, &mut checks);
-        assert_eq!(checks.has_errors(), true);
+        assert!(checks.has_errors());
         assert_eq!(checks.error_count(), 2);
     }
 
@@ -291,7 +291,7 @@ mod tests {
     fn test_warnings_about_unused_inputs() {
         let mut checks = Default::default();
         let nodes = vec![(
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![InputMapping {
                 from: Port {
                     node: Node::In,
@@ -304,14 +304,14 @@ mod tests {
         )];
         let tree = Program { nodes, tests: None };
         check(&tree, &mut checks);
-        assert_eq!(checks.has_warnings(), true);
+        assert!(checks.has_warnings());
     }
 
     #[test]
     fn test_warnings_about_unused_outputs() {
         let mut checks = Default::default();
         let nodes = vec![(
-            Node::new_node(&"a"),
+            Node::new_node("a"),
             vec![],
             vec![OutputMapping {
                 from: 1.into(),
@@ -324,6 +324,6 @@ mod tests {
         )];
         let tree = Program { nodes, tests: None };
         check(&tree, &mut checks);
-        assert_eq!(checks.has_warnings(), true);
+        assert!(checks.has_warnings());
     }
 }

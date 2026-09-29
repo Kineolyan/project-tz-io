@@ -1,52 +1,56 @@
+use crate::common::Res;
+use nom::Parser;
 use nom::branch;
 use nom::bytes::complete::tag;
 use nom::character::complete::{space0, space1};
-use nom::IResult;
 
 use crate::instruction::base as ptr;
 use language::instruction::Operation;
 
-fn consume_mov(input: &[u8]) -> IResult<&[u8], ()> {
-    let (rest, _) = nom::sequence::tuple((tag("MOV"), space1))(input)?;
+fn consume_mov(input: &[u8]) -> Res<'_, ()> {
+    let (rest, _) = (tag("MOV"), space1).parse(input)?;
     Ok((rest, ()))
 }
 
-fn mov_from_in(input: &[u8]) -> IResult<&[u8], Operation> {
-    let (rest, (from, _, _, _, to)) = nom::sequence::tuple((
+fn mov_from_in(input: &[u8]) -> Res<'_, Operation> {
+    let (rest, (from, _, _, _, to)) = (
         ptr::input_pointer,
         space0,
         tag(","),
         space0,
         branch::alt((ptr::acc_pointer, ptr::nil_pointer, ptr::output_pointer)),
-    ))(input)?;
+    )
+        .parse(input)?;
     Ok((rest, Operation::MOV(from, to)))
 }
 
-fn mov_to_out(input: &[u8]) -> IResult<&[u8], Operation> {
-    let (rest, (from, _, _, _, to)) = nom::sequence::tuple((
+fn mov_to_out(input: &[u8]) -> Res<'_, Operation> {
+    let (rest, (from, _, _, _, to)) = (
         branch::alt((ptr::acc_pointer, ptr::nil_pointer, ptr::value_pointer)),
         space0,
         tag(","),
         space0,
         ptr::output_pointer,
-    ))(input)?;
+    )
+        .parse(input)?;
     Ok((rest, Operation::MOV(from, to)))
 }
 
-fn mov_accs(input: &[u8]) -> IResult<&[u8], Operation> {
-    let (rest, (from, _, _, _, to)) = nom::sequence::tuple((
+fn mov_accs(input: &[u8]) -> Res<'_, Operation> {
+    let (rest, (from, _, _, _, to)) = (
         branch::alt((ptr::value_pointer, ptr::acc_pointer, ptr::nil_pointer)),
         space0,
         tag(","),
         space0,
         ptr::acc_pointer,
-    ))(input)?;
+    )
+        .parse(input)?;
     Ok((rest, Operation::MOV(from, to)))
 }
 
-pub fn mov_operation(input: &[u8]) -> IResult<&[u8], Operation> {
+pub fn mov_operation(input: &[u8]) -> Res<'_, Operation> {
     let (input, _) = consume_mov(input)?;
-    nom::branch::alt((mov_from_in, mov_to_out, mov_accs))(input)
+    nom::branch::alt((mov_from_in, mov_to_out, mov_accs)).parse(input)
 }
 
 #[cfg(test)]

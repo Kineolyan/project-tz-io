@@ -1,13 +1,13 @@
+use crate::common::Res;
+use nom::Parser;
 use nom::bytes::complete::tag;
-use nom::IResult; //space;
 
 use crate::address::port_ref;
 use crate::common::{be_u8, ws};
 use language::syntax::{InputMapping, OutputMapping};
 
-pub fn input_item(input: &[u8]) -> IResult<&[u8], InputMapping> {
-    let (remaining, (port, _, input_ref)) =
-        nom::sequence::tuple((port_ref, ws(tag("->")), be_u8))(input)?;
+pub fn input_item(input: &[u8]) -> Res<'_, InputMapping> {
+    let (remaining, (port, _, input_ref)) = (port_ref, ws(tag("->")), be_u8).parse(input)?;
     let mapping = InputMapping {
         from: port,
         to: input_ref.into(),
@@ -15,13 +15,12 @@ pub fn input_item(input: &[u8]) -> IResult<&[u8], InputMapping> {
     Ok((remaining, mapping))
 }
 
-pub fn inputs(input: &[u8]) -> IResult<&[u8], Vec<InputMapping>> {
-    nom::multi::separated_list1(ws(tag(",")), input_item)(input)
+pub fn inputs(input: &[u8]) -> Res<'_, Vec<InputMapping>> {
+    nom::multi::separated_list1(ws(tag(",")), input_item).parse(input)
 }
 
-pub fn output_item(input: &[u8]) -> IResult<&[u8], OutputMapping> {
-    let (remaining, (input_ref, _, port)) =
-        nom::sequence::tuple((be_u8, ws(tag("->")), port_ref))(input)?;
+pub fn output_item(input: &[u8]) -> Res<'_, OutputMapping> {
+    let (remaining, (input_ref, _, port)) = (be_u8, ws(tag("->")), port_ref).parse(input)?;
     let mapping = OutputMapping {
         from: input_ref.into(),
         to: port,
@@ -29,8 +28,8 @@ pub fn output_item(input: &[u8]) -> IResult<&[u8], OutputMapping> {
     Ok((remaining, mapping))
 }
 
-pub fn outputs(input: &[u8]) -> IResult<&[u8], Vec<OutputMapping>> {
-    nom::multi::separated_list1(ws(tag(",")), output_item)(input)
+pub fn outputs(input: &[u8]) -> Res<'_, Vec<OutputMapping>> {
+    nom::multi::separated_list1(ws(tag(",")), output_item).parse(input)
 }
 
 #[cfg(test)]
@@ -56,7 +55,7 @@ mod tests {
         assert_full_result(
             res_node,
             InputMapping {
-                from: Port::named_port(&"node", 32.into()),
+                from: Port::named_port("node", 32.into()),
                 to: 1.into(),
             },
         );
@@ -68,7 +67,7 @@ mod tests {
         assert_full_result(
             res_one,
             vec![InputMapping {
-                from: Port::named_port(&"n", 7.into()),
+                from: Port::named_port("n", 7.into()),
                 to: 14.into(),
             }],
         );
@@ -82,7 +81,7 @@ mod tests {
                     to: 2.into(),
                 },
                 InputMapping {
-                    from: Port::named_port(&"abc", 3.into()),
+                    from: Port::named_port("abc", 3.into()),
                     to: 4.into(),
                 },
             ],
@@ -105,7 +104,7 @@ mod tests {
             res_node,
             OutputMapping {
                 from: 1.into(),
-                to: Port::named_port(&"node", 32.into()),
+                to: Port::named_port("node", 32.into()),
             },
         );
     }
@@ -117,7 +116,7 @@ mod tests {
             res_one,
             vec![OutputMapping {
                 from: 3.into(),
-                to: Port::named_port(&"n", 7.into()),
+                to: Port::named_port("n", 7.into()),
             }],
         );
 
@@ -131,7 +130,7 @@ mod tests {
                 },
                 OutputMapping {
                     from: 3.into(),
-                    to: Port::named_port(&"abc", 4.into()),
+                    to: Port::named_port("abc", 4.into()),
                 },
             ],
         );

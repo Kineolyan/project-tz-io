@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 jobs:
   build-core:
     docker:
@@ -98,8 +98,6 @@ jobs:
           working_directory: ~/repo/java-reader
 
 workflows:
-  version: 2
-
   build_all:
     jobs:
       - build-core

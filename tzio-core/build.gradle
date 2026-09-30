@@ -3,7 +3,7 @@ plugins {
 }
 
 ext {
-    javaVersion = 17
+    javaVersion = 26
 }
 
 allprojects {
@@ -15,6 +15,9 @@ allprojects {
     version = '1.2-SNAPSHOT'
 }
 
+// Captured for the subprojects: they cannot look it up from the root project
+def catalog = libs
+
 subprojects {
     apply plugin: 'java-library'
     apply plugin: 'io.freefair.lombok'
@@ -23,6 +26,14 @@ subprojects {
         toolchain {
             languageVersion = JavaLanguageVersion.of(rootProject.javaVersion)
         }
+    }
+
+    lombok {
+        version = catalog.versions.lombok
+    }
+
+    dependencies {
+        implementation platform(catalog.junit.bom)
     }
 
     tasks.withType(Test).configureEach {

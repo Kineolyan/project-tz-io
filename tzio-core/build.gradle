@@ -1,48 +1,32 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-//     dependencies {
-//         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
-//     }
-}
-
 plugins {
-    id "io.freefair.lombok" version "6.4.3" apply false
+    alias(libs.plugins.lombok) apply false
 }
 
-ext.junitVersion  = '5.8.2'
-ext.assertjVersion = '3.22.0'
-ext.lombokVersion = '1.18.24'
+ext {
+    javaVersion = 17
+}
 
 allprojects {
     repositories {
         mavenCentral()
     }
 
-    group 'com.kineolyan'
-    version '1.2-SNAPSHOT'
+    group = 'com.kineolyan'
+    version = '1.2-SNAPSHOT'
 }
 
-// Config for java projects
-// ext.javaVersion = 15
-// def javaProjects = ['tzio-spec', 'tzio-tck', 'tzio-java', 'tzio-jdk18']
-// configure(subprojects.findAll {javaProjects.contains(it.name)}) {
-// java {
-//     toolchain {
-//         languageVersion = JavaLanguageVersion.of(11)
-//     }
-// }
-//
-//     plugins {
-//         id "io.freefair.lombok" version "6.4.3"
-//     }
-//
-// //     compileTestJava {
-// //         sourceCompatibility = javaVersion
-// //         targetCompatibility = javaVersion
-// //         options.compilerArgs += '-parameters'
-// //     }
-// }
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'io.freefair.lombok'
 
-version = '1.2.1'
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(rootProject.javaVersion)
+        }
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+        failFast = false
+    }
+}

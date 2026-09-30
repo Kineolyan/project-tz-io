@@ -1,17 +1,6 @@
-plugins {
-    id 'java-library'
-    id "io.freefair.lombok"
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
 dependencies {
     implementation project(':tzio-spec')
 
-    implementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
-    implementation("org.assertj:assertj-core:${assertjVersion}")
+    implementation libs.junit.jupiter.api
+    implementation libs.assertj.core
 }

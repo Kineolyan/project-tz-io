@@ -1,36 +1,26 @@
-plugins {
-    id 'java-library'
-    id "io.freefair.lombok"
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
 dependencies {
     implementation project(':tzio-spec')
-    testImplementation project(':tzio-tck')
-    testImplementation("org.assertj:assertj-core:${assertjVersion}")
 
-    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+    testImplementation project(':tzio-tck')
+    testImplementation libs.assertj.core
+    testImplementation libs.junit.jupiter.api
+    testRuntimeOnly libs.junit.jupiter.engine
+    testRuntimeOnly libs.junit.platform.launcher
 }
 
-task fullJar(type: Jar) {
+// Jar containing the core and its dependencies
+def fullJar = tasks.register('fullJar', Jar) {
     manifest {
         attributes 'Implementation-Title': 'TZ Java Core (Full)',
-                'Implementation-Version': version
+                'Implementation-Version': project.version
     }
-    baseName = project.name + '-full'
-    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    archiveBaseName = project.name + '-full'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(configurations.runtimeClasspath.elements.map { files ->
+        files.collect { it.asFile.isDirectory() ? it : zipTree(it) }
+    })
     with jar
 }
-build.dependsOn fullJar
-
-test {
-    useJUnitPlatform()
-
-    failFast = false
+tasks.named('build') {
+    dependsOn fullJar
 }

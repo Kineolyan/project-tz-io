@@ -1,3 +1,4 @@
+// Core using the latest Java features, including preview ones
 dependencies {
     implementation project(':tzio-spec')
 
@@ -19,7 +20,7 @@ tasks.withType(Test).configureEach {
 // Jar containing the core and its dependencies
 def fullJar = tasks.register('fullJar', Jar) {
     manifest {
-        attributes 'Implementation-Title': 'TZ JDK18 Core (Full)',
+        attributes 'Implementation-Title': 'TZ Modern Core (Full)',
                 'Implementation-Version': project.version
     }
     archiveBaseName = project.name + '-full'

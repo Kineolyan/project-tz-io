@@ -3,9 +3,9 @@ rootProject.name = 'tzio-core'
 include 'spec'
 include 'tck'
 include 'java'
-include 'jdk18'
+include 'modern'
 
 project(":spec").name = "tzio-spec"
 project(":tck").name = "tzio-tck"
 project(":java").name = "tzio-java"
-project(":jdk18").name = "tzio-jdk18"
+project(":modern").name = "tzio-modern"

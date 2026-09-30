@@ -1,0 +1,14 @@
+[versions]
+junit = "6.1.3"
+assertj = "3.27.7"
+lombok = "1.18.48"
+
+[libraries]
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+
+[plugins]
+lombok = { id = "io.freefair.lombok", version = "9.7.0" }

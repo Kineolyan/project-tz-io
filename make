@@ -34,7 +34,7 @@ function make_reader() {
 
 function make_core_jar() {
 	cd $DIR/tzio-core
-	gradle build
+	./gradlew build
 }
 
 action="$1"

@@ -1,3 +1,4 @@
+// Core using the latest Java features, including preview ones
 dependencies {
     implementation project(':tzio-spec')
 
@@ -8,10 +9,18 @@ dependencies {
     testRuntimeOnly libs.junit.platform.launcher
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add('--enable-preview')
+}
+
+tasks.withType(Test).configureEach {
+    jvmArgs('--enable-preview')
+}
+
 // Jar containing the core and its dependencies
 def fullJar = tasks.register('fullJar', Jar) {
     manifest {
-        attributes 'Implementation-Title': 'TZ Java Core (Full)',
+        attributes 'Implementation-Title': 'TZ Modern Core (Full)',
                 'Implementation-Version': project.version
     }
     archiveBaseName = project.name + '-full'

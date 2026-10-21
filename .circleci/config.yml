@@ -20,6 +20,11 @@ jobs:
           - v2-gradle-
 
       - run:
+          # The multi-process core runs its tests with the Python kernel
+          name: Install Python
+          command: command -v python3 || (sudo apt-get update && sudo apt-get install -y python3)
+
+      - run:
           command: ./gradlew build
           working_directory: ~/repo/tzio-core
 

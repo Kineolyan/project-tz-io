@@ -1,0 +1,22 @@
+// Conformance tests for sub-kernels, driving a single node through its standard streams
+dependencies {
+    testImplementation project(':tzio-spec')
+    testImplementation project(':tzio-multi')
+    testImplementation libs.assertj.core
+    testImplementation libs.junit.jupiter.api
+    testImplementation libs.junit.jupiter.params
+    testRuntimeOnly libs.junit.jupiter.engine
+    testRuntimeOnly libs.junit.platform.launcher
+}
+
+def kernelsDir = rootProject.file('../kernels')
+// Kernel under test, overridable with -Dtzio.kernel.command="<command>"
+def kernelCommand = providers.systemProperty('tzio.kernel.command')
+        .orElse('python3 ' + new File(kernelsDir, 'python/tzk.py').absolutePath)
+
+tasks.withType(Test).configureEach {
+    systemProperty 'tzio.kernel.command', kernelCommand.get()
+    // Re-run the tests when the kernel or its sources change
+    inputs.property('kernelCommand', kernelCommand)
+    inputs.dir(kernelsDir)
+}

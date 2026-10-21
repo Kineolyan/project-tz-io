@@ -5,9 +5,11 @@ include 'tck'
 include 'java'
 include 'modern'
 include 'multi'
+include 'kernel-tck'
 
 project(":spec").name = "tzio-spec"
 project(":tck").name = "tzio-tck"
 project(":java").name = "tzio-java"
 project(":modern").name = "tzio-modern"
 project(":multi").name = "tzio-multi"
+project(":kernel-tck").name = "tzio-kernel-tck"

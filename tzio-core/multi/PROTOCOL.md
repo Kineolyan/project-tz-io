@@ -158,3 +158,15 @@ Each slot must have at most one writer and one reader.
 
 `runOn(inputs, cycles)` counts host ticks. A host tick without any message from the
 nodes waits up to `tzio.multi.tickWaitMs` milliseconds (default `20`) for one.
+
+## 5. Testing a kernel
+
+The `tzio-kernel-tck` module checks that a kernel follows this protocol. It runs a single
+node per test, sending messages on its `stdin` and expecting messages on its `stdout`.
+It covers the control protocol, the I/O, every instruction and the `stderr` trace.
+
+```
+./gradlew :tzio-kernel-tck:test -Dtzio.kernel.command="<command starting the kernel>"
+```
+
+Without the property, the reference Python kernel is tested.

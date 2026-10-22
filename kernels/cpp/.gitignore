@@ -1,0 +1,6 @@
+# CMake build
+/build/
+# nix build
+/result
+# direnv
+/.direnv/

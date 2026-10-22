@@ -1,0 +1,7 @@
+# Zig build
+/.zig-cache/
+/zig-out/
+# nix build
+/result
+# direnv
+/.direnv/

@@ -1,0 +1,6 @@
+# dune build
+/_build/
+# nix build
+/result
+# direnv
+/.direnv/

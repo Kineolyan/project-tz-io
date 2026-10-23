@@ -1,0 +1,12 @@
+(lang dune 3.23)
+
+(name tzk)
+
+(generate_opam_files true)
+
+(package
+ (name tzk)
+ (synopsis "TZ-IO sub-kernel in OCaml")
+ (depends
+  (ocaml
+   (>= 5.5))))

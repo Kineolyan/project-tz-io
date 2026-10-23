@@ -1,0 +1,13 @@
+.{
+    .name = .tzk,
+    .version = "0.1.0",
+    // Changing this has security and trust implications.
+    .fingerprint = 0xa30930324e113262,
+    .minimum_zig_version = "0.17.0",
+    .dependencies = .{},
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
